@@ -10,7 +10,7 @@ async function main(){
  w.alert=msg=>{throw Error('Unexpected alert: '+msg)};
  w.crypto.randomUUID=()=>'e2d113ee-7a22-4091-888e-c96c88d983f5';
  let school={
-  selectedClasses:[4,5],
+  selectedClasses:[4,5],subjectCatalogInitialized:{1:true,2:true,3:true,4:true,5:true},
   teachers:[
    {id:'t1',name:'Teacher One',pid:'111',designation:'PST',classes:[4,5]},
    {id:'t2',name:'Teacher Two',pid:'222',designation:'PST',classes:[4,5]}
