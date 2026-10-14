@@ -278,3 +278,24 @@
 .simpleLessonNames li{padding:3px 4px;border-bottom:1px solid #e7f2eb}
 @media(max-width:700px){.simpleCountInputs{grid-template-columns:1fr 1fr}.simpleRemainingOutput{grid-column:1/-1;flex-direction:row;justify-content:space-between;gap:12px}.simpleRemainingOutput strong{font-size:27px}}
 @media(max-width:390px){.simpleCountInputs{grid-template-columns:1fr}.simpleRemainingOutput{grid-column:auto}}
+
+/* Edit monthly chapter counts directly inside the four overview cells */
+.inlineProgressCells{align-items:stretch;gap:12px}
+.inlineProgressCells>div,.inlineProgressCells>label{min-height:132px;padding:17px 12px;border:1px solid #d5ebe0;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#f7fdf9;min-width:0;margin:0}
+.inlineProgressCells>label:nth-child(2){background:#eef5ff;border-color:#d7e5fa}
+.inlineProgressCells>label:nth-child(3){background:#e8f9f1;border-color:#bcead5}
+.inlineProgressCells>div.remaining{background:#fff8e9;border-color:#f1e4bc}
+.inlineProgressCells>label.editableMetric{cursor:text;transition:border-color .2s,box-shadow .2s,transform .2s}
+.inlineProgressCells>label.editableMetric:hover{border-color:#69b99e;box-shadow:0 7px 20px #06765015}
+.inlineProgressCells>label.editableMetric:focus-within{border-color:#069b76;box-shadow:0 0 0 4px #0a9d7420;transform:translateY(-1px)}
+.inlineProgressCells input[data-progress-metric]{background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;width:100%;max-width:160px;padding:5px 3px;margin:0;text-align:center;color:#056a56!important;font-weight:850;font-size:clamp(25px,3vw,36px);line-height:1.25;min-height:47px;font-variant-numeric:tabular-nums}
+.inlineProgressCells input[data-progress-metric]:disabled{opacity:.55;cursor:not-allowed}
+.inlineProgressCells input::-webkit-inner-spin-button,.inlineProgressCells input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.inlineProgressCells input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.inlineProgressCells .editHint{display:block;color:#358a75;font-size:9px;letter-spacing:.1px;margin:5px 0 0;font-weight:700}
+.inlineProgressCells>div small,.inlineProgressCells>label small{font-size:11px;font-weight:850;color:#567e70;line-height:1.35;margin-top:6px}
+.inlineProgressCells>div b{font-size:clamp(27px,3vw,36px)}
+.simpleSaveHint{font-size:11px;color:#658477;font-weight:700}
+@media(max-width:700px){.inlineProgressCells{grid-template-columns:repeat(2,minmax(0,1fr))}.inlineProgressCells>div,.inlineProgressCells>label{min-height:115px;padding:12px 8px}.inlineProgressCells input[data-progress-metric]{font-size:29px}}
+@media(max-width:340px){.inlineProgressCells{gap:7px}.inlineProgressCells>div,.inlineProgressCells>label{padding:9px 4px}}
+@media(prefers-reduced-motion:reduce){.inlineProgressCells>label.editableMetric{transition:none}}
