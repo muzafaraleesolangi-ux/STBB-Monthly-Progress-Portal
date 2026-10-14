@@ -41,3 +41,9 @@
 @keyframes adminEntry{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:550px){.adminSchoolGrid{grid-template-columns:1fr}.adminSchoolToolbar>button{width:100%}.adminModalCard{padding:24px 17px}.adminProfileButtons button{flex-grow:1}}
 @media(prefers-reduced-motion:reduce){.adminModalCard{animation:none}}
+
+.permanentWarning{padding:16px 18px;border:1px solid #edbab3;background:#fff2f0;color:#993a32;border-radius:13px;margin:17px 0}
+.permanentWarning strong{font-size:14px}.permanentWarning p{margin:8px 0 0;color:#993a32;line-height:1.6}
+.adminModalCard .deleteCheckbox{flex-direction:row;align-items:flex-start;gap:10px;line-height:1.5}
+.adminModalCard .deleteCheckbox input{width:17px;height:17px;accent-color:#c64f40;flex-shrink:0;margin:0}
+.adminModalCard .btn.danger{background:#a83731;color:white;box-shadow:0 8px 18px #a8373130}
