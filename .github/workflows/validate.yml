@@ -19,6 +19,12 @@ jobs:
           node --check studio-core-v2.js
           node --check admin-schools-v2.js
           node --check home-navigation-v3.js
+      - name: Install browser DOM test dependencies
+        run: npm install --no-save --no-package-lock jsdom@24.1.3
+      - name: Test classwise teacher subject allocations
+        run: |
+          node --check tests/studio-assignments.test.cjs
+          node tests/studio-assignments.test.cjs
       - name: Check embedded JavaScript syntax
         run: |
           python3 - <<'PY'
