@@ -91,6 +91,44 @@ async function main(){
  assert.deepEqual(['total','previous','current','remaining'].map(metric),[5,1,2,2]);
  await studio.settle();
  assert.equal(Object.hasOwn(savedSubject,'lessonSelections'),false);
+ // Editable lesson names: type a title, paste multiple lines, and preserve progress.
+ click('[data-studio-lessons="5-english"]');
+ click('[data-lesson-write-open="5-english"]');
+ const input=(selector,value)=>{const el=one(selector);el.value=value;el.dispatchEvent(new w.Event('input',{bubbles:true}))};
+ input('[data-lesson-title-index="0"]','My Written Lesson');
+ input('[data-lesson-pasteinput="5-english"]','Lesson Six\nLesson Seven');
+ click('[data-lesson-applypaste="5-english"]');
+ assert.equal(d.querySelectorAll('[data-lesson-title-index]').length,7,'Paste adds two draft titles');
+ assert.equal(metric('total'),5,'Do not change official totals until names are saved');
+ click('[data-lesson-savewrite="5-english"]');
+ await new Promise(ok=>setTimeout(ok,90));
+ assert.deepEqual(['total','previous','current','remaining'].map(metric),[7,1,2,4],'After saving names all counters reflect revised total');
+ const currentBook=studio.getSetup().books[5][0];
+ assert.deepEqual(currentBook.chapters,['My Written Lesson','Lesson Two','Lesson Three','Lesson Four','Lesson Five','Lesson Six','Lesson Seven']);
+ assert.ok(one('[data-lesson-row="5-english"][data-index="6"]').textContent.includes('Lesson Seven'));
+ // Remove the last unfinished chapter without shifting existing saved lesson status indexes.
+ click('[data-lesson-write-open="5-english"]');
+ click('[data-lesson-remove-last="5-english"]');
+ click('[data-lesson-savewrite="5-english"]');
+ await new Promise(ok=>setTimeout(ok,90));
+ assert.equal(currentBook.chapters.length,6);
+ assert.deepEqual(['total','previous','current','remaining'].map(metric),[6,1,2,3]);
+ // Bulk paste fills existing blank names before appending new chapters.
+ click('[data-lesson-write-open="5-english"]');
+ input('[data-lesson-title-index="1"]','');
+ input('[data-lesson-pasteinput="5-english"]','Handwritten Second Lesson');
+ click('[data-lesson-applypaste="5-english"]');
+ assert.equal(d.querySelectorAll('[data-lesson-title-index]').length,6,'Blank-fill does not add extra lessons');
+ click('[data-lesson-savewrite="5-english"]');
+ await new Promise(ok=>setTimeout(ok,90));
+ assert.equal(currentBook.chapters[1],'Handwritten Second Lesson');
+ assert.equal(metric('total'),6);
+ // Cancel must discard edits and leave server setup unchanged.
+ click('[data-lesson-write-open="5-english"]');
+ input('[data-lesson-title-index="1"]','Unsaved Replacement');
+ click('[data-lesson-cancelwrite="5-english"]');
+ assert.equal(currentBook.chapters[1],'Handwritten Second Lesson');
+ await studio.settle();
  dom.window.close();
  console.log('PASS: unfreeze Proforma, live counters, individual lesson statuses, quick select, autosave, manual counts');
 }
