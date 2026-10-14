@@ -104,7 +104,7 @@ async function main(){
  await new Promise(ok=>setTimeout(ok,90));
  assert.deepEqual(['total','previous','current','remaining'].map(metric),[7,1,2,4],'After saving names all counters reflect revised total');
  const currentBook=studio.getSetup().books[5][0];
- assert.deepEqual(currentBook.chapters,['My Written Lesson','Lesson Two','Lesson Three','Lesson Four','Lesson Five','Lesson Six','Lesson Seven']);
+ assert.deepEqual(Array.from(currentBook.chapters),['My Written Lesson','Lesson Two','Lesson Three','Lesson Four','Lesson Five','Lesson Six','Lesson Seven']);
  assert.ok(one('[data-lesson-row="5-english"][data-index="6"]').textContent.includes('Lesson Seven'));
  // Remove the last unfinished chapter without shifting existing saved lesson status indexes.
  click('[data-lesson-write-open="5-english"]');
