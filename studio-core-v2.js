@@ -15,7 +15,7 @@ const Studio=(()=>{
  function repairSubjects(state){let changed=false;if(!state.books||typeof state.books!=='object'||Array.isArray(state.books)){state.books={};changed=true}if(!state.subjectCatalogInitialized||typeof state.subjectCatalogInitialized!=='object'){state.subjectCatalogInitialized={};changed=true}for(const grade of numbers){if(!Array.isArray(state.books[grade])){state.books[grade]=[];changed=true}if(!state.subjectCatalogInitialized[grade]){const existing=state.books[grade],names=new Set(existing.map(b=>normalizedSubject(b.name)));for(const book of defaultBooks(grade)){const name=normalizedSubject(book.name);if(!names.has(name)){existing.push(book);names.add(name);changed=true}}state.subjectCatalogInitialized[grade]=true;changed=true}}return changed}
 
  let setup=null,setupVersion=0,setupBusy=false,setupTimer=null,setupDirty=false,stage=0,grade=5,expanded='',schoolPeriod='',baseState=null,progressVersions={},
- progressEntries={},saveTimers={},progressDirty=new Set(),progressBusy=new Set(),filterTeacher='all',warnings=[],refreshHandle=null,initializing=false,setupConflict=false,assignmentTeacherIndex=0,assignmentEditorId='',assignmentEditorDraft=null,addingSubjectGrade=null,assignmentCollapsedGrades=new Set(),expandedLessonProgress='',lessonFilters={};
+ progressEntries={},saveTimers={},progressDirty=new Set(),progressBusy=new Set(),filterTeacher='all',warnings=[],refreshHandle=null,initializing=false,setupConflict=false,assignmentTeacherIndex=0,assignmentEditorId='',assignmentEditorDraft=null,addingSubjectGrade=null,assignmentCollapsedGrades=new Set(),expandedLessonProgress='',lessonFilters={},lessonNameDraft=null;
  const $s=id=>document.getElementById(id);
  const clone=x=>structuredClone(x),safe=x=>esc(x),roman={1:'I',2:'II',3:'III',4:'IV',5:'V'};
  async function api(action,body={}){if(!auth?.token)throw Error('Please sign in');const r=await fetch(V2,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...body}),cache:'no-store'});const a=await r.json().catch(()=>({}));if(!r.ok||a.error)throw Error(a.error||'Cloud request failed');return a}
@@ -122,9 +122,92 @@ const Studio=(()=>{
   return{previous:Array.from({length:previous},(_,i)=>i),current:Array.from({length:current},(_,i)=>previous+i),legacy:previous+current>0}
  }
  function progressFigures(b,d){const total=b.chapters.length,prev=Math.min(total,Math.max(0,Number(d.previous)||0)),curr=Math.min(total-prev,Math.max(0,Number(d.current)||0));return{total,prev,curr,remaining:Math.max(0,total-prev-curr),pct:total?Math.round((prev+curr)/total*100):0}}
+ function renderLessonNameWriter(b){
+  const draft=lessonNameDraft?.bookId===b.id?lessonNameDraft:null;
+  let out='<div class="lessonWriterWrap"><div class="lessonWriterHeader"><div><strong>✎ Write / Edit Chapter & Lesson Names</strong><small>Easy typing: add one lesson, paste a full list, or correct existing names. Changes apply to this school’s textbook master after saving.</small></div><button type="button" class="ghostMini" data-lesson-write-open="'+safe(b.id)+'">'+(draft?'Hide Editor':'✎ Write Lessons')+'</button></div>';
+  if(!draft)return out+'</div>';
+  out+='<div class="lessonWriterPanel"><div class="lessonWriterIntro">Class '+roman[b.grade]+' · '+safe(b.name)+' · <b>'+draft.chapters.length+' total lessons</b>. Your monthly progress choices are preserved.</div>';
+  out+='<label class="lessonWriterLabel">New lesson / chapter name<div class="lessonWriterAddRow"><input type="text" maxlength="240" data-lesson-newname="'+safe(b.id)+'" placeholder="e.g. Our Environment" value="'+safe(draft.newInput||'')+'"><button type="button" class="btn primary" data-lesson-addone="'+safe(b.id)+'">＋ Add Lesson</button></div></label>';
+  out+='<label class="lessonWriterLabel">Or paste many lessons (one lesson per line)<textarea rows="3" data-lesson-pasteinput="'+safe(b.id)+'" placeholder="Lesson 1 title&#10;Lesson 2 title&#10;Lesson 3 title">'+safe(draft.batchInput||'')+'</textarea><small>Fill empty lesson names first, then append extra titles. Existing named lessons will not be overwritten.</small></label><button type="button" class="ghostMini" data-lesson-applypaste="'+safe(b.id)+'">✓ Add Pasted Lessons</button>';
+  out+='<div class="lessonWriterExisting"><strong>Existing lesson names — edit directly below</strong><div class="lessonWriterInputList">';
+  draft.chapters.forEach((value,i)=>{
+   const removable=i===draft.chapters.length-1;
+   out+='<div class="lessonWriterRow"><span>'+(i+1)+'</span><input type="text" maxlength="240" data-lesson-title="'+safe(b.id)+'" data-lesson-title-index="'+i+'" value="'+safe(value)+'" placeholder="Write lesson / chapter '+(i+1)+' name">'+(removable?'<button type="button" class="ghostMini danger" data-lesson-remove-last="'+safe(b.id)+'" title="Remove last lesson only">Remove Last</button>':'')+'</div>';
+  });
+  out+='</div></div><div class="lessonWriterFooter"><p>Removing lessons is limited to the last uncompleted lesson, protecting numbering and older progress records.</p><div><button type="button" class="ghostMini" data-lesson-cancelwrite="'+safe(b.id)+'">Cancel</button><button type="button" class="btn primary" data-lesson-savewrite="'+safe(b.id)+'">💾 Save Lesson Names & Close</button></div></div></div></div>';
+  return out;
+ }
+ function startLessonWriter(bookId){
+  const b=assigned().find(x=>x.id===bookId);if(!b)return;
+  lessonNameDraft={bookId,grade:b.grade,chapters:[...b.chapters],newInput:'',batchInput:''};
+  expandedLessonProgress=bookId;
+  render();
+ }
+ function addOneLesson(){
+  if(!lessonNameDraft)return;
+  const draft=lessonNameDraft,title=String(draft.newInput||'').trim();
+  if(!title)return notify('Write the new lesson name first.',true);
+  if(draft.chapters.length>=250)return notify('Maximum 250 lessons for one subject.',true);
+  draft.chapters.push(title);draft.newInput='';
+  render();notify('✓ Lesson added to the list. Press Save Lesson Names & Close to save it online.');
+ }
+ function addPastedLessons(){
+  if(!lessonNameDraft)return;
+  const draft=lessonNameDraft,lines=String(draft.batchInput||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if(!lines.length)return notify('Paste at least one lesson title, one per line.',true);
+  const blanks=draft.chapters.reduce((a,x,i)=>(x.trim()?a:(a.push(i),a)),[]);
+  const extra=Math.max(0,lines.length-blanks.length);
+  if(draft.chapters.length+extra>250)return notify('Too many lessons. Maximum 250 per subject; split your list.',true);
+  let added=0,filled=0;
+  for(const name of lines){
+    if(blanks.length){draft.chapters[blanks.shift()]=name;filled++}
+    else{draft.chapters.push(name);added++}
+  }
+  draft.batchInput='';render();notify('✓ '+filled+' blank titles filled, '+added+' new lessons added. Save when ready.');
+ }
+ function removeLastLesson(){
+  const draft=lessonNameDraft;if(!draft||!draft.chapters.length)return;
+  const b=assigned().find(x=>x.id===draft.bookId);if(!b)return;
+  const idx=draft.chapters.length-1;
+  if(idx<b.chapters.length){
+   const d=progressBy(b),sel=chapterSelections(b,d);
+   if(sel.previous.includes(idx)||sel.current.includes(idx)||idx<Number(d.previous||0)+Number(d.current||0)){
+     notify('This last lesson is already counted in monthly progress. Clear its progress status first, then try removing it.',true);return;
+   }
+   if(!confirm('Remove the last lesson? This changes the textbook total for future reports. Saved Excel files remain unchanged.'))return;
+  }
+  draft.chapters.pop();render();notify('Last uncompleted lesson removed from the edit list. Save to apply.');
+ }
+ async function saveLessonNames(){
+  const draft=lessonNameDraft;if(!draft)return true;
+  const b=findBook(draft.grade,draft.bookId);if(!b){lessonNameDraft=null;return true}
+  if(draft.chapters.length>250){notify('Maximum 250 lessons per subject.',true);return false}
+  const titles=draft.chapters.map(x=>String(x||'').trim());
+  if(titles.some(x=>x.length>240)){notify('Each lesson name must be 240 characters or shorter.',true);return false}
+  if(titles.length<b.chapters.length){
+   const d=progressBy(b),sel=chapterSelections(b,d);
+   if(Number(d.previous||0)+Number(d.current||0)>titles.length||[...sel.previous,...sel.current].some(i=>i>=titles.length)){
+    notify('Cannot remove completed lessons. Clear the corresponding month progress first.',true);return false}
+  }
+  // Record pending progress before modifying the shared curriculum. Never overwrite a separate teacher’s subject.
+  if(progressDirty.has(b.id)&&!await saveSubject(b.id)){notify('Save this subject’s monthly progress first.',true);return false}
+  const original=[...b.chapters];
+  b.chapters=titles;markSetup();
+  try{
+    await settleSetup();
+    lessonNameDraft=null;
+    notify('✓ '+b.name+': '+titles.length+' lesson titles saved to the school cloud. Progress counters and Excel export updated.');
+    render();return true;
+  }catch(e){
+    b.chapters=original;
+    notify('Could not save lesson names: '+e.message,true);
+    return false;
+  }
+ }
  function lessonChecklist(b,d){
   const sel=chapterSelections(b,d),prev=new Set(sel.previous),curr=new Set(sel.current),q=(lessonFilters[b.id]||'').toLowerCase();
   let out='<div class="lessonPlanner" data-lesson-panel="'+safe(b.id)+'"><div class="lessonPlannerTop"><div><strong>✓ Select Covered Lessons</strong><small>Mark each lesson as Previous, This Month or Remaining. Counters and Excel totals update automatically.</small></div><button class="ghostMini" type="button" data-lesson-close="'+safe(b.id)+'">Close List ▲</button></div>';
+  out+=renderLessonNameWriter(b);
   if(sel.legacy)out+='<div class="lessonLegacyNote">ⓘ Previous numeric totals were recorded without lesson names. The first '+sel.previous.length+' lessons are provisionally shown as Previous and the next '+sel.current.length+' as This Month. Please verify the actual lesson titles before saving a selection.</div>';
   out+='<div class="lessonPlannerTools"><label>Find a lesson<input type="search" data-lesson-search="'+safe(b.id)+'" value="'+safe(lessonFilters[b.id]||'')+'" placeholder="Search title or lesson number"></label><button class="ghostMini" data-lesson-bulk="next1" data-lesson-bid="'+safe(b.id)+'" type="button">＋ Next 1 → This Month</button><button class="ghostMini" data-lesson-bulk="next5" data-lesson-bid="'+safe(b.id)+'" type="button">＋ Next 5 → This Month</button><button class="ghostMini" data-lesson-bulk="clear" data-lesson-bid="'+safe(b.id)+'" type="button">Clear This Month</button></div>';
   out+='<div class="lessonSelectionList" aria-label="Individual chapter completion choices">';
@@ -234,7 +317,7 @@ const Studio=(()=>{
  catch(e){notify('⚠ '+book.name+': '+e.message,true);if(mark){mark.textContent='⚠ Save conflict';mark.className='progressState pending'}return false}
  finally{progressBusy.delete(bookId);if(progressDirty.has(bookId)&&JSON.stringify(entry.details)!==JSON.stringify(snapshot))saveTimers[bookId]=setTimeout(()=>saveSubject(bookId),1300)}
  }
- async function settle(){if(stage===3&&!await saveAssignmentEditor())throw Error('Save the open subject editor before proceeding.');await settleSetup();await Promise.all([...progressDirty].map(id=>saveSubject(id)));if(progressDirty.size)throw Error('Some subject entries are not saved. Resolve conflicts before export.')}
+ async function settle(){if(stage===3&&!await saveAssignmentEditor())throw Error('Save the open subject editor before proceeding.');if(lessonNameDraft&&!await saveLessonNames())throw Error('Save the lesson name editor before continuing.');await settleSetup();await Promise.all([...progressDirty].map(id=>saveSubject(id)));if(progressDirty.size)throw Error('Some subject entries are not saved. Resolve conflicts before export.')}
  function compiled(){
  const t=clone(baseState||template);
  t.schoolName=account.school_name;t.semis=account.semis;t.hmName=account.hm_name;t.teachers=setup.teachers.map(x=>({id:x.id,name:x.name,pid:x.pid,designation:x.designation}));
@@ -286,11 +369,22 @@ const Studio=(()=>{
   assignmentTeacherIndex=index;clearAssignmentEditor();render();
   notify('✓ Saved. Now assigning subjects for '+(setup.teachers[index].name||'Teacher '+(index+1))+'. Subjects given to other teachers are hidden.');
  }
- async function handleClick(e){const target=e.target.closest('[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-restoregrade],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-studio-lessons],[data-lesson-close],[data-lesson-status],[data-lesson-bulk],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub]');if(!target)return;
- if(target.hasAttribute('data-studio-lessons')){const id=target.dataset.studioLessons;expandedLessonProgress=expandedLessonProgress===id?'':id;render();return}
- if(target.hasAttribute('data-lesson-close')){expandedLessonProgress='';render();return}
- if(target.hasAttribute('data-lesson-status')){setLessonStatus(target.dataset.lessonBid,Number(target.dataset.lessonIndex),target.dataset.lessonStatus);return}
- if(target.hasAttribute('data-lesson-bulk')){bulkLessonStatus(target.dataset.lessonBid,target.dataset.lessonBulk);return}
+ async function handleClick(e){const target=e.target.closest('[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-restoregrade],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-lesson-write-open],[data-lesson-cancelwrite],[data-lesson-addone],[data-lesson-applypaste],[data-lesson-remove-last],[data-lesson-savewrite],[data-studio-lessons],[data-lesson-close],[data-lesson-status],[data-lesson-bulk],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub]');if(!target)return;
+ if(target.hasAttribute('data-lesson-write-open')){
+   const id=target.dataset.lessonWriteOpen;
+   if(lessonNameDraft?.bookId===id){if(!confirm('Discard unsaved lesson name changes?'))return;lessonNameDraft=null;render();return}
+   if(lessonNameDraft&&!await saveLessonNames())return;
+   startLessonWriter(id);return;
+ }
+ if(target.hasAttribute('data-lesson-cancelwrite')){if(!confirm('Discard unsaved lesson name changes?'))return;lessonNameDraft=null;render();return}
+ if(target.hasAttribute('data-lesson-addone')){addOneLesson();return}
+ if(target.hasAttribute('data-lesson-applypaste')){addPastedLessons();return}
+ if(target.hasAttribute('data-lesson-remove-last')){removeLastLesson();return}
+ if(target.hasAttribute('data-lesson-savewrite')){await saveLessonNames();return}
+ if(target.hasAttribute('data-studio-lessons')){const id=target.dataset.studioLessons;if(lessonNameDraft&&!await saveLessonNames())return;expandedLessonProgress=expandedLessonProgress===id?'':id;render();return}
+ if(target.hasAttribute('data-lesson-close')){if(lessonNameDraft&&!await saveLessonNames())return;expandedLessonProgress='';render();return}
+ if(target.hasAttribute('data-lesson-status')){if(lessonNameDraft&&!await saveLessonNames())return;setLessonStatus(target.dataset.lessonBid,Number(target.dataset.lessonIndex),target.dataset.lessonStatus);return}
+ if(target.hasAttribute('data-lesson-bulk')){if(lessonNameDraft&&!await saveLessonNames())return;bulkLessonStatus(target.dataset.lessonBid,target.dataset.lessonBulk);return}
  if(target.hasAttribute('data-school-class')){const n=Number(target.dataset.schoolClass),i=setup.selectedClasses.indexOf(n);if(i>=0){if(!confirm('Remove Class '+roman[n]+' from active classes? Existing lesson titles stay saved if you add it back.'))return;setup.selectedClasses.splice(i,1);for(const t of setup.teachers)t.classes=t.classes.filter(x=>x!==n);for(const b of setup.books[n]||[]){b.active=false;b.teacherId=''}}else setup.selectedClasses.push(n);grade=selectedGrades()[0]||5;markSetup();return render()}
  if(target.hasAttribute('data-classes-all')){setup.selectedClasses=[1,2,3,4,5];markSetup();return render()}
  if(target.hasAttribute('data-classes-none')){if(!confirm('Remove all selected classes?'))return;setup.selectedClasses=[];for(const t of setup.teachers)t.classes=[];for(const n of numbers)for(const b of setup.books[n]||[]){b.active=false;b.teacherId=''}markSetup();return render()}
@@ -366,9 +460,12 @@ const Studio=(()=>{
  if(target.dataset.studioSaveclose){try{await settleSetup();expanded='';render();notify('✓ Subject updates saved. The card is minimized until you open it again.')}catch(e){notify(e.message,true)}return}
  if(target.hasAttribute('data-studio-openmonth')){return openPeriod($s('studioMonthInput').value)}
  if(target.hasAttribute('data-studio-refresh'))return loadEntries();
- if(target.dataset.studioSavesub)return saveSubject(target.dataset.studioSavesub)
+ if(target.dataset.studioSavesub){if(lessonNameDraft?.bookId===target.dataset.studioSavesub&&!await saveLessonNames())return;return saveSubject(target.dataset.studioSavesub)}
  }
  function handleInput(e){const el=e.target;
+ if(el.hasAttribute('data-lesson-title')&&lessonNameDraft?.bookId===el.dataset.lessonTitle){lessonNameDraft.chapters[Number(el.dataset.lessonTitleIndex)]=el.value;return}
+ if(el.hasAttribute('data-lesson-newname')&&lessonNameDraft?.bookId===el.dataset.lessonNewname){lessonNameDraft.newInput=el.value;return}
+ if(el.hasAttribute('data-lesson-pasteinput')&&lessonNameDraft?.bookId===el.dataset.lessonPasteinput){lessonNameDraft.batchInput=el.value;return}
  if(el.hasAttribute('data-lesson-search')){const id=el.dataset.lessonSearch,query=String(el.value||'').toLowerCase().trim();lessonFilters[id]=el.value;const panel=el.closest('[data-lesson-panel]');if(panel)for(const row of panel.querySelectorAll('[data-lesson-row]')){const label=row.querySelector('.lessonName')?.textContent||'';row.hidden=!((String(Number(row.dataset.index)+1)+' '+label).toLowerCase().includes(query))}return}
  if(el.hasAttribute('data-assignment-editname')&&assignmentEditorDraft){assignmentEditorDraft.name=el.value;return}if(el.hasAttribute('data-assignment-chapter')&&assignmentEditorDraft){assignmentEditorDraft.chapters[Number(el.dataset.assignmentChapter)]=el.value;return}if(el.dataset.tid){const t=teacher(el.dataset.tid);if(t)t[el.dataset.field]=el.value;markSetup();return}
  if(el.dataset.studioSubname){let b=findBook(grade,el.dataset.studioSubname);if(b)b.name=el.value;markSetup();return}
@@ -388,5 +485,5 @@ const Studio=(()=>{
  const otherDashTab=dashTab;dashTab=function(tab,button){if($s('studioPanel'))$s('studioPanel').classList.add('hidden');return otherDashTab(tab,button)};
  // Restore the studio if the school session existed before a page refresh.
  setTimeout(()=>{if(auth&&!auth.admin&&account)activate()},1700);
- return{activate,openPeriod,review,showPanel,saveSetup,settle,refresh:loadEntries,unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
+ return{activate,openPeriod,review,showPanel,saveSetup,settle,refresh:loadEntries,unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
 })();
