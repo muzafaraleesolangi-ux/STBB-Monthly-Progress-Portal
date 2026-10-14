@@ -1,0 +1,43 @@
+
+.adminSchoolToolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:21px}
+.adminSchoolToolbar h2{font-size:23px;letter-spacing:-.7px;margin:2px 0 8px}
+.adminSchoolToolbar p{font-size:12px;color:#6d8880;line-height:1.7;margin:0}
+.adminCount{font-size:12px;border-radius:100px;padding:5px 12px;color:#07886d;background:#e3faef}
+.adminSchoolGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:14px}
+.adminSchoolCard{padding:19px;border-radius:19px;border:1px solid #d8eae1;background:linear-gradient(145deg,#ffffff,#f7fdf9);box-shadow:0 7px 28px #0b644014;transition:transform .24s,box-shadow .24s}
+.adminSchoolCard:hover{transform:translateY(-4px);box-shadow:0 14px 35px #0b644024}
+.adminSchoolCard.inactive{opacity:.7;background:#f3f4f4}
+.adminProfileTitle{display:flex;align-items:center;gap:12px}
+.adminProfileTitle strong{font-size:14px;color:#125044;line-height:1.4;display:block}
+.adminProfileTitle small{font-size:11px;color:#688e7d;display:block;margin-top:4px}
+.adminSchoolEmblem{width:43px;height:43px;border-radius:13px;display:grid;place-items:center;background:#e0f6e9;font-size:23px;flex-shrink:0}
+.adminSchoolCard>p{color:#739084;font-size:12px;margin:13px 0}
+.adminSchoolCard>p b{color:#35675b}
+.adminStatus{display:inline-block;border-radius:100px;background:#f9e9e6;color:#b25543;padding:7px 12px;font-size:10px;font-weight:850}
+.adminStatus.active{background:#e0f8eb;color:#117954}
+.adminProfileButtons{display:flex;flex-wrap:wrap;gap:6px;margin-top:17px}
+.adminProfileButtons button{flex-grow:1;padding:10px 9px;border-radius:10px;background:#edf7f1;color:#146e59;border:1px solid #cee9dc;font-size:11px;font-weight:850}
+.adminProfileButtons button:hover{background:#cff8e2}
+.adminProfileButtons button.danger{background:#fff0ed;color:#a64133;border-color:#f2d1ca}
+.adminProfileButtons button.restore{background:#e1fae9}
+.adminSchoolModal{position:fixed;inset:0;display:grid;place-items:center;padding:20px;z-index:1200}
+.adminSchoolModal.hidden{display:none}
+.adminModalShade{position:absolute;inset:0;background:#062d32b8;backdrop-filter:blur(7px)}
+.adminModalCard{position:relative;width:min(560px,100%);max-height:90vh;overflow:auto;background:#fff;padding:31px;border-radius:25px;box-shadow:0 30px 110px #031e2d70;animation:adminEntry .3s ease-out}
+.adminModalCard h2{font-size:23px;letter-spacing:-.6px;margin:5px 0 12px;color:#13584c}
+.adminModalCard h3{font-size:14px;color:#116958;margin:20px 0 7px}
+.adminModalCard p{font-size:12px;color:#628478;line-height:1.8}
+.adminModalCard form label{display:flex;flex-direction:column;gap:8px;font-size:12px;font-weight:800;margin:15px 0;color:#386f60}
+.adminModalCard input{padding:12px 13px;border:1px solid #c8e2d3;border-radius:11px;font-size:13px;outline:none}
+.adminModalCard input:focus{border-color:#10a77d;box-shadow:0 0 0 4px #10aa7c22}
+.adminClose{position:absolute;right:17px;top:16px;border:0;background:#ecf6ee;padding:9px 12px;color:#56776a;border-radius:10px;font-size:14px}
+.adminModalMessage{border-radius:11px;padding:11px 14px;background:#fff8e9;color:#915f18!important;margin-top:12px!important}
+.adminModalMessage.error{background:#fff2ef;color:#a04432!important}
+.adminModalMessage.success{background:#e7f9ed;color:#007b5f!important}
+.adminModalInfo{display:flex;flex-direction:column;gap:7px;background:#eafbf2;border-radius:15px;padding:15px;color:#286453;font-size:12px}
+.adminModalInfo b{font-size:17px;color:#14594b}
+.adminProfileScroll{max-height:160px;overflow:auto;border:1px solid #dfeee5;border-radius:11px;padding:9px 14px}
+.adminProfileScroll p{padding:6px 0;margin:0!important;border-bottom:1px solid #e7f1eb}
+@keyframes adminEntry{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:550px){.adminSchoolGrid{grid-template-columns:1fr}.adminSchoolToolbar>button{width:100%}.adminModalCard{padding:24px 17px}.adminProfileButtons button{flex-grow:1}}
+@media(prefers-reduced-motion:reduce){.adminModalCard{animation:none}}
