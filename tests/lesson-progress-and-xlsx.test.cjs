@@ -62,7 +62,17 @@ async function main(){
  ].join('\n');
  w.eval(fixture+'\n'+fs.readFileSync('studio-core-v2.js','utf8')+'\nwindow.TestStudio=Studio;');
  const studio=w.TestStudio;
- await studio.activate();await studio.openPeriod('2026-10');
+ await studio.activate();studio.stage(5);
+ // Regression: HM should be able to TYPE in the visible Previous cell even without pressing Open / Continue Month.
+ const first=d.querySelector('[data-progress-bid="5-english"][data-pkey="previous"]');
+ assert.ok(first&&!first.disabled,'Monthly progress inputs must not be disabled before opening a reporting month');
+ first.focus();first.value='1';first.dispatchEvent(new w.Event('input',{bubbles:true}));
+ first.value='3';first.dispatchEvent(new w.Event('input',{bubbles:true}));
+ await new Promise(ok=>setTimeout(ok,120));
+ assert.equal(Number(d.querySelector('[data-progress-bid="5-english"][data-pkey="previous"]').value),3,'Latest number typed during automatic month open is preserved');
+ assert.equal(Number(d.querySelector('[data-progress-metric="remaining"]').textContent),2,'Remaining recalculated after direct edit');
+ const initialInput=d.querySelector('[data-progress-bid="5-english"][data-pkey="previous"]');
+ initialInput.value='0';initialInput.dispatchEvent(new w.Event('input',{bubbles:true}));
  const one=sel=>{const e=d.querySelector(sel);assert.ok(e,'Missing '+sel);return e};
  const metric=type=>{const el=one('[data-progress-metric="'+type+'"]');return Number(el.tagName==='INPUT'?el.value:el.textContent)};
  const previous='[data-progress-bid="5-english"][data-pkey="previous"]';
