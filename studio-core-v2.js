@@ -155,7 +155,7 @@ const Studio=(()=>{
   if(!lessonNameDraft)return;
   const draft=lessonNameDraft,lines=String(draft.batchInput||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
   if(!lines.length)return notify('Paste at least one lesson title, one per line.',true);
-  const blanks=draft.chapters.reduce((a,x,i)=>(x.trim()?a:(a.push(i),a)),[]);
+  const blanks=draft.chapters.reduce((a,x,i)=>(String(x||'').trim()?a:(a.push(i),a)),[]);
   const extra=Math.max(0,lines.length-blanks.length);
   if(draft.chapters.length+extra>250)return notify('Too many lessons. Maximum 250 per subject; split your list.',true);
   let added=0,filled=0;
@@ -170,7 +170,7 @@ const Studio=(()=>{
   const b=assigned().find(x=>x.id===draft.bookId);if(!b)return;
   const idx=draft.chapters.length-1;
   if(idx<b.chapters.length){
-   const d=progressBy(b),sel=chapterSelections(b,d);
+   const d=progressBy({...b,grade:draft.grade}),sel=chapterSelections(b,d);
    if(sel.previous.includes(idx)||sel.current.includes(idx)||idx<Number(d.previous||0)+Number(d.current||0)){
      notify('This last lesson is already counted in monthly progress. Clear its progress status first, then try removing it.',true);return;
    }
@@ -185,7 +185,7 @@ const Studio=(()=>{
   const titles=draft.chapters.map(x=>String(x||'').trim());
   if(titles.some(x=>x.length>240)){notify('Each lesson name must be 240 characters or shorter.',true);return false}
   if(titles.length<b.chapters.length){
-   const d=progressBy(b),sel=chapterSelections(b,d);
+   const d=progressBy({...b,grade:draft.grade}),sel=chapterSelections(b,d);
    if(Number(d.previous||0)+Number(d.current||0)>titles.length||[...sel.previous,...sel.current].some(i=>i>=titles.length)){
     notify('Cannot remove completed lessons. Clear the corresponding month progress first.',true);return false}
   }
@@ -290,7 +290,7 @@ const Studio=(()=>{
  function setLessonStatus(bookId,index,mode){
   if(!schoolPeriod)return notify('First open a reporting month.',true);
   const b=assigned().find(x=>x.id===bookId);if(!b||index<0||index>=b.chapters.length)return;
-  const d=progressBy(b),sel=chapterSelections(b,d);
+  const d=progressBy({...b,grade:draft.grade}),sel=chapterSelections(b,d);
   sel.previous=sel.previous.filter(i=>i!==index);sel.current=sel.current.filter(i=>i!==index);
   if(mode==='previous')sel.previous.push(index);
   else if(mode==='current')sel.current.push(index);
