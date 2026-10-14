@@ -259,3 +259,22 @@
 .lessonWriterFooter>div{display:flex;gap:8px;flex-wrap:wrap}
 @media(max-width:670px){.lessonWriterPanel{padding:12px}.lessonWriterHeader button{width:100%}.lessonWriterAddRow{flex-direction:column}.lessonWriterRow{flex-wrap:wrap}.lessonWriterRow>span{flex-shrink:0}.lessonWriterRow input{flex-basis:calc(100% - 42px)}.lessonWriterRow .ghostMini{margin-left:auto}.lessonWriterFooter>div{width:100%}.lessonWriterFooter>div button{flex:1}}
 @media(prefers-reduced-motion:reduce){.lessonWriterPanel{animation:none}}
+
+/* Monthly progress: enter previous & current counts only. No lesson-by-lesson ticks. */
+.simpleProgressCard .chapterKpis{margin-bottom:15px}
+.simpleCountInputs{display:grid;grid-template-columns:1fr 1fr minmax(125px,.8fr);gap:12px;align-items:stretch;margin:16px 0 14px}
+.simpleCountInputs>label,.simpleRemainingOutput{border:1px solid #cfe6db;border-radius:14px;background:#f8fefa;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.simpleCountInputs>label>span{font-size:12px;font-weight:850;color:#155d4e}
+.simpleCountInputs>label>span small{display:block;color:#66887b;font-weight:500;font-size:10px;margin-top:5px}
+.simpleCountInputs input{display:block;width:100%;min-width:0;background:#fff;border-radius:10px;border:1px solid #b5dacb;color:#116b55;padding:12px 14px;font-size:22px;font-weight:800;outline:none;min-height:57px}
+.simpleCountInputs input:focus{border-color:#009b74;box-shadow:0 0 0 4px #00a27722}
+.simpleRemainingOutput{background:#eafbf0;text-align:center;align-items:center;justify-content:center}
+.simpleRemainingOutput span{font-size:11px;font-weight:850;color:#126e56}
+.simpleRemainingOutput strong{font-size:30px;line-height:1.15;color:#087958}
+.simpleRemainingOutput small{font-size:10px;color:#68927d}
+.simpleLessonNames{border:1px solid #daeae0;border-radius:12px;background:#fbfefa;margin:10px 0 16px;padding:12px 15px}
+.simpleLessonNames summary{cursor:pointer;font-size:12px;font-weight:850;color:#277b64}
+.simpleLessonNames ol{list-style:decimal;padding-left:23px;margin:13px 0 0;max-height:290px;overflow:auto;font-size:12px;color:#366759;line-height:1.9}
+.simpleLessonNames li{padding:3px 4px;border-bottom:1px solid #e7f2eb}
+@media(max-width:700px){.simpleCountInputs{grid-template-columns:1fr 1fr}.simpleRemainingOutput{grid-column:1/-1;flex-direction:row;justify-content:space-between;gap:12px}.simpleRemainingOutput strong{font-size:27px}}
+@media(max-width:390px){.simpleCountInputs{grid-template-columns:1fr}.simpleRemainingOutput{grid-column:auto}}
