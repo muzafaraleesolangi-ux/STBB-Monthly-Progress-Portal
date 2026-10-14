@@ -130,3 +130,52 @@
 .assignmentSummary{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:16px 0;border:1px solid #cfeadb;border-radius:14px;background:#effcf4;padding:15px;font-weight:800;font-size:11px;color:#186e54}
 @media(max-width:600px){.teacherRailCard{min-width:calc(50% - 9px)}.assignmentCurrentTeacher{padding:16px}.assignmentSwitch{width:100%}.assignmentSwitch>button{flex:1}.assignmentSubjectGrid{grid-template-columns:1fr}.assignmentSubjectSummary{gap:6px}.assignmentSubjectActions{flex-direction:column}.assignmentInlineEditor .studioFormGrid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.assignmentInlineEditor{animation:none}.teacherRailCard{transition:none}}
+
+/* Classwise subject checklist — show preloaded books as clear editable rows */
+.assignmentGradeCard{padding:0!important;overflow:hidden}
+.assignmentGradeHead{padding:15px 18px;margin:0!important;display:flex;align-items:center;gap:10px;background:linear-gradient(100deg,#f4fcf7,#eafaf1);border-bottom:1px solid #e0efe6}
+.assignmentGradeCard.gradeMinimized .assignmentGradeHead{border-bottom:0}
+.assignmentClassToggle{display:flex;align-items:center;gap:12px;flex:1;min-width:0;padding:5px 2px;border:none;background:transparent;text-align:left;color:#125648;cursor:pointer}
+.assignmentClassToggle:focus-visible{outline:2px solid #0eac80;outline-offset:5px;border-radius:9px}
+.classPill{border-radius:10px;background:#0c7567;color:white;white-space:nowrap;font-size:11px;font-weight:900;padding:11px 12px;letter-spacing:.3px}
+.assignmentGradeSummary{display:block;min-width:0;flex:1}
+.assignmentGradeSummary strong{display:block;font-size:14px;color:#115346;line-height:1.3}
+.assignmentGradeSummary small{display:block;font-size:10.5px;color:#648b7b;line-height:1.6;margin-top:3px}
+.expandChevron{border-radius:50%;display:grid;place-items:center;background:#d8f8e6;color:#007e63;font-size:19px;font-weight:900;width:32px;height:32px;flex-shrink:0}
+.assignmentAddSubject{white-space:nowrap}
+.assignmentGradeBody{padding:17px 17px 19px;animation:studioUp .2s ease-out}
+.assignmentClassActions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.assignmentClassActions>span{color:#356e5c;font-size:11px;font-weight:850}
+.assignmentClassActions>div{display:flex;gap:7px;flex-wrap:wrap}
+.assignmentClassActions button{font-size:11px}
+.assignmentClassActions button:disabled{opacity:.4;cursor:not-allowed}
+.subjectHiddenHint{font-size:11px;color:#577a68;background:#edf9f3;border:1px solid #d5eede;padding:10px 12px;border-radius:10px;line-height:1.55;margin:7px 0 12px}
+.assignmentSubjectRows{display:flex;flex-direction:column;gap:7px}
+.assignmentSubjectRow{display:block;border-radius:12px;background:#fff;border:1px solid #dcebe1;padding:10px 12px;transition:background .2s,border-color .2s,box-shadow .2s}
+.assignmentSubjectRow:hover{border-color:#a2d9bd;box-shadow:0 5px 16px #066d4312}
+.assignmentSubjectRow.selected{background:linear-gradient(95deg,#edfff4,#f8fffa);border-color:#5dca9b}
+.assignmentSubjectRow .assignmentSubjectSummary{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.assignmentSubjectRow .assignmentSelect{align-items:center;min-height:40px}
+.assignmentSubjectRow .assignmentSelect input{width:20px;height:20px;cursor:pointer}
+.assignmentSubjectRow .assignmentSelect strong{font-size:13px}
+.assignmentSubjectRow .assignmentSelect small{font-size:11px}
+.assignmentSubjectRow .assignmentSubjectActions{display:flex;flex-direction:row;gap:7px}
+.assignmentSubjectRow .assignmentSubjectActions button{font-size:10.5px;border-radius:8px}
+.assignmentSubjectRow .assignmentInlineEditor{padding:17px 0 3px;margin-top:13px;border-top:1px solid #cfe6d8}
+.assignmentAddForm{margin:3px 0 15px!important}
+.assignmentSummary{font-size:12px;line-height:1.6}
+@media(max-width:640px){
+ .assignmentGradeHead{gap:9px;padding:12px;flex-wrap:wrap}
+ .assignmentGradeHead>.assignmentClassToggle{flex-basis:100%}
+ .assignmentGradeHead>.assignmentAddSubject{margin-left:auto}
+ .assignmentGradeBody{padding:11px}
+ .assignmentSubjectRow .assignmentSubjectSummary{align-items:stretch;flex-direction:column;gap:6px}
+ .assignmentSubjectRow .assignmentSelect{width:100%}
+ .assignmentSubjectRow .assignmentSubjectActions{justify-content:flex-end}
+ .assignmentSubjectRow .assignmentSubjectActions button{padding:9px 13px}
+ .assignmentClassActions>span{flex-basis:100%}
+ .assignmentClassActions>div{width:100%}
+ .assignmentClassActions>div button{flex:1}
+ .assignmentGradeSummary strong{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){.assignmentGradeBody{animation:none!important}}
