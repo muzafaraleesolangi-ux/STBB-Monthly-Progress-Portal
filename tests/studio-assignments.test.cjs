@@ -120,7 +120,7 @@ async function main(){
  await studio.settle();
  assert.ok(school.books[5].some(b=>b.name==='Sindhi Reader'),'Restored standard subjects saved to school cloud setup');
  // A deliberately emptied class must remain empty after refresh once catalog initialization is recorded.
- reloaded.books[3]=[];await studio.settle();
+ school.books[3]=[];cloudVersion++;
  await studio.activate();
  assert.equal(studio.getSetup().books[3].length,0,'Intentional remove-all does not repopulate endlessly');
  dom.window.close();
