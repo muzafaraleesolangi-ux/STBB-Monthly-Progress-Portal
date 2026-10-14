@@ -290,7 +290,7 @@ const Studio=(()=>{
  function setLessonStatus(bookId,index,mode){
   if(!schoolPeriod)return notify('First open a reporting month.',true);
   const b=assigned().find(x=>x.id===bookId);if(!b||index<0||index>=b.chapters.length)return;
-  const d=progressBy({...b,grade:draft.grade}),sel=chapterSelections(b,d);
+  const d=progressBy(b),sel=chapterSelections(b,d);
   sel.previous=sel.previous.filter(i=>i!==index);sel.current=sel.current.filter(i=>i!==index);
   if(mode==='previous')sel.previous.push(index);
   else if(mode==='current')sel.current.push(index);
