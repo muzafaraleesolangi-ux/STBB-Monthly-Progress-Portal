@@ -25,6 +25,8 @@ jobs:
         run: |
           node --check tests/studio-assignments.test.cjs
           node tests/studio-assignments.test.cjs
+          node --check tests/lesson-progress-and-xlsx.test.cjs
+          node tests/lesson-progress-and-xlsx.test.cjs
       - name: Check embedded JavaScript syntax
         run: |
           python3 - <<'PY'
