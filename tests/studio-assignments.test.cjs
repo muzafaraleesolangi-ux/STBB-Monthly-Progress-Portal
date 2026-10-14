@@ -123,6 +123,14 @@ async function main(){
  school.books[3]=[];cloudVersion++;
  await studio.activate();
  assert.equal(studio.getSetup().books[3].length,0,'Intentional remove-all does not repopulate endlessly');
+ studio.stage(3);
+ click('[data-assignment-restoregrade="3"]');
+ await new Promise(ok=>setTimeout(ok,35));
+ assert.equal(studio.getSetup().books[3].length,6,'HM can manually restore standard Class III subjects');
+ click('[data-assignment-restoregrade="3"]');
+ await new Promise(ok=>setTimeout(ok,25));
+ assert.equal(studio.getSetup().books[3].length,6,'Restore control does not duplicate standard subjects');
+ await studio.settle();
  dom.window.close();
  console.log('PASS: checklist, overlapping teacher classes, exclusive class-subject assignment, bulk tick, collapse, add/edit/remove, saves');
 }
