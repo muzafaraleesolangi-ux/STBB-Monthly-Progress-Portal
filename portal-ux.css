@@ -1,0 +1,52 @@
+
+/* Premium progressive guidance + draft-safe overlays */
+.nextGuide{--guide-width:20%;position:relative;display:flex;align-items:center;gap:14px;padding:17px 18px 20px;margin:16px 0 23px;border-radius:17px;background:linear-gradient(125deg,#093e42,#116c62);color:white;box-shadow:0 16px 40px #06493f1b;overflow:hidden}
+.nextGuide:after{content:"";position:absolute;bottom:0;left:0;height:4px;width:var(--guide-width);background:#95f4d3;transition:width .3s ease}
+.nextGuide .guideIcon{font-size:25px;display:grid;place-items:center;background:#ffffff1e;width:48px;height:48px;flex-shrink:0;border-radius:13px}
+.nextGuide strong{font-size:15px;display:block;margin-bottom:4px}
+.nextGuide p{font-size:12px;line-height:1.6;color:#e6fff8;margin:0}
+.nextGuide span:last-child{margin-left:auto;white-space:nowrap;font-size:11px;font-weight:900;opacity:.85}
+.passwordLine{display:flex;gap:7px;align-items:stretch}
+.passwordLine input{min-width:0;flex:1}
+.passwordEye{flex-shrink:0;border:1px solid #b9dcd2;background:#f0faf6;color:#0b6e63;border-radius:10px;padding:0 14px;font-size:12px;font-weight:800}
+.passwordLine input:focus,.monthPicker select:focus{box-shadow:0 0 0 4px #14ab8c26}
+.passwordStrength{height:5px;margin-top:9px;border-radius:99px;background:#e6efe9;overflow:hidden}
+.passwordStrength i{display:block;height:100%;width:0;border-radius:inherit;transition:width .22s,background .22s}
+.teacherGuide{display:flex;gap:12px;padding:14px 16px;background:#edfdf5;border:1px solid #ccefe0;border-radius:15px;margin:13px 0;color:#126554}
+.teacherGuide strong{font-size:13px}.teacherGuide p{font-size:12px;line-height:1.65;margin:5px 0 0}
+.monthPicker{display:flex;gap:12px;flex-wrap:wrap;align-items:end;width:100%;margin-bottom:4px}
+.monthPicker>div{flex:1;min-width:165px}
+.monthPicker label{display:block;font-size:12px;color:#47766a;font-weight:800;margin-bottom:7px}
+.monthPicker select{border:1px solid #bcdacf;background:#fff;color:#153b34;border-radius:12px;padding:12px 34px 12px 14px;min-height:46px;width:100%;font-size:14px;font-weight:700}
+.monthPicker>.btn{min-height:46px}
+.monthGuide{border-left:3px solid #16b894;padding:10px 13px;background:#edfaf4;color:#32715d;border-radius:0 10px 10px 0;font-size:13px;line-height:1.7;margin:12px 0}
+.workflowStrip{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0;padding:13px;border-radius:14px;border:1px solid #d6ebe2;background:#f9fefa}
+.workflowStrip span{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:750;color:#367967}
+.workflowStrip span b{display:grid;place-items:center;width:23px;height:23px;background:#def7eb;border-radius:50%;color:#007b6b}
+.saveFloat{position:fixed;bottom:22px;right:24px;z-index:110;display:flex;align-items:center;gap:15px;padding:10px 12px 10px 16px;border-radius:17px;background:#073f3fef;color:white;border:1px solid #ffffff20;box-shadow:0 15px 54px #063a3b55;backdrop-filter:blur(14px);animation:saveSlide .35s both;max-width:min(510px,calc(100vw - 30px))}
+.saveFloat.hidden,.saveDialog.hidden,.saveToast.hidden{display:none!important}
+.saveFloatInfo{display:flex;gap:9px;align-items:center;font-weight:700;font-size:12px;line-height:1.4}
+.syncPulse{width:9px;height:9px;display:inline-block;flex-shrink:0;background:#81f2c3;border-radius:50%;box-shadow:0 0 0 4px #81f2c322}
+.syncPulse.unsaved{background:#f8c56e;box-shadow:0 0 0 4px #ffc26d25}
+.syncPulse.busy{animation:uxpulse .85s infinite}
+.saveFloat button{background:#98ffe0;border:none;border-radius:11px;padding:12px 15px;font-size:13px;font-weight:900;color:#11463a;white-space:nowrap;cursor:pointer;transition:transform .16s,background .16s}
+.saveFloat button:hover{background:white;transform:translateY(-2px)}
+.saveFloat button:disabled{opacity:.6;cursor:default}
+.saveDialog{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px}
+.saveBackdrop{position:absolute;inset:0;background:#082f35b8;backdrop-filter:blur(9px);animation:uxfade .22s both}
+.saveCard{position:relative;background:#fff;border:1px solid #def2e9;border-radius:27px;padding:35px 33px 25px;max-width:465px;width:100%;box-shadow:0 34px 110px #062c3562;animation:uxmodal .28s both;text-align:center}
+.saveIcon{display:grid;place-items:center;border-radius:23px;width:73px;height:73px;margin:0 auto 16px;background:linear-gradient(135deg,#defaf0,#b2f5d9);font-size:32px}
+.saveCard h2{margin:0;color:#0a4949;font-size:23px;line-height:1.26;letter-spacing:-.45px}
+.saveCard>p{font-size:14px;color:#6c827f;line-height:1.75;margin:13px 0 20px}
+.saveActions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.saveActions .btn{flex:1;min-width:170px;min-height:46px}
+.saveDialogHint{font-size:11px!important;margin:14px 0 0!important}
+.saveToast{position:fixed;top:80px;right:23px;z-index:1100;background:#ecfff7;color:#0f5141;border:1px solid #a5eaca;border-radius:15px;box-shadow:0 12px 50px #0742322c;padding:15px 19px;display:flex;align-items:center;gap:11px;max-width:355px;animation:saveSlide .28s both}
+.saveToast.error{background:#fff6f2;color:#862c23;border-color:#f1c5b6}
+.toastGlyph{width:33px;height:33px;display:grid;place-items:center;border-radius:50%;background:#c2f5da;font-weight:900;font-size:17px}
+.error .toastGlyph{background:#ffdfd3}
+.saveToast strong{display:block;font-size:13px}
+.saveToast small{display:block;font-size:12px;line-height:1.5;margin-top:3px}
+@keyframes uxpulse{50%{opacity:.3;transform:scale(.8)}}@keyframes uxfade{from{opacity:0}to{opacity:1}}@keyframes uxmodal{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes saveSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:620px){.saveFloat{bottom:10px;right:10px;left:10px;justify-content:space-between}.saveFloatInfo{font-size:11px}.saveFloat button{padding:11px}.monthPicker>div{min-width:120px}.monthPicker>.btn{width:100%}.saveCard{padding:26px 18px}.saveActions .btn{width:100%;flex:unset}.nextGuide{padding:13px}.nextGuide .guideIcon{display:none}.workflowStrip{gap:6px}}
+@media(prefers-reduced-motion:reduce){.saveFloat,.saveBackdrop,.saveCard,.saveToast{animation:none!important}.syncPulse.busy{animation:none!important}}
