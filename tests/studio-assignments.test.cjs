@@ -96,4 +96,5 @@ async function main(){
  dom.window.close();
  console.log('PASS: checklist, overlapping teacher classes, exclusive class-subject assignment, bulk tick, collapse, add/edit/remove, saves');
 }
-main().catch(e=>{console.error(e);process.exitCode=1});
+const watchdog=setTimeout(()=>{console.error('DOM test timed out at 15 seconds');process.exit(2)},15000);
+main().then(()=>{clearTimeout(watchdog);process.exit(0)}).catch(e=>{clearTimeout(watchdog);console.error(e);process.exit(1)});
