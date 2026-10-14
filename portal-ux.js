@@ -79,7 +79,8 @@ function displaySaveDialog(mode){
  document.getElementById('saveDialogHint').textContent=logout?'Your school data will remain available after you sign in again.':'You can reopen saved months from the school dashboard.';
  primary.focus();
 }
-function changesUnsaved(){return Boolean(saveTimer||pendingState||saving)}
+function changesUnsaved(){return Boolean(saveTimer||pendingState||saving||(typeof Studio!=="undefined"&&Studio.unsaved?.()))}
+async function saveAllSchoolEdits(){const base=await flushDraft();if(typeof Studio!=="undefined"&&Studio.unsaved?.()){try{await Studio.settle()}catch(err){showSaveToast("Studio draft not saved",err.message,"error");return false}}return base&&!changesUnsaved()}
 const baseFlushDraft=flushDraft;
 flushDraft=async function(){
  if(saving){
@@ -117,7 +118,7 @@ window.manualSaveDraft=function(){
 };
 window.confirmSaveNow=async function(){
  let btn=dialogActions.querySelector('.primary');if(btn){btn.disabled=true;btn.textContent='Saving to cloud…'}
- const result=await flushDraft();
+ const result=await saveAllSchoolEdits();
  if(result&&!changesUnsaved()){closeSaveDialog();showSaveToast('Draft saved successfully','Your latest work is securely linked to this reporting month.');}
  else {if(btn){btn.disabled=false;btn.textContent='Try Save Again'}showSaveToast('Draft not saved','Check the connection or resolve the warning above, then try again.','error')}
  refreshSaveDock();
@@ -130,7 +131,7 @@ logout=async function(){
 };
 window.saveAndLogout=async function(){
  let btn=dialogActions.querySelector('.primary');if(btn){btn.disabled=true;btn.textContent='Saving…'}
- const result=await flushDraft();
+ const result=await saveAllSchoolEdits();
  if(result&&!changesUnsaved()){
   closeSaveDialog();showSaveToast('Draft saved','Signing you out now.');
   await originalLogout();
