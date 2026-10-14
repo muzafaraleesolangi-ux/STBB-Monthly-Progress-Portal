@@ -193,3 +193,41 @@
 .assignedElsewhereList>div small{font-size:10px;color:#7a9188}
 .assignedElsewhereList button{white-space:nowrap}
 @media(max-width:650px){.assignmentHeaderActions{width:100%}.assignmentHeaderActions button{flex:1;font-size:10px}.assignedElsewhereList>div span{flex-basis:100%}.assignedElsewhereList button{flex:1}}
+
+/* Live chapter counts and teacher-friendly lesson selection */
+.chapterKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:17px 0 15px}
+.chapterKpis>div{padding:13px 10px;border:1px solid #d5ebe0;border-radius:13px;background:#f7fdf9;text-align:center;transition:background .2s}
+.chapterKpis>div:nth-child(2){background:#eef5ff;border-color:#dce9f7}
+.chapterKpis>div:nth-child(3){background:#e8f9f1;border-color:#bcead5}
+.chapterKpis>div.remaining{background:#fff8e9;border-color:#f1e4bc}
+.chapterKpis b{display:block;font-size:clamp(19px,2.6vw,29px);color:#086657;line-height:1.25}
+.chapterKpis small{display:block;margin-top:5px;font-weight:850;font-size:10px;color:#5b8b7b}
+.chapterKpis .remaining b{color:#b17a18}
+.progressPlannerActions{display:flex;align-items:center;justify-content:space-between;gap:11px;flex-wrap:wrap;margin:14px 0}
+.progressPlannerActions>span{font-size:12px;font-weight:850;color:#36836d}
+.lessonPlanner{border:1px solid #a9dec9;background:linear-gradient(125deg,#f4fdf7,#fff);border-radius:17px;padding:17px;margin:16px 0;animation:studioUp .22s}
+.lessonPlannerTop{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:0 0 16px}
+.lessonPlannerTop strong{font-size:14px;color:#10624c;display:block}
+.lessonPlannerTop small{font-size:11px;color:#6e8b7d;display:block;margin-top:6px;line-height:1.6}
+.lessonLegacyNote{background:#fff6de;border-left:3px solid #dcac35;border-radius:0 9px 9px 0;padding:12px;font-size:11px;color:#8a651f;line-height:1.7;margin:10px 0 15px}
+.lessonPlannerTools{display:flex;align-items:end;gap:8px;flex-wrap:wrap;margin:0 0 13px}
+.lessonPlannerTools label{display:flex;flex:1;min-width:185px;flex-direction:column;gap:6px;font-size:11px;font-weight:800;color:#4f786a}
+.lessonPlannerTools input{border:1px solid #bfdecf;border-radius:10px;background:white;padding:11px;font-size:12px;outline:none;width:100%}
+.lessonPlannerTools input:focus{border-color:#0f9976;box-shadow:0 0 0 3px #0e997622}
+.lessonPlannerTools button{min-height:42px}
+.lessonSelectionList{display:flex;flex-direction:column;gap:7px;max-height:430px;overflow:auto;padding:4px 3px 4px 0;overscroll-behavior:contain}
+.lessonSelectionRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 11px;background:#fff;border-radius:11px;border:1px solid #dae8df;transition:border-color .2s,background .2s}
+.lessonSelectionRow[hidden]{display:none!important}
+.lessonSelectionRow.previous{background:#f1f6ff;border-color:#cddff6}
+.lessonSelectionRow.current{background:#e8faf1;border-color:#91dfba}
+.lessonIndex{flex-shrink:0;display:grid;place-items:center;width:28px;height:28px;border-radius:9px;color:#137d6a;background:#e0f6e9;font-weight:900;font-size:11px}
+.lessonName{flex:1;min-width:120px;overflow-wrap:anywhere;font-size:12px;font-weight:750;color:#31635a}
+.lessonSegment{display:flex;gap:4px;border:1px solid #e0e8e3;background:#f7faf8;border-radius:9px;padding:3px;flex-wrap:wrap}
+.lessonSegment button{background:transparent;border:0;border-radius:7px;color:#688175;padding:7px 9px;cursor:pointer;font-size:10px;font-weight:850;transition:.16s}
+.lessonSegment button:hover{background:#e0efe6;color:#1f6553}
+.lessonSegment button.chosen{color:#fff;background:#718b80}
+.lessonSegment button.chosen.previous{background:#497fce}
+.lessonSegment button.chosen.current{background:#008d68}
+.lessonPlannerHint{font-size:11px;color:#5f8777;line-height:1.6;margin:12px 0 0}
+@media(max-width:750px){.chapterKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.lessonSelectionRow{align-items:flex-start}.lessonName{flex-basis:calc(100% - 44px)}.lessonSegment{width:100%;justify-content:space-between}.lessonSegment button{flex:1;min-height:37px}.lessonPlannerTools label{flex-basis:100%}.lessonPlannerTools button{flex:1}.lessonPlanner{padding:12px}}
+@media(prefers-reduced-motion:reduce){.lessonPlanner{animation:none}.lessonSelectionRow,.lessonSegment button{transition:none}}
