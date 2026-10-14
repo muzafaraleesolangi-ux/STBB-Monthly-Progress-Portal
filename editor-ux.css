@@ -1,0 +1,16 @@
+
+.smartCoach{position:sticky;top:0;z-index:45;display:flex;align-items:center;gap:13px;padding:12px 15px;background:#fffffff2;backdrop-filter:blur(12px);border:1px solid #c8e9dc;border-radius:15px;margin:0 0 19px;box-shadow:0 10px 35px #0b605a13;animation:coachIn .3s both}
+.coachCounter{width:108px;flex-shrink:0}
+.coachCounter>span{font-size:9px;color:#137b69;font-weight:900;letter-spacing:.7px;white-space:nowrap}
+.coachBar{background:#d6eae4;border-radius:99px;height:6px;margin-top:7px;overflow:hidden}
+.coachBar i{display:block;width:20%;height:100%;background:linear-gradient(90deg,#069c91,#30cda9);border-radius:inherit;transition:width .35s ease}
+.coachNarrative{flex:1;min-width:0}
+.coachNarrative b{display:block;font-size:12px;color:#075e50}
+.coachNarrative small{display:block;color:#637d77;font-size:11px;line-height:1.5;margin-top:3px}
+.coachNext{border:0;background:#0c8679;color:white;border-radius:11px;padding:10px 14px;font-size:11px;font-weight:850;white-space:nowrap;box-shadow:0 5px 14px #078a7925}
+.coachNext:hover{background:#046959}
+.progressCoachInfo{border-left:4px solid #18bd95;border-radius:0 10px 10px 0;background:#e7fdf2;padding:11px 16px;margin:0 0 20px;font-size:12px;color:#216958;line-height:1.65}
+@keyframes coachIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1000px){.smartCoach{gap:8px}.coachCounter{width:75px}.coachCounter>span{font-size:8px}.coachNext{padding:9px 10px;white-space:normal;max-width:180px}.coachNarrative small{font-size:10px}}
+@media(max-width:650px){.smartCoach{display:flex;flex-wrap:wrap;position:relative}.coachCounter{width:77px}.coachNarrative{flex-basis:calc(100% - 98px)}.coachNext{width:100%;max-width:100%;padding:12px}}
+@media(prefers-reduced-motion:reduce){.smartCoach{animation:none!important}.coachBar i{transition:none!important}}
