@@ -85,7 +85,7 @@ const Studio=(()=>{
    const unassigned=mine.filter(b=>!b.active||!b.teacherId);
    const closed=assignmentCollapsedGrades.has(g);
    const summary=assignedMine+' selected · '+unassigned.length+' available'+(hidden?' · '+hidden+' assigned to others (hidden)':'');
-   out+='<section class="studioCard assignmentGradeCard '+(closed?'gradeMinimized':'')+'"><div class="assignmentGradeHead"><button class="assignmentClassToggle" type="button" data-assignment-togglegrade="'+g+'" aria-expanded="'+(!closed)+'" aria-controls="assignmentGradeBody-'+g+'"><span class="classPill">CLASS '+roman[g]+'</span><span class="assignmentGradeSummary"><strong>Class '+roman[g]+' Subjects</strong><small>'+summary+'</small></span><span class="expandChevron" aria-hidden="true">'+(closed?'＋':'−')+'</span></button><button class="ghostMini assignmentAddSubject" type="button" data-assignment-addsubject="'+g+'">＋ Add Subject</button></div>';
+   out+='<section class="studioCard assignmentGradeCard '+(closed?'gradeMinimized':'')+'"><div class="assignmentGradeHead"><button class="assignmentClassToggle" type="button" data-assignment-togglegrade="'+g+'" aria-expanded="'+(!closed)+'" aria-controls="assignmentGradeBody-'+g+'"><span class="classPill">CLASS '+roman[g]+'</span><span class="assignmentGradeSummary"><strong>Class '+roman[g]+' Subjects</strong><small>'+summary+'</small></span><span class="expandChevron" aria-hidden="true">'+(closed?'＋':'−')+'</span></button><div class="assignmentHeaderActions"><button class="ghostMini" type="button" data-assignment-restoregrade="'+g+'" title="Restore missing standard textbooks without deleting custom subjects">↻ Standard Subjects</button><button class="ghostMini assignmentAddSubject" type="button" data-assignment-addsubject="'+g+'">＋ Add Subject</button></div></div>';
    if(!closed){
      out+='<div id="assignmentGradeBody-'+g+'" class="assignmentGradeBody">';
      if(addingSubjectGrade===g)out+='<div class="assignmentAddForm"><label>New Subject Name<input id="assignmentNewName" maxlength="120" placeholder="Type only if you are adding a new subject"></label><button class="btn primary" type="button" data-assignment-confirmadd="'+g+'">✓ Add & Assign</button><button class="ghostMini" type="button" data-assignment-canceladd>Cancel</button><small>Subjects already listed below only need a tick. Same-class duplicate subject names are blocked.</small></div>';
@@ -202,7 +202,7 @@ const Studio=(()=>{
   assignmentTeacherIndex=index;clearAssignmentEditor();render();
   notify('✓ Saved. Now assigning subjects for '+(setup.teachers[index].name||'Teacher '+(index+1))+'. Subjects given to other teachers are hidden.');
  }
- async function handleClick(e){const target=e.target.closest('[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub]');if(!target)return;
+ async function handleClick(e){const target=e.target.closest('[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-restoregrade],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub]');if(!target)return;
  if(target.hasAttribute('data-school-class')){const n=Number(target.dataset.schoolClass),i=setup.selectedClasses.indexOf(n);if(i>=0){if(!confirm('Remove Class '+roman[n]+' from active classes? Existing lesson titles stay saved if you add it back.'))return;setup.selectedClasses.splice(i,1);for(const t of setup.teachers)t.classes=t.classes.filter(x=>x!==n);for(const b of setup.books[n]||[]){b.active=false;b.teacherId=''}}else setup.selectedClasses.push(n);grade=selectedGrades()[0]||5;markSetup();return render()}
  if(target.hasAttribute('data-classes-all')){setup.selectedClasses=[1,2,3,4,5];markSetup();return render()}
  if(target.hasAttribute('data-classes-none')){if(!confirm('Remove all selected classes?'))return;setup.selectedClasses=[];for(const t of setup.teachers)t.classes=[];for(const n of numbers)for(const b of setup.books[n]||[]){b.active=false;b.teacherId=''}markSetup();return render()}
@@ -236,6 +236,18 @@ const Studio=(()=>{
   if(!await saveAssignmentEditor())return;
   for(const b of mine){b.active=false;b.teacherId=''}
   markSetup();render();notify(mine.length+' subjects cleared for '+t.name+'.');return;
+ }
+ if(target.hasAttribute('data-assignment-restoregrade')){
+  const g=Number(target.dataset.assignmentRestoregrade);
+  if(!await saveAssignmentEditor())return;
+  const existing=new Set((setup.books[g]||[]).map(b=>normalizedSubject(b.name)));
+  let added=0;
+  for(const b of defaultBooks(g)){const name=normalizedSubject(b.name);if(!existing.has(name)){setup.books[g].push(b);existing.add(name);added++}}
+  assignmentCollapsedGrades.delete(g);
+  if(added)markSetup();
+  render();
+  notify(added?'✓ '+added+' missing Class '+roman[g]+' standard subjects restored. Existing teacher assignments and custom subjects preserved.':'✓ All Class '+roman[g]+' standard subjects are already present. If none are available, view the assigned subjects and manage their current teachers.');
+  return;
  }
  if(target.hasAttribute('data-assignment-jumpteacher')){const teacherId=target.dataset.assignmentJumpteacher,index=setup.teachers.findIndex(x=>x.id===teacherId);return moveAssignmentTeacher(index)}
  if(target.hasAttribute('data-assignment-teacher'))return moveAssignmentTeacher(Number(target.dataset.assignmentTeacher));
