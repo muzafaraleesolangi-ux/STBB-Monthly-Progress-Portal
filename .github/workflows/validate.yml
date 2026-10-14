@@ -21,7 +21,7 @@ jobs:
           from pathlib import Path
           for path in ['index.html','MPR_Online_Editor.html']:
               content=Path(path).read_text(encoding='utf-8')
-              scripts=re.findall(r'<script(?:\\s+[^>]*)?>([\\s\\S]*?)</script>',content,re.I)
+              scripts=re.findall(r'<script[^>]*>(.*?)</script>',content,re.I|re.S)
               inline=[s for s in scripts if s.strip()]
               if not inline:
                   raise RuntimeError('Missing inline app code in '+path)
