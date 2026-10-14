@@ -99,7 +99,7 @@ const Studio=(()=>{
  }
  return html}
  function summaryForCheck(){if(!selectedGrades().length)return 'Please select at least one class offered by your school.';if(!setup.teachers.every(t=>t.name.trim()&&t.pid.trim()&&t.designation.trim()))return 'Please complete teacher name, PID and designation.';if(stage>=1&&!setup.teachers.every(t=>t.classes?.length))return 'Select at least one teaching class for every teacher.';if(stage>=2&&!assigned().length)return 'Assign at least one subject to a teacher.';return null}
- async function next(){if(stage===0&&!selectedGrades().length)return notify('Add at least one school class before continuing.',true);if(stage===1&&!setup.teachers.every(t=>t.name.trim()&&t.pid.trim()&&t.designation.trim()))return notify('Complete Name, PID and Designation for each teacher before continuing.',true);if(stage===2&&!setup.teachers.every(t=>t.classes?.length))return notify('Choose at least one teaching class for each teacher.',true);if(stage===3&&!assigned().length)return notify('Assign at least one subject before continuing.',true);
+ async function next(){if(stage===0&&!selectedGrades().length)return notify('Add at least one school class before continuing.',true);if(stage===1&&!setup.teachers.every(t=>t.name.trim()&&t.pid.trim()&&t.designation.trim()))return notify('Complete Name, PID and Designation for each teacher before continuing.',true);if(stage===2&&!setup.teachers.every(t=>t.classes?.length))return notify('Choose at least one teaching class for each teacher.',true);if(stage===3){if(!await saveAssignmentEditor())return;if(!assigned().length)return notify('Assign at least one subject before continuing.',true)}
  try{await settleSetup()}catch(e){return notify(e.message,true)}setupStage(stage+1)}
  async function openPeriod(p){ensure();if(!selectedGrades().length)return notify('Select the school classes first, then assign teachers and subjects.',true);if(!/^20\d\d-(0[1-9]|1[0-2])$/.test(p||''))return notify('Choose a valid reporting month.',true);
  try{
@@ -131,7 +131,7 @@ const Studio=(()=>{
  catch(e){notify('⚠ '+book.name+': '+e.message,true);if(mark){mark.textContent='⚠ Save conflict';mark.className='progressState pending'}return false}
  finally{progressBusy.delete(bookId);if(progressDirty.has(bookId)&&JSON.stringify(entry.details)!==JSON.stringify(snapshot))saveTimers[bookId]=setTimeout(()=>saveSubject(bookId),1300)}
  }
- async function settle(){await settleSetup();await Promise.all([...progressDirty].map(id=>saveSubject(id)));if(progressDirty.size)throw Error('Some subject entries are not saved. Resolve conflicts before export.')}
+ async function settle(){if(stage===3&&!await saveAssignmentEditor())throw Error('Save the open subject editor before proceeding.');await settleSetup();await Promise.all([...progressDirty].map(id=>saveSubject(id)));if(progressDirty.size)throw Error('Some subject entries are not saved. Resolve conflicts before export.')}
  function compiled(){
  const t=clone(baseState||template);
  t.schoolName=account.school_name;t.semis=account.semis;t.hmName=account.hm_name;t.teachers=setup.teachers.map(x=>({id:x.id,name:x.name,pid:x.pid,designation:x.designation}));
@@ -154,17 +154,58 @@ const Studio=(()=>{
  }catch(e){notify('Cannot export yet: '+e.message,true);alert(e.message)}
  }
  function findBook(g,id){return (setup.books[g]||[]).find(b=>b.id===id)}
- async function handleClick(e){const target=e.target.closest('[data-school-class],[data-classes-all],[data-classes-none],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub]');if(!target)return;
+ function clearAssignmentEditor(){assignmentEditorId='';assignmentEditorDraft=null;addingSubjectGrade=null}
+ function openAssignmentEditor(id,g){
+  const b=findBook(g,id);if(!b)return;
+  if(assignmentEditorId===id){assignmentEditorId='';assignmentEditorDraft=null;render();return}
+  assignmentEditorId=id;assignmentEditorDraft={grade:g,name:String(b.name||''),chapters:[...(b.chapters||[])]};addingSubjectGrade=null;render();
+ }
+ async function saveAssignmentEditor(){
+  if(!assignmentEditorId||!assignmentEditorDraft)return true;
+  const draft=assignmentEditorDraft,book=findBook(draft.grade,assignmentEditorId);
+  if(!book){clearAssignmentEditor();return true}
+  const title=String(draft.name||'').trim().replace(/\s+/g,' ');
+  if(!title){notify('Subject name cannot be empty. Enter a name before saving.',true);return false}
+  if(title.length>120){notify('Subject name must be 120 characters or less.',true);return false}
+  const duplicate=duplicateName(draft.grade,title,book.id);
+  if(duplicate){notify('⚠ DUPLICATE SUBJECT: "'+title+'" is already listed for Class '+roman[draft.grade]+'. Rename this subject; duplicate subject entries are not allowed.',true);return false}
+  if(draft.chapters.length>250){notify('Maximum 250 chapters are supported for each subject.',true);return false}
+  const oldName=book.name,oldChapters=[...book.chapters];
+  book.name=title;book.chapters=draft.chapters.map(x=>String(x||'').trim());
+  markSetup();
+  try{await settleSetup();clearAssignmentEditor();notify('✓ Subject "'+title+'" saved successfully. The editor is now minimized.');return true}
+  catch(e){book.name=oldName;book.chapters=oldChapters;notify('Could not save subject: '+e.message,true);return false}
+ }
+ async function moveAssignmentTeacher(index){
+  if(index<0||index>=setup.teachers.length)return;
+  if(!await saveAssignmentEditor())return;
+  try{await settleSetup()}catch(e){notify('Save failed: '+e.message,true);return}
+  assignmentTeacherIndex=index;clearAssignmentEditor();render();
+  notify('✓ Saved. Now assigning subjects for '+(setup.teachers[index].name||'Teacher '+(index+1))+'. Subjects given to other teachers are hidden.');
+ }
+ async function handleClick(e){const target=e.target.closest('[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub]');if(!target)return;
  if(target.hasAttribute('data-school-class')){const n=Number(target.dataset.schoolClass),i=setup.selectedClasses.indexOf(n);if(i>=0){if(!confirm('Remove Class '+roman[n]+' from active classes? Existing lesson titles stay saved if you add it back.'))return;setup.selectedClasses.splice(i,1);for(const t of setup.teachers)t.classes=t.classes.filter(x=>x!==n);for(const b of setup.books[n]||[]){b.active=false;b.teacherId=''}}else setup.selectedClasses.push(n);grade=selectedGrades()[0]||5;markSetup();return render()}
  if(target.hasAttribute('data-classes-all')){setup.selectedClasses=[1,2,3,4,5];markSetup();return render()}
  if(target.hasAttribute('data-classes-none')){if(!confirm('Remove all selected classes?'))return;setup.selectedClasses=[];for(const t of setup.teachers)t.classes=[];for(const n of numbers)for(const b of setup.books[n]||[]){b.active=false;b.teacherId=''}markSetup();return render()}
- if(target.hasAttribute('data-studio-stage')){setupStage(+target.dataset.studioStage);return}
+ if(target.hasAttribute('data-assignment-teacher'))return moveAssignmentTeacher(Number(target.dataset.assignmentTeacher));
+ if(target.hasAttribute('data-assignment-prev'))return moveAssignmentTeacher(assignmentTeacherIndex-1);
+ if(target.hasAttribute('data-assignment-next'))return moveAssignmentTeacher(assignmentTeacherIndex+1);
+ if(target.hasAttribute('data-assignment-addsubject')){if(!await saveAssignmentEditor())return;addingSubjectGrade=Number(target.dataset.assignmentAddsubject);render();setTimeout(()=>$s('assignmentNewName')?.focus(),50);return}
+ if(target.hasAttribute('data-assignment-canceladd')){addingSubjectGrade=null;render();return}
+ if(target.hasAttribute('data-assignment-confirmadd')){const g=Number(target.dataset.assignmentConfirmadd),title=$s('assignmentNewName')?.value?.trim().replace(/\s+/g,' ')||'',t=currentAssignedTeacher();if(!title)return notify('Enter a name for the new subject.',true);if(title.length>120)return notify('Subject name is too long.',true);if(duplicateName(g,title))return notify('⚠ DUPLICATE SUBJECT: "'+title+'" already exists for Class '+roman[g]+'. Please choose another subject name.',true);if(!t.classes.includes(g))return notify('This teacher does not teach Class '+roman[g]+'.',true);const id=g+'_custom_'+crypto.randomUUID().slice(0,12);setup.books[g].push({id,name:title,chapters:[],active:true,teacherId:t.id,previous:0,current:0});addingSubjectGrade=null;markSetup();render();notify('✓ "'+title+'" added and assigned only to '+t.name+'.');return}
+ if(target.hasAttribute('data-assignment-edit')){const g=Number(target.dataset.grade),id=target.dataset.assignmentEdit;if(assignmentEditorId&&assignmentEditorId!==id&&!await saveAssignmentEditor())return;return openAssignmentEditor(id,g)}
+ if(target.hasAttribute('data-assignment-remove')){const g=Number(target.dataset.grade),id=target.dataset.assignmentRemove,b=findBook(g,id);if(!b)return;if(!confirm('Remove "'+b.name+'" from Class '+roman[g]+' subject list? This removes its current school assignment but does not modify previously exported Excel files.'))return;setup.books[g]=setup.books[g].filter(x=>x.id!==id);if(assignmentEditorId===id)clearAssignmentEditor();markSetup();render();notify('Subject removed from current Class '+roman[g]+' subject list.');return}
+ if(target.hasAttribute('data-assignment-close')){if(assignmentEditorId&&!confirm('Close subject editor without saving its changes?'))return;clearAssignmentEditor();render();return}
+ if(target.hasAttribute('data-assignment-addchapter')){if(!assignmentEditorDraft)return;if(assignmentEditorDraft.chapters.length>=250)return notify('Maximum 250 chapters.',true);assignmentEditorDraft.chapters.push('');render();return}
+ if(target.hasAttribute('data-assignment-removechapter')){if(!assignmentEditorDraft)return;assignmentEditorDraft.chapters.splice(Number(target.dataset.assignmentRemovechapter),1);render();return}
+ if(target.hasAttribute('data-assignment-saveclose')){if(await saveAssignmentEditor())render();return}
+ if(target.hasAttribute('data-studio-stage')){if(stage===3&&!await saveAssignmentEditor())return;setupStage(+target.dataset.studioStage);return}
  if(target.hasAttribute('data-studio-next'))return next();
- if(target.hasAttribute('data-studio-back'))return setupStage(stage-1);
- if(target.hasAttribute('data-studio-save')){try{await settle();expanded='';render();notify('✓ All pending changes saved. Chapter editors are now minimized.')}catch(x){notify(x.message,true)}return}
+ if(target.hasAttribute('data-studio-back')){if(stage===3&&!await saveAssignmentEditor())return;return setupStage(stage-1)}
+ if(target.hasAttribute('data-studio-save')){if(stage===3&&!await saveAssignmentEditor())return;try{await settle();expanded='';render();notify('✓ All pending changes saved. Subject editor cards are minimized.')}catch(x){notify(x.message,true)}return}
  if(target.hasAttribute('data-studio-review'))return review();
  if(target.hasAttribute('data-studio-addteacher')){setup.teachers.push({id:'t'+crypto.randomUUID().replace(/-/g,'').slice(0,12),name:'',pid:'',designation:'PST (BPS-14)',classes:[]});markSetup();return render()}
- if(target.dataset.studioRemoveteacher){if(setup.teachers.length<=1)return;const id=target.dataset.studioRemoveteacher;if(!confirm('Remove this teacher and unassign their subjects?'))return;setup.teachers=setup.teachers.filter(t=>t.id!==id);for(const b of bookList())if(b.teacherId===id){const orig=findBook(b.grade,b.id);orig.active=false;orig.teacherId=''}markSetup();return render()}
+ if(target.dataset.studioRemoveteacher){if(setup.teachers.length<=1)return;const id=target.dataset.studioRemoveteacher;if(!confirm('Remove this teacher and unassign their subjects?'))return;setup.teachers=setup.teachers.filter(t=>t.id!==id);assignmentTeacherIndex=Math.min(assignmentTeacherIndex,setup.teachers.length-1);clearAssignmentEditor();for(const b of bookList())if(b.teacherId===id){const orig=findBook(b.grade,b.id);orig.active=false;orig.teacherId=''}markSetup();return render()}
  if(target.dataset.studioGrade){grade=+target.dataset.studioGrade;expanded='';return render()}
  if(target.dataset.studioEditbook){expanded=expanded===target.dataset.studioEditbook?'':target.dataset.studioEditbook;return render()}
  if(target.dataset.studioRemovebook){if(!confirm('Remove this subject from your school course list?'))return;setup.books[grade]=setup.books[grade].filter(b=>b.id!==target.dataset.studioRemovebook);markSetup();return render()}
@@ -176,12 +217,12 @@ const Studio=(()=>{
  if(target.hasAttribute('data-studio-refresh'))return loadEntries();
  if(target.dataset.studioSavesub)return saveSubject(target.dataset.studioSavesub)
  }
- function handleInput(e){const el=e.target;if(el.dataset.tid){const t=teacher(el.dataset.tid);if(t)t[el.dataset.field]=el.value;markSetup();return}
+ function handleInput(e){const el=e.target;if(el.hasAttribute('data-assignment-editname')&&assignmentEditorDraft){assignmentEditorDraft.name=el.value;return}if(el.hasAttribute('data-assignment-chapter')&&assignmentEditorDraft){assignmentEditorDraft.chapters[Number(el.dataset.assignmentChapter)]=el.value;return}if(el.dataset.tid){const t=teacher(el.dataset.tid);if(t)t[el.dataset.field]=el.value;markSetup();return}
  if(el.dataset.studioSubname){let b=findBook(grade,el.dataset.studioSubname);if(b)b.name=el.value;markSetup();return}
  if(el.dataset.studioChapter){let b=findBook(grade,el.dataset.studioChapter);if(b)b.chapters[+el.dataset.i]=el.value;markSetup();return}
  if(el.dataset.progressBid){updateEntry(el.dataset.progressBid,el.dataset.pkey,el.value);return}}
- function handleChange(e){const el=e.target;if(el.dataset.classTid){const t=teacher(el.dataset.classTid),n=+el.value;if(!t)return;if(el.checked){if(!t.classes.includes(n))t.classes.push(n)}else{t.classes=t.classes.filter(x=>x!==n);for(const b of setup.books[n]||[])if(b.teacherId===t.id){b.teacherId='';b.active=false}}markSetup();return render()}
- if(el.dataset.assignTid){let b=findBook(+el.dataset.assignGrade,el.dataset.assignBid);if(!b)return;if(el.checked){b.active=true;b.teacherId=el.dataset.assignTid}else if(b.teacherId===el.dataset.assignTid){b.active=false;b.teacherId=''}markSetup();return render()}
+ function handleChange(e){const el=e.target;if(el.hasAttribute('data-assignment-edittotal')&&assignmentEditorDraft){const n=Math.max(0,Math.min(250,Number(el.value)||0));while(assignmentEditorDraft.chapters.length<n)assignmentEditorDraft.chapters.push('');assignmentEditorDraft.chapters.length=n;render();return}if(el.dataset.classTid){const t=teacher(el.dataset.classTid),n=+el.value;if(!t)return;if(el.checked){if(!t.classes.includes(n))t.classes.push(n)}else{t.classes=t.classes.filter(x=>x!==n);for(const b of setup.books[n]||[])if(b.teacherId===t.id){b.teacherId='';b.active=false}}markSetup();return render()}
+ if(el.dataset.assignTid){const g=Number(el.dataset.assignGrade),t=teacher(el.dataset.assignTid),b=findBook(g,el.dataset.assignBid);if(!b||!t)return;if(el.checked){if(b.active&&b.teacherId&&b.teacherId!==t.id){el.checked=false;notify('⚠ DUPLICATE ASSIGNMENT BLOCKED: "'+b.name+'" (Class '+roman[g]+') is already assigned to '+tname(b.teacherId)+'. It cannot be assigned to a second teacher.',true);return}if(!t.classes.includes(g)){el.checked=false;notify('Teacher is not assigned to this class.',true);return}if(duplicateName(g,b.name,b.id)){el.checked=false;notify('⚠ DUPLICATE SUBJECT NAME: "'+b.name+'" is already listed for Class '+roman[g]+'. Rename duplicate subjects first.',true);return}b.active=true;b.teacherId=t.id}else if(b.teacherId===t.id){b.active=false;b.teacherId=''}markSetup();return render()}
  if(el.dataset.studioCount){let b=findBook(grade,el.dataset.studioCount);if(b){let n=Math.max(0,Math.min(250,Number(el.value)||0));while(b.chapters.length<n)b.chapters.push('');b.chapters.length=n;markSetup();return render()}}
  if(el.id==='studioTeacherFilter'){filterTeacher=el.value;return render()}
  }
@@ -194,5 +235,5 @@ const Studio=(()=>{
  const otherDashTab=dashTab;dashTab=function(tab,button){if($s('studioPanel'))$s('studioPanel').classList.add('hidden');return otherDashTab(tab,button)};
  // Restore the studio if the school session existed before a page refresh.
  setTimeout(()=>{if(auth&&!auth.admin&&account)activate()},1700);
- return{activate,openPeriod,review,showPanel,saveSetup,settle,refresh:loadEntries,unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
+ return{activate,openPeriod,review,showPanel,saveSetup,settle,refresh:loadEntries,unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
 })();
