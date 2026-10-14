@@ -7,3 +7,9 @@
 .waResetRow p{color:#69837b;line-height:1.6;font-size:12px}
 .waSendBtn{background:linear-gradient(120deg,#096e58,#13aa7c);color:white}
 .waSendInstruction{background:#edf9f3;border-left:3px solid #159b7e;padding:10px 13px;border-radius:3px 9px 9px 3px;color:#236d5c!important;font-weight:650;font-size:12px}
+
+.recoveryPromise{margin:17px 0 4px;padding:14px 16px;background:#f0faf5;border:1px solid #c9ecda;border-radius:12px;color:#2b7462;font-size:12px;line-height:1.7}
+.recoverySuccess{margin-top:17px;background:linear-gradient(120deg,#e4fff1,#f5fffa);border:1px solid #b1e9d0;border-radius:15px;padding:17px;color:#0b7558;animation:uxmodal .3s ease-out}
+.recoverySuccess strong{font-size:14px;display:block}
+.recoverySuccess p{font-size:12px;line-height:1.85;margin:8px 0 0;color:#28745e}
+.waResetRow .waSendBtn{min-height:43px;margin-top:8px}
