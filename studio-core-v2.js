@@ -15,7 +15,7 @@ const Studio=(()=>{
  function repairSubjects(state){let changed=false;if(!state.books||typeof state.books!=='object'||Array.isArray(state.books)){state.books={};changed=true}if(!state.subjectCatalogInitialized||typeof state.subjectCatalogInitialized!=='object'){state.subjectCatalogInitialized={};changed=true}for(const grade of numbers){if(!Array.isArray(state.books[grade])){state.books[grade]=[];changed=true}if(!state.subjectCatalogInitialized[grade]){const existing=state.books[grade],names=new Set(existing.map(b=>normalizedSubject(b.name)));for(const book of defaultBooks(grade)){const name=normalizedSubject(book.name);if(!names.has(name)){existing.push(book);names.add(name);changed=true}}state.subjectCatalogInitialized[grade]=true;changed=true}}return changed}
 
  let setup=null,setupVersion=0,setupBusy=false,setupTimer=null,setupDirty=false,stage=0,grade=5,expanded='',schoolPeriod='',baseState=null,progressVersions={},
- progressEntries={},saveTimers={},progressDirty=new Set(),progressBusy=new Set(),filterTeacher='all',warnings=[],refreshHandle=null,initializing=false,setupConflict=false,assignmentTeacherIndex=0,assignmentEditorId='',assignmentEditorDraft=null,addingSubjectGrade=null,assignmentCollapsedGrades=new Set(),expandedLessonProgress='',lessonFilters={},lessonNameDraft=null;
+ progressEntries={},saveTimers={},progressDirty=new Set(),progressBusy=new Set(),filterTeacher='all',warnings=[],refreshHandle=null,initializing=false,setupConflict=false,assignmentTeacherIndex=0,assignmentEditorId='',assignmentEditorDraft=null,addingSubjectGrade=null,assignmentCollapsedGrades=new Set(),expandedLessonProgress='',lessonNameDraft=null;
  const $s=id=>document.getElementById(id);
  const clone=x=>structuredClone(x),safe=x=>esc(x),roman={1:'I',2:'II',3:'III',4:'IV',5:'V'};
  async function api(action,body={}){if(!auth?.token)throw Error('Please sign in');const r=await fetch(V2,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...body}),cache:'no-store'});const a=await r.json().catch(()=>({}));if(!r.ok||a.error)throw Error(a.error||'Cloud request failed');return a}
@@ -126,7 +126,7 @@ const Studio=(()=>{
   const draft=lessonNameDraft?.bookId===b.id?lessonNameDraft:null;
   let out='<div class="lessonWriterWrap"><div class="lessonWriterHeader"><div><strong>✎ Write / Edit Chapter & Lesson Names</strong><small>Easy typing: add one lesson, paste a full list, or correct existing names. Changes apply to this school’s textbook master after saving.</small></div><button type="button" class="ghostMini" data-lesson-write-open="'+safe(b.id)+'">'+(draft?'Hide Editor':'✎ Write Lessons')+'</button></div>';
   if(!draft)return out+'</div>';
-  out+='<div class="lessonWriterPanel"><div class="lessonWriterIntro">Class '+roman[b.grade]+' · '+safe(b.name)+' · <b>'+draft.chapters.length+' total lessons</b>. Your monthly progress choices are preserved.</div>';
+  out+='<div class="lessonWriterPanel"><div class="lessonWriterIntro">Class '+roman[b.grade]+' · '+safe(b.name)+' · <b>'+draft.chapters.length+' total lessons</b>. Your Previous and This Month chapter totals are preserved.</div>';
   out+='<label class="lessonWriterLabel">New lesson / chapter name<div class="lessonWriterAddRow"><input type="text" maxlength="240" data-lesson-newname="'+safe(b.id)+'" placeholder="e.g. Our Environment" value="'+safe(draft.newInput||'')+'"><button type="button" class="btn primary" data-lesson-addone="'+safe(b.id)+'">＋ Add Lesson</button></div></label>';
   out+='<label class="lessonWriterLabel">Or paste many lessons (one lesson per line)<textarea rows="3" data-lesson-pasteinput="'+safe(b.id)+'" placeholder="Lesson 1 title&#10;Lesson 2 title&#10;Lesson 3 title">'+safe(draft.batchInput||'')+'</textarea><small>Fill empty lesson names first, then append extra titles. Existing named lessons will not be overwritten.</small></label><button type="button" class="ghostMini" data-lesson-applypaste="'+safe(b.id)+'">✓ Add Pasted Lessons</button>';
   out+='<div class="lessonWriterExisting"><strong>Existing lesson names — edit directly below</strong><div class="lessonWriterInputList">';
@@ -204,22 +204,6 @@ const Studio=(()=>{
     return false;
   }
  }
- function lessonChecklist(b,d){
-  const sel=chapterSelections(b,d),prev=new Set(sel.previous),curr=new Set(sel.current),q=(lessonFilters[b.id]||'').toLowerCase();
-  let out='<div class="lessonPlanner" data-lesson-panel="'+safe(b.id)+'"><div class="lessonPlannerTop"><div><strong>✓ Select Covered Lessons</strong><small>Mark each lesson as Previous, This Month or Remaining. Counters and Excel totals update automatically.</small></div><button class="ghostMini" type="button" data-lesson-close="'+safe(b.id)+'">Close List ▲</button></div>';
-  out+=renderLessonNameWriter(b);
-  if(sel.legacy)out+='<div class="lessonLegacyNote">ⓘ Previous numeric totals were recorded without lesson names. The first '+sel.previous.length+' lessons are provisionally shown as Previous and the next '+sel.current.length+' as This Month. Please verify the actual lesson titles before saving a selection.</div>';
-  out+='<div class="lessonPlannerTools"><label>Find a lesson<input type="search" data-lesson-search="'+safe(b.id)+'" value="'+safe(lessonFilters[b.id]||'')+'" placeholder="Search title or lesson number"></label><button class="ghostMini" data-lesson-bulk="next1" data-lesson-bid="'+safe(b.id)+'" type="button">＋ Next 1 → This Month</button><button class="ghostMini" data-lesson-bulk="next5" data-lesson-bid="'+safe(b.id)+'" type="button">＋ Next 5 → This Month</button><button class="ghostMini" data-lesson-bulk="clear" data-lesson-bid="'+safe(b.id)+'" type="button">Clear This Month</button></div>';
-  out+='<div class="lessonSelectionList" aria-label="Individual chapter completion choices">';
-  b.chapters.forEach((name,i)=>{
-    const label=(name||'').trim()||'Lesson / Chapter '+(i+1);
-    const status=prev.has(i)?'previous':curr.has(i)?'current':'remaining';
-    const hidden=q&&!((i+1)+' '+label).toLowerCase().includes(q);
-    out+='<div class="lessonSelectionRow '+status+'" data-lesson-row="'+safe(b.id)+'" data-index="'+i+'" '+(hidden?'hidden':'')+'><span class="lessonIndex">'+(i+1)+'</span><span class="lessonName" title="'+safe(label)+'">'+safe(label)+'</span><div class="lessonSegment" role="group" aria-label="Lesson '+(i+1)+' status">'+[['remaining','Remaining'],['previous','Previous'],['current','This Month']].map(([v,label])=>'<button type="button" data-lesson-status="'+v+'" data-lesson-bid="'+safe(b.id)+'" data-lesson-index="'+i+'" aria-pressed="'+(status===v)+'" class="'+(status===v?'chosen '+v:'')+'">'+(status===v?'✓ ':'')+label+'</button>').join('')+'</div></div>'
-  });
-  out+='</div><p class="lessonPlannerHint">Previous means completed before this month; This Month means newly completed. One lesson cannot be marked in both categories.</p></div>';
-  return out;
- }
  function renderProgress(){const c=counts(),selected=filterTeacher==='all'?null:selectedTeacher(),list=assigned().filter(b=>!selected||b.teacherId===selected.id);
  let html='<div class="studioHead"><div><h3>6. Smart Monthly Subject Progress</h3><p>Enter only two numbers for each subject: chapters completed previously and chapters completed this month. Remaining chapters calculate automatically. Lesson names can still be edited separately.</p></div><button class="btn ghost" data-studio-refresh>↻ Refresh Other Teachers’ Work</button></div>';
  html+='<div class="reportPeriodPanel"><div><label>Reporting Month</label><input type="month" id="studioMonthInput" value="'+safe(schoolPeriod||new Date().toISOString().slice(0,7))+'"></div><button class="btn primary" data-studio-openmonth>Open / Continue Month</button><div><label>Teacher Profile</label><select id="studioTeacherFilter"><option value="all">All Teachers · HM Review</option>'+setup.teachers.map(t=>'<option value="'+safe(t.id)+'" '+(filterTeacher===t.id?'selected':'')+'>'+safe(t.name)+'</option>').join('')+'</select></div></div>';
@@ -265,6 +249,7 @@ const Studio=(()=>{
   const percent=card.querySelector('[data-progress-percent]');if(percent)percent.textContent=v.pct+'% complete';
   const bottom=card.querySelector('[data-progress-bottom]');if(bottom)bottom.textContent=v.pct+'% completed · '+v.remaining+' remaining';
   const autoRemaining=card.querySelector('[data-remaining-output]');if(autoRemaining)autoRemaining.textContent=v.remaining;
+  const prevInput=card.querySelector('[data-pkey="previous"]'),currInput=card.querySelector('[data-pkey="current"]');if(prevInput)prevInput.max=Math.max(0,v.total-v.curr);if(currInput)currInput.max=Math.max(0,v.total-v.prev);
   const bar=card.querySelector('[data-progress-bar]');if(bar)bar.style.width=v.pct+'%';
  }
  function updateEntry(bookId,k,v){
@@ -272,7 +257,7 @@ const Studio=(()=>{
  const book=assigned().find(x=>x.id===bookId);if(!book)return;
  let x=progressEntries[bookId];if(!x){x={book_id:bookId,details:progressBy(book),version:0};progressEntries[bookId]=x}
  if(['previous','current','notebook'].includes(k)){
-  v=Math.max(0,Number(v)||0);
+  v=Math.max(0,Number(v)||0);if(k==='previous'||k==='current')v=Math.floor(v);
   if(k==='previous')v=Math.min(book.chapters.length-(Number(x.details.current)||0),v);
   if(k==='current')v=Math.min(book.chapters.length-(Number(x.details.previous)||0),v);
   if(k==='notebook')v=Math.min(100,v);
@@ -295,29 +280,6 @@ const Studio=(()=>{
  }
  clearTimeout(saveTimers[bookId]);saveTimers[bookId]=setTimeout(()=>saveSubject(bookId),1100);
  }
- function setLessonStatus(bookId,index,mode){
-  if(!schoolPeriod)return notify('First open a reporting month.',true);
-  const b=assigned().find(x=>x.id===bookId);if(!b||index<0||index>=b.chapters.length)return;
-  const d=progressBy(b),sel=chapterSelections(b,d);
-  sel.previous=sel.previous.filter(i=>i!==index);sel.current=sel.current.filter(i=>i!==index);
-  if(mode==='previous')sel.previous.push(index);
-  else if(mode==='current')sel.current.push(index);
-  updateEntry(bookId,'lessonSelections',sel);
-  render();
- }
- function bulkLessonStatus(bookId,mode){
-  if(!schoolPeriod)return notify('Open a reporting month first.',true);
-  const b=assigned().find(x=>x.id===bookId);if(!b)return;
-  const s=chapterSelections(b,progressBy(b));
-  if(mode==='clear'){s.current=[]}
-  else{
-   const unmarked=Array.from({length:b.chapters.length},(_,i)=>i).filter(i=>!s.previous.includes(i)&&!s.current.includes(i));
-   const n=mode==='next5'?5:1;
-   s.current.push(...unmarked.slice(0,n));
-  }
-  updateEntry(bookId,'lessonSelections',s);render();
- }
-
  async function saveSubject(bookId){if(!progressDirty.has(bookId)||progressBusy.has(bookId))return true;const book=assigned().find(x=>x.id===bookId);if(!book)return false;const entry=progressEntries[bookId];if(!entry)return false;
  clearTimeout(saveTimers[bookId]);progressBusy.add(bookId);const snapshot=clone(entry.details),ver=progressVersions[bookId]||0,mark=$s('status-'+bookId);
  if(mark)mark.textContent='Saving…';
@@ -377,7 +339,7 @@ const Studio=(()=>{
   assignmentTeacherIndex=index;clearAssignmentEditor();render();
   notify('✓ Saved. Now assigning subjects for '+(setup.teachers[index].name||'Teacher '+(index+1))+'. Subjects given to other teachers are hidden.');
  }
- async function handleClick(e){const target=e.target.closest('[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-restoregrade],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-lesson-write-open],[data-lesson-cancelwrite],[data-lesson-addone],[data-lesson-applypaste],[data-lesson-remove-last],[data-lesson-savewrite],[data-studio-lessons],[data-lesson-close],[data-lesson-status],[data-lesson-bulk],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub]');if(!target)return;
+ async function handleClick(e){const target=e.target.closest('[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-restoregrade],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-lesson-write-open],[data-lesson-cancelwrite],[data-lesson-addone],[data-lesson-applypaste],[data-lesson-remove-last],[data-lesson-savewrite],[data-studio-lessons],[data-lesson-close],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub]');if(!target)return;
  if(target.hasAttribute('data-lesson-write-open')){
    const id=target.dataset.lessonWriteOpen;
    if(lessonNameDraft?.bookId===id){if(!confirm('Discard unsaved lesson name changes?'))return;lessonNameDraft=null;render();return}
@@ -391,8 +353,6 @@ const Studio=(()=>{
  if(target.hasAttribute('data-lesson-savewrite')){await saveLessonNames();return}
  if(target.hasAttribute('data-studio-lessons')){const id=target.dataset.studioLessons;if(lessonNameDraft&&!await saveLessonNames())return;expandedLessonProgress=expandedLessonProgress===id?'':id;render();return}
  if(target.hasAttribute('data-lesson-close')){if(lessonNameDraft&&!await saveLessonNames())return;expandedLessonProgress='';render();return}
- if(target.hasAttribute('data-lesson-status')){if(lessonNameDraft&&!await saveLessonNames())return;setLessonStatus(target.dataset.lessonBid,Number(target.dataset.lessonIndex),target.dataset.lessonStatus);return}
- if(target.hasAttribute('data-lesson-bulk')){if(lessonNameDraft&&!await saveLessonNames())return;bulkLessonStatus(target.dataset.lessonBid,target.dataset.lessonBulk);return}
  if(target.hasAttribute('data-school-class')){const n=Number(target.dataset.schoolClass),i=setup.selectedClasses.indexOf(n);if(i>=0){if(!confirm('Remove Class '+roman[n]+' from active classes? Existing lesson titles stay saved if you add it back.'))return;setup.selectedClasses.splice(i,1);for(const t of setup.teachers)t.classes=t.classes.filter(x=>x!==n);for(const b of setup.books[n]||[]){b.active=false;b.teacherId=''}}else setup.selectedClasses.push(n);grade=selectedGrades()[0]||5;markSetup();return render()}
  if(target.hasAttribute('data-classes-all')){setup.selectedClasses=[1,2,3,4,5];markSetup();return render()}
  if(target.hasAttribute('data-classes-none')){if(!confirm('Remove all selected classes?'))return;setup.selectedClasses=[];for(const t of setup.teachers)t.classes=[];for(const n of numbers)for(const b of setup.books[n]||[]){b.active=false;b.teacherId=''}markSetup();return render()}
@@ -474,7 +434,6 @@ const Studio=(()=>{
  if(el.hasAttribute('data-lesson-title')&&lessonNameDraft?.bookId===el.dataset.lessonTitle){lessonNameDraft.chapters[Number(el.dataset.lessonTitleIndex)]=el.value;return}
  if(el.hasAttribute('data-lesson-newname')&&lessonNameDraft?.bookId===el.dataset.lessonNewname){lessonNameDraft.newInput=el.value;return}
  if(el.hasAttribute('data-lesson-pasteinput')&&lessonNameDraft?.bookId===el.dataset.lessonPasteinput){lessonNameDraft.batchInput=el.value;return}
- if(el.hasAttribute('data-lesson-search')){const id=el.dataset.lessonSearch,query=String(el.value||'').toLowerCase().trim();lessonFilters[id]=el.value;const panel=el.closest('[data-lesson-panel]');if(panel)for(const row of panel.querySelectorAll('[data-lesson-row]')){const label=row.querySelector('.lessonName')?.textContent||'';row.hidden=!((String(Number(row.dataset.index)+1)+' '+label).toLowerCase().includes(query))}return}
  if(el.hasAttribute('data-assignment-editname')&&assignmentEditorDraft){assignmentEditorDraft.name=el.value;return}if(el.hasAttribute('data-assignment-chapter')&&assignmentEditorDraft){assignmentEditorDraft.chapters[Number(el.dataset.assignmentChapter)]=el.value;return}if(el.dataset.tid){const t=teacher(el.dataset.tid);if(t)t[el.dataset.field]=el.value;markSetup();return}
  if(el.dataset.studioSubname){let b=findBook(grade,el.dataset.studioSubname);if(b)b.name=el.value;markSetup();return}
  if(el.dataset.studioChapter){let b=findBook(grade,el.dataset.studioChapter);if(b)b.chapters[+el.dataset.i]=el.value;markSetup();return}
