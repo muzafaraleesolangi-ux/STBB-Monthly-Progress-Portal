@@ -89,3 +89,44 @@
 @keyframes studioUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:900px){.wizardTrack{grid-template-columns:repeat(3,minmax(0,1fr))}.schoolClassCards{grid-template-columns:repeat(3,minmax(0,1fr))}.studioFormGrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.studioTop{padding:21px 19px;flex-direction:column}.studioCloud{white-space:normal}.schoolClassCards{grid-template-columns:repeat(2,1fr)}.studioFormGrid{grid-template-columns:1fr}.studioBookEdit{grid-template-columns:1fr}.studioBookEdit label,.lessonHead{grid-column:1}.wizardTrack>button{min-height:57px;font-size:9px}.wizardTrack>button span{width:21px;height:21px}.studioCard{padding:13px}.reportPeriodPanel{align-items:stretch}.reportPeriodPanel .btn{width:100%}#studioBody{padding:14px}.progressCardHeader{flex-wrap:wrap}}
+
+/* Teacher-by-teacher exclusive subject allocation */
+.teacherAssignRail{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0 18px}
+.teacherRailCard{display:flex;align-items:center;gap:10px;min-width:165px;max-width:290px;flex:1;border:1px solid #d2eadd;background:#f7fcf9;color:#356b5b;border-radius:14px;padding:12px;transition:transform .2s,box-shadow .2s}
+.teacherRailCard.current{background:linear-gradient(120deg,#0a635b,#099b7e);color:white;border-color:#08856b;box-shadow:0 9px 23px #068f6f30}
+.teacherRailCard:hover{transform:translateY(-2px)}
+.teacherRailCard strong{display:block;font-size:12px;text-align:left}.teacherRailCard small{display:block;font-size:10px;text-align:left;opacity:.78;margin-top:5px}
+.teacherRailIndex{flex-shrink:0;display:grid;place-items:center;background:#d7f8e8;border-radius:11px;width:30px;height:30px;font-weight:900;color:#08654e}
+.teacherRailCard.current .teacherRailIndex{background:#ffffff32;color:white}
+.teacherRailCheck{margin-left:auto;color:inherit;font-size:17px;font-weight:900}
+.assignmentCurrentTeacher{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;background:linear-gradient(115deg,#0c544f,#107f69);color:white;border-radius:18px;padding:19px;margin-bottom:16px}
+.assignmentCurrentTeacher h3{margin:6px 0;color:white;font-size:20px}.assignmentCurrentTeacher p{margin:6px 0;color:#dbf7e9;font-size:12px}
+.assignmentSwitch{display:flex;gap:8px;flex-wrap:wrap}
+.assignmentSwitch .ghostMini{background:#ffffff1c;color:#fff;border-color:#ffffff66}
+.assignmentSwitch button:disabled{opacity:.42;cursor:not-allowed}
+.assignmentGradeCard{margin:16px 0}
+.assignmentGradeHead{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:13px}
+.assignmentGradeHead h4{font-size:14px;letter-spacing:.6px;color:#117b66;margin:0 0 7px}
+.assignmentGradeHead small{display:block;font-size:11px;color:#6b8d7d;line-height:1.6}
+.assignmentSubjectGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:10px}
+.assignmentSubjectCard{border:1px solid #d5e8de;background:#fbfefc;border-radius:15px;padding:12px;transition:background .2s,border-color .2s}
+.assignmentSubjectCard.selected{border-color:#52bfa0;background:#eafaf2}
+.assignmentSubjectSummary{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.assignmentSelect{display:flex;align-items:flex-start;flex:1;min-width:0;gap:10px;cursor:pointer}
+.assignmentSelect input{flex-shrink:0;accent-color:#079675;width:17px;height:17px;margin:3px 0}
+.assignmentSelect strong{display:block;font-size:12px;color:#194f42;line-height:1.4;overflow-wrap:anywhere}
+.assignmentSelect small{display:block;font-size:10px;color:#68887b;margin-top:5px}
+.assignmentSubjectActions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
+.assignmentSubjectActions .ghostMini{padding:8px 9px;font-size:10px}
+.assignmentInlineEditor{grid-column:1/-1;border-top:1px solid #dcebe1;margin-top:13px;padding-top:15px;animation:studioUp .23s ease-out}
+.assignmentInlineHeading{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#086a55;font-size:12px;margin-bottom:14px}
+.assignmentInlineEditor .lessonHead{display:flex;margin:14px 0 10px;color:#146752;font-size:12px}
+.assignmentInlineEditor .lessonInputs{max-height:350px;overflow:auto}
+.assignmentEditFoot{display:flex;justify-content:flex-end;margin-top:15px}
+.assignmentAddForm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0;padding:12px;background:#e5f9ed;border-radius:12px;border:1px solid #b9ebd5}
+.assignmentAddForm label{font-size:12px;font-weight:800;color:#236b56;flex:1;min-width:185px}
+.assignmentAddForm input{display:block;width:100%;margin-top:6px;min-height:42px;border:1px solid #c7e6d7;background:white;border-radius:10px;padding:11px}
+.assignmentAddForm small{flex-basis:100%;font-size:10px;color:#478574}
+.assignmentSummary{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:16px 0;border:1px solid #cfeadb;border-radius:14px;background:#effcf4;padding:15px;font-weight:800;font-size:11px;color:#186e54}
+@media(max-width:600px){.teacherRailCard{min-width:calc(50% - 9px)}.assignmentCurrentTeacher{padding:16px}.assignmentSwitch{width:100%}.assignmentSwitch>button{flex:1}.assignmentSubjectGrid{grid-template-columns:1fr}.assignmentSubjectSummary{gap:6px}.assignmentSubjectActions{flex-direction:column}.assignmentInlineEditor .studioFormGrid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.assignmentInlineEditor{animation:none}.teacherRailCard{transition:none}}
