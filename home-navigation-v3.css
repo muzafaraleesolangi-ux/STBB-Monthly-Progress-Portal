@@ -1,0 +1,25 @@
+
+/* Premium access alongside the real developer portrait */
+#landing .portraitWithAdmin{position:relative;padding-bottom:9px}
+#landing .portraitWithAdmin .profileAdminButton{position:relative;z-index:5;width:100%;max-width:260px;min-height:62px;display:flex;align-items:center;gap:10px;margin-top:16px;padding:10px 15px;background:linear-gradient(120deg,#f7ffe9,#a9f1ca 72%,#e0ffe2);color:#085244;border:1px solid #d4ffe7;border-radius:18px;box-shadow:0 13px 35px #001d249c,0 0 0 4px #ffffff15;cursor:pointer;transition:transform .26s,box-shadow .26s,background .26s;overflow:hidden;animation:adminButtonEntrance .8s .1s both,adminButtonGlow 5s 1.1s ease-in-out infinite}
+#landing .profileAdminButton:before{content:"";position:absolute;inset:-50%;background:linear-gradient(90deg,transparent,#ffffff9c,transparent);width:45%;transform:translateX(-390%) rotate(25deg);pointer-events:none}
+#landing .profileAdminButton:hover:before{transform:translateX(900%) rotate(25deg);transition:transform .8s}
+#landing .profileAdminButton:hover{transform:translateY(-5px) scale(1.03);box-shadow:0 19px 48px #032b2fbe,0 0 0 6px #a6ffe22c}
+#landing .profileAdminButton:focus-visible,.dashboardNavigation .dashNavigationBtn:focus-visible{outline:3px solid #8fffd7;outline-offset:4px}
+.profileAdminButton .adminButtonIcon{width:38px;height:38px;display:grid;place-items:center;flex-shrink:0;background:linear-gradient(135deg,#0f6959,#12aa87);color:#fff;border-radius:12px;font-size:24px;animation:adminCrownBob 4.3s infinite ease-in-out}
+.profileAdminButton .adminButtonCaption{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.profileAdminButton .adminButtonCaption strong{font-size:14px!important;letter-spacing:-.15px!important;line-height:1.1;margin:0!important;color:#064c3b!important}
+.profileAdminButton .adminButtonCaption small{font-size:9px!important;letter-spacing:.7px!important;font-weight:900;color:#31785a!important;text-align:left}
+.profileAdminButton .adminButtonArrow{margin-left:auto;font-size:21px;font-weight:900;color:#087353;transition:transform .2s}
+.profileAdminButton:hover .adminButtonArrow{transform:translate(3px,-3px)}
+.dashboardNavigation{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dashboardNavigation .dashNavigationBtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:39px;padding:10px 14px;background:#e9f9ef;color:#09745a;font-weight:900;font-size:12px;border-radius:12px;border:1px solid #bfebd2;box-shadow:0 3px 10px #08583b10;cursor:pointer;transition:transform .2s,background .2s,box-shadow .2s}
+.dashboardNavigation .dashNavigationBtn:hover{transform:translateY(-3px);background:#d5fce9;box-shadow:0 9px 20px #09927424}
+.dashboardNavigation .dashNavigationBtn.home{background:linear-gradient(120deg,#0d655a,#159577);border-color:#0c826d;color:white}
+.dashboardNavigation .dashNavigationBtn.home:hover{background:linear-gradient(120deg,#096659,#09a681)}
+@keyframes adminButtonEntrance{from{opacity:0;transform:translateY(18px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes adminButtonGlow{50%{box-shadow:0 14px 42px #062e32d0,0 0 0 6px #aaffdd27}}
+@keyframes adminCrownBob{50%{transform:translateY(-4px) rotate(-7deg)}}
+@media(max-width:690px){#landing .portraitWithAdmin .profileAdminButton{max-width:220px;margin:0 0 0 auto;min-height:53px;padding:8px 10px;border-radius:13px}#landing .profileAdminButton .adminButtonIcon{width:32px;height:32px;font-size:19px}#landing .profileAdminButton .adminButtonCaption strong{font-size:12px!important}#landing .profileAdminButton .adminButtonCaption small{font-size:7.5px!important;letter-spacing:.1px!important}#landing .profileAdminButton .adminButtonArrow{font-size:16px}.dashboardNavigation{width:100%;order:1}.dashboardNavigation .dashNavigationBtn{flex:1}}
+@media(max-width:390px){#landing .portraitWithAdmin{flex-wrap:wrap}#landing .portraitWithAdmin .profileAdminButton{max-width:100%;width:100%;margin-top:5px}.dashboardNavigation .dashNavigationBtn{padding:9px 12px}}
+@media(prefers-reduced-motion:reduce){#landing .profileAdminButton,#landing .profileAdminButton .adminButtonIcon{animation:none!important}#landing .profileAdminButton,#landing .profileAdminButton .adminButtonArrow,.dashboardNavigation .dashNavigationBtn{transition:none!important}}
