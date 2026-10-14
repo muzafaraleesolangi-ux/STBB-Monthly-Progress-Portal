@@ -1,0 +1,49 @@
+name: Validate Portal Javascript
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check external JavaScript syntax
+        run: |
+          node --check portal-ux.js
+          node --check editor-ux.js
+      - name: Check embedded JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          for path in ['index.html','MPR_Online_Editor.html']:
+              content=Path(path).read_text(encoding='utf-8')
+              scripts=re.findall(r'<script(?:\\s+[^>]*)?>([\\s\\S]*?)</script>',content,re.I)
+              inline=[s for s in scripts if s.strip()]
+              if not inline:
+                  raise RuntimeError('Missing inline app code in '+path)
+              for i,script in enumerate(inline):
+                  Path('code_'+path.replace('.html','')+'_'+str(i)+'.js').write_text(script)
+          PY
+          for f in code_*.js; do node --check "$f"; done
+      - name: Validate portal linked resources
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          h=Path('index.html').read_text(encoding='utf-8')
+          e=Path('MPR_Online_Editor.html').read_text(encoding='utf-8')
+          assert 'id="newMonthName"' in h
+          assert 'id="newMonthYear"' in h
+          assert 'id="saveDialog"' in h
+          assert 'id="saveFloat"' in h
+          for file in ('portal-ux.css','portal-ux.js','editor-ux.css','editor-ux.js'):
+            assert Path(file).is_file()
+          assert 'portal-ux.js' in h
+          assert 'editor-ux.js' in e
+          assert 'pattern="[0-9]{6,13}"' not in h
+          assert 'Shared School Password' not in h
+          print('Portal static validation successful.')
+          PY
