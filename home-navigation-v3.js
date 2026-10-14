@@ -7,7 +7,7 @@
   const access=document.createElement('button');
   access.id='portraitAdminLogin';access.type='button';access.className='profileAdminButton';
   access.setAttribute('aria-label','Open administrator login');
-  access.innerHTML='<span class="adminButtonIcon">♛</span><span class="adminButtonCaption"><strong>Admin Login</strong><small>PRIVATE CONTROL CENTER</small></span><span class="adminButtonArrow">↗</span>';
+  access.innerHTML='<span class="adminButtonIcon">♛</span><span class="adminButtonCaption"><strong>Admin Login</strong><small>SCHOOL PORTAL ADMINISTRATION</small></span><span class="adminButtonArrow">↗</span>';
   access.addEventListener('click',()=>show('admin-login'));
   portrait.appendChild(access);
  }
