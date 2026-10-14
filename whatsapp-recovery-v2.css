@@ -1,0 +1,9 @@
+
+.waRecoveryIntro{padding:17px 18px;background:linear-gradient(120deg,#eafaf2,#f4fff9);border:1px solid #b9e8d1;border-radius:16px;margin:14px 0 20px;color:#175e4b}
+.waRecoveryIntro strong{display:block;font-size:14px;margin-top:6px}.waRecoveryIntro p{font-size:12px;line-height:1.7;margin:8px 0 0;color:#367967}
+.waApprovalIcon{display:grid;place-items:center;border-radius:50%;background:#c6f8df;color:#05794d;font-size:17px;font-weight:900;width:36px;height:36px}
+.waResetRow{border:1px solid #dcece5;padding:17px 19px;border-radius:15px;background:#fbfffd;margin:12px 0;transition:box-shadow .25s,transform .25s}
+.waResetRow:hover{box-shadow:0 12px 25px #0b785b17;transform:translateY(-2px)}
+.waResetRow p{color:#69837b;line-height:1.6;font-size:12px}
+.waSendBtn{background:linear-gradient(120deg,#096e58,#13aa7c);color:white}
+.waSendInstruction{background:#edf9f3;border-left:3px solid #159b7e;padding:10px 13px;border-radius:3px 9px 9px 3px;color:#236d5c!important;font-weight:650;font-size:12px}
