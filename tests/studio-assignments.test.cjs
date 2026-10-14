@@ -99,6 +99,30 @@ async function main(){
  absent('[data-assign-bid="5-maths"]');
  assert.equal(book('4-english').teacherId,'t2');
  assert.ok(saveCount>=3,'Cloud saves occurred');
+ // Regression: an older school account with a missing textbook master must show all classes by default.
+ // Existing custom subjects must be retained, not replaced with the catalog.
+ school={selectedClasses:[1,2,3,4,5],teachers:[
+  {id:'t1',name:'Teacher One',pid:'111',designation:'PST',classes:[1,2,3,4,5]},
+  {id:'t2',name:'Teacher Two',pid:'222',designation:'PST',classes:[1,2,3,4,5]}
+ ],books:{5:[{id:'5-custom',name:'Handwriting',chapters:['Writing'],active:false,teacherId:''}],4:[]}};
+ cloudVersion++;
+ await studio.activate();
+ studio.stage(3);
+ const reloaded=studio.getSetup();
+ for(const [grade,minSubjects] of [[1,4],[2,4],[3,6],[4,7],[5,8]]){
+  assert.equal(reloaded.books[grade].length,minSubjects,'Class '+grade+' standard subjects should be loaded (and existing custom retained)');
+  assert.equal(new Set(reloaded.books[grade].map(b=>b.name.toLowerCase())).size,reloaded.books[grade].length,'No duplicate subject names in grade '+grade);
+ }
+ assert.ok(reloaded.books[5].some(b=>b.id==='5-custom'&&b.name==='Handwriting'),'School custom subject preserved');
+ assert.ok(reloaded.books[5].some(b=>b.name==='Sindhi Reader'),'Class V textbooks restored');
+ assert.ok(reloaded.books[1].some(b=>b.name==='Mathematics'),'Class I textbooks restored');
+ assert.ok(d.querySelectorAll('[data-assign-bid]').length>=29,'Every selected class should show ready-to-tick subject options');
+ await studio.settle();
+ assert.ok(school.books[5].some(b=>b.name==='Sindhi Reader'),'Restored standard subjects saved to school cloud setup');
+ // A deliberately emptied class must remain empty after refresh once catalog initialization is recorded.
+ reloaded.books[3]=[];await studio.settle();
+ await studio.activate();
+ assert.equal(studio.getSetup().books[3].length,0,'Intentional remove-all does not repopulate endlessly');
  dom.window.close();
  console.log('PASS: checklist, overlapping teacher classes, exclusive class-subject assignment, bulk tick, collapse, add/edit/remove, saves');
 }
