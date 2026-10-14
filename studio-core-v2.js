@@ -4,7 +4,7 @@ const Studio=(()=>{
  const V2='https://oypqcizrlhdouygvazyb.supabase.co/functions/v1/mpr-workspace-v2';
  const numbers=[5,4,3,2,1],monthLabels=['January','February','March','April','May','June','July','August','September','October','November','December'];
  let setup=null,setupVersion=0,setupBusy=false,setupTimer=null,setupDirty=false,stage=0,grade=5,expanded='',schoolPeriod='',baseState=null,progressVersions={},
- progressEntries={},saveTimers={},progressDirty=new Set(),progressBusy=new Set(),filterTeacher='all',warnings=[],refreshHandle=null,initializing=false;
+ progressEntries={},saveTimers={},progressDirty=new Set(),progressBusy=new Set(),filterTeacher='all',warnings=[],refreshHandle=null,initializing=false,setupConflict=false;
  const $s=id=>document.getElementById(id);
  const clone=x=>structuredClone(x),safe=x=>esc(x),roman={1:'I',2:'II',3:'III',4:'IV',5:'V'};
  async function api(action,body={}){if(!auth?.token)throw Error('Please sign in');const r=await fetch(V2,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...body}),cache:'no-store'});const a=await r.json().catch(()=>({}));if(!r.ok||a.error)throw Error(a.error||'Cloud request failed');return a}
@@ -19,9 +19,9 @@ const Studio=(()=>{
  async function waitTemplate(){let i=0;while(!template&&i++<55)await new Promise(ok=>setTimeout(ok,100));return template||{teachers:[{id:'t1',name:account?.hm_name||'',pid:'',designation:'PST (BPS-14)'}],books:{}}}
  function seed(t){const bs=clone(t.books||{});for(const g of numbers)for(const b of bs[g]||[]){b.active=false;b.teacherId='';b.previous=0;b.current=0}return{selectedClasses:[],teachers:[{id:'t1',name:account?.hm_name||'',pid:'',designation:'PST (BPS-14)',classes:[]}],books:bs}}
  function ensure(){if(!auth||auth.admin||!account)throw Error('School sign-in required');if(!setup)throw Error('Finish loading your school setup')}
- function markSetup(){setupDirty=true;notify('Changes detected · saving school setup…');clearTimeout(setupTimer);setupTimer=setTimeout(saveSetup,900)}
- async function saveSetup(){if(setupBusy||!setupDirty||!auth||auth.admin)return;setupBusy=true;setupDirty=false;const snapshot=clone(setup),atVersion=setupVersion;try{const result=await api('save-setup',{setup:snapshot,version:atVersion});setupVersion=result.version;notify('✓ School setup saved to cloud · version '+setupVersion)}catch(e){setupDirty=true;notify('⚠ '+e.message,true);if(/changed|Concurrent|Reload/i.test(e.message)){clearTimeout(setupTimer);alert('School setup was updated elsewhere. Please finish reviewing and reload the latest school setup before saving over it.');return}}finally{setupBusy=false;if(setupDirty&&!setupTimer)setupTimer=setTimeout(()=>{setupTimer=null;saveSetup()},1600)}}
- async function settleSetup(){clearTimeout(setupTimer);setupTimer=null;if(setupBusy){let wait=0;while(setupBusy&&wait++<60)await new Promise(ok=>setTimeout(ok,100))}if(setupDirty)await saveSetup();if(setupDirty)throw Error('School setup needs saving. Please resolve the warning.')}
+ function markSetup(){setupDirty=true;if(setupConflict){notify('School setup changed on another device. Refresh this page to review the latest school setup before further saving.',true);return}notify('Changes detected · saving school setup…');clearTimeout(setupTimer);setupTimer=setTimeout(saveSetup,900)}
+ async function saveSetup(){setupTimer=null;if(setupBusy||!setupDirty||!auth||auth.admin||setupConflict)return;setupBusy=true;setupDirty=false;const snapshot=clone(setup),atVersion=setupVersion;try{const result=await api('save-setup',{setup:snapshot,version:atVersion});setupVersion=result.version;notify('✓ School setup saved to cloud · version '+setupVersion)}catch(e){setupDirty=true;notify('⚠ '+e.message,true);if(/changed|Concurrent|Reload/i.test(e.message)){setupConflict=true;clearTimeout(setupTimer);alert('School setup was updated elsewhere. Please finish reviewing and reload the latest school setup before saving over it.');return}}finally{setupBusy=false;if(setupDirty&&!setupTimer&&!setupConflict)setupTimer=setTimeout(()=>{setupTimer=null;saveSetup()},1600)}}
+ async function settleSetup(){if(setupConflict)throw Error('School setup changed on another device. Please refresh before continuing.');clearTimeout(setupTimer);setupTimer=null;if(setupBusy){let wait=0;while(setupBusy&&wait++<60)await new Promise(ok=>setTimeout(ok,100))}if(setupDirty)await saveSetup();if(setupDirty)throw Error('School setup needs saving. Please resolve the warning.')}
  function setupStage(n){if(!setup)return;stage=Math.max(0,Math.min(5,n));if(stage===4&&!selectedGrades().includes(grade))grade=selectedGrades()[0]||5;render();}
  function counts(){const bs=assigned(),completed=bs.filter(b=>progressVersions[b.id]>0),left=bs.filter(b=>!(progressVersions[b.id]>0));return{total:bs.length,done:completed.length,left}}
  function shell(){
@@ -160,6 +160,7 @@ const Studio=(()=>{
  }
  bind();
  const originalPostLogin=postLogin;postLogin=async function(result){await originalPostLogin(result);if(!auth.admin)await activate();return result};
+ const otherDashTab=dashTab;dashTab=function(tab,button){if($s('studioPanel'))$s('studioPanel').classList.add('hidden');return otherDashTab(tab,button)};
  // Restore the studio if the school session existed before a page refresh.
  setTimeout(()=>{if(auth&&!auth.admin&&account)activate()},1700);
  return{activate,openPeriod,review,showPanel,saveSetup,settle,refresh:loadEntries,unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
