@@ -60,14 +60,18 @@ async function main(){
  click('[data-assign-bid="4-english"]');
  assert.equal(book('4-english').teacherId,'t2','Same subject name in a different class can have different teacher');
  click('[data-assignment-selectall="5"]');
+ await new Promise(ok=>setTimeout(ok,30));
  assert.equal(book('5-english').teacherId,'t1','Other teacher subject retained');
  assert.equal(book('5-maths').teacherId,'t2');
  assert.equal(book('5-science').teacherId,'t2');
  click('[data-assignment-togglegrade="5"]');
+ await new Promise(ok=>setTimeout(ok,20));
  absent('[data-assign-bid="5-maths"]');
  click('[data-assignment-togglegrade="5"]');
+ await new Promise(ok=>setTimeout(ok,20));
  one('[data-assign-bid="5-maths"]');
  click('[data-assignment-addsubject="4"]');
+ await new Promise(ok=>setTimeout(ok,20));
  change('#assignmentNewName','Art');
  click('[data-assignment-confirmadd="4"]');
  let custom=studio.getSetup().books[4].find(x=>x.name==='Art');
