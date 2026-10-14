@@ -78,6 +78,7 @@ async function main(){
  assert.ok(custom,'New subject created');
  assert.equal(custom.teacherId,'t2');
  click('[data-assignment-addsubject="4"]');
+ await new Promise(ok=>setTimeout(ok,20));
  change('#assignmentNewName','Art');
  click('[data-assignment-confirmadd="4"]');
  assert.equal(studio.getSetup().books[4].filter(x=>x.name==='Art').length,1,'Duplicate names blocked');
