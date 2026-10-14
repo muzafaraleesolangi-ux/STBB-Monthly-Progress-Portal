@@ -15,7 +15,7 @@ const Studio=(()=>{
  function repairSubjects(state){let changed=false;if(!state.books||typeof state.books!=='object'||Array.isArray(state.books)){state.books={};changed=true}if(!state.subjectCatalogInitialized||typeof state.subjectCatalogInitialized!=='object'){state.subjectCatalogInitialized={};changed=true}for(const grade of numbers){if(!Array.isArray(state.books[grade])){state.books[grade]=[];changed=true}if(!state.subjectCatalogInitialized[grade]){const existing=state.books[grade],names=new Set(existing.map(b=>normalizedSubject(b.name)));for(const book of defaultBooks(grade)){const name=normalizedSubject(book.name);if(!names.has(name)){existing.push(book);names.add(name);changed=true}}state.subjectCatalogInitialized[grade]=true;changed=true}}return changed}
 
  let setup=null,setupVersion=0,setupBusy=false,setupTimer=null,setupDirty=false,stage=0,grade=5,expanded='',schoolPeriod='',baseState=null,progressVersions={},
- progressEntries={},saveTimers={},progressDirty=new Set(),progressBusy=new Set(),filterTeacher='all',warnings=[],refreshHandle=null,initializing=false,setupConflict=false,assignmentTeacherIndex=0,assignmentEditorId='',assignmentEditorDraft=null,addingSubjectGrade=null,assignmentCollapsedGrades=new Set(),expandedLessonProgress='',lessonNameDraft=null;
+ progressEntries={},saveTimers={},progressDirty=new Set(),progressBusy=new Set(),filterTeacher='all',warnings=[],refreshHandle=null,initializing=false,setupConflict=false,assignmentTeacherIndex=0,assignmentEditorId='',assignmentEditorDraft=null,addingSubjectGrade=null,assignmentCollapsedGrades=new Set(),expandedLessonProgress='',lessonNameDraft=null,openingMonthPromise=null,queuedFirstInputs=new Map(),queuedInputFocus=null;
  const $s=id=>document.getElementById(id);
  const clone=x=>structuredClone(x),safe=x=>esc(x),roman={1:'I',2:'II',3:'III',4:'IV',5:'V'};
  async function api(action,body={}){if(!auth?.token)throw Error('Please sign in');const r=await fetch(V2,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...body}),cache:'no-store'});const a=await r.json().catch(()=>({}));if(!r.ok||a.error)throw Error(a.error||'Cloud request failed');return a}
@@ -207,13 +207,13 @@ const Studio=(()=>{
  function renderProgress(){const c=counts(),selected=filterTeacher==='all'?null:selectedTeacher(),list=assigned().filter(b=>!selected||b.teacherId===selected.id);
  let html='<div class="studioHead"><div><h3>6. Monthly Subject Progress</h3><p>Type directly in the Previous and This Month cells below. Total comes from your school textbook setup; Remaining updates automatically. No lesson ticking or separate progress form.</p></div><button class="btn ghost" data-studio-refresh>↻ Refresh Other Teachers’ Work</button></div>';
  html+='<div class="reportPeriodPanel"><div><label>Reporting Month</label><input type="month" id="studioMonthInput" value="'+safe(schoolPeriod||new Date().toISOString().slice(0,7))+'"></div><button class="btn primary" data-studio-openmonth>Open / Continue Month</button><div><label>Teacher Profile</label><select id="studioTeacherFilter"><option value="all">All Teachers · HM Review</option>'+setup.teachers.map(t=>'<option value="'+safe(t.id)+'" '+(filterTeacher===t.id?'selected':'')+'>'+safe(t.name)+'</option>').join('')+'</select></div></div>';
- if(!schoolPeriod)html+='<div class="studioMissing">Select the reporting month and press Open / Continue Month before entering or saving progress.</div>';
+ if(!schoolPeriod)html+='<div class="studioAlert">Enter the Previous or This Month number directly. Your selected reporting month will open automatically when you type, and your progress will save online.</div>';
  html+='<div class="studioMetrics"><div><b>'+c.total+'</b><small>Assigned Subjects</small></div><div><b>'+c.done+'</b><small>Saved This Month</small></div><div><b>'+c.left.length+'</b><small>Pending Entries</small></div></div>';
  if(c.left.length)html+='<details class="pendingBox"><summary>⚠ Pending subject entries ('+c.left.length+')</summary>'+c.left.map(b=>'<span>Class '+roman[b.grade]+' · '+safe(b.name)+' — '+safe(tname(b.teacherId))+'</span>').join('')+'</details>';
  if(!list.length)html+='<div class="studioMissing">No subjects assigned to this teacher yet. Complete Subjects step first.</div>';
  for(const b of list){const d=progressBy(b),fig=progressFigures(b,d),saved=!!progressVersions[b.id];
  html+='<article class="studioCard progressCard simpleProgressCard" data-progress-card="'+safe(b.id)+'"><div class="progressCardHeader"><div><span class="subGrade">CLASS '+roman[b.grade]+'</span><h3>'+safe(b.name)+'</h3><small>'+safe(tname(b.teacherId))+' · '+fig.total+' total chapters / lessons</small></div><span class="progressState '+(saved?'saved':'pending')+'" id="status-'+safe(b.id)+'">'+(saved?'✓ Saved':'Pending entry')+'</span></div>';
- html+='<div class="chapterKpis inlineProgressCells" aria-live="polite"><div class="total"><b data-progress-metric="total">'+fig.total+'</b><small>Total Chapters</small></div><label class="editableMetric"><input type="number" inputmode="numeric" step="1" min="0" max="'+Math.max(0,fig.total-fig.curr)+'" aria-label="Previous completed chapters for '+safe(b.name)+'" title="Enter previous months completed chapters" data-progress-bid="'+safe(b.id)+'" data-pkey="previous" data-progress-metric="previous" value="'+fig.prev+'" '+(!schoolPeriod?'disabled':'')+'><small>Previous <span class="editHint">✎ Type here</span></small></label><label class="editableMetric current"><input type="number" inputmode="numeric" step="1" min="0" max="'+Math.max(0,fig.total-fig.prev)+'" aria-label="This month completed chapters for '+safe(b.name)+'" title="Enter this month completed chapters" data-progress-bid="'+safe(b.id)+'" data-pkey="current" data-progress-metric="current" value="'+fig.curr+'" '+(!schoolPeriod?'disabled':'')+'><small>This Month <span class="editHint">✎ Type here</span></small></label><div class="remaining"><b data-progress-metric="remaining">'+fig.remaining+'</b><small>Remaining (Auto)</small></div></div>';
+ html+='<div class="chapterKpis inlineProgressCells" aria-live="polite"><div class="total"><b data-progress-metric="total">'+fig.total+'</b><small>Total Chapters</small></div><label class="editableMetric"><input type="number" inputmode="numeric" step="1" min="0" max="'+Math.max(0,fig.total-fig.curr)+'" aria-label="Previous completed chapters for '+safe(b.name)+'" title="Enter previous months completed chapters" data-progress-bid="'+safe(b.id)+'" data-pkey="previous" data-progress-metric="previous" value="'+fig.prev+'"><small>Previous <span class="editHint">✎ Type here</span></small></label><label class="editableMetric current"><input type="number" inputmode="numeric" step="1" min="0" max="'+Math.max(0,fig.total-fig.prev)+'" aria-label="This month completed chapters for '+safe(b.name)+'" title="Enter this month completed chapters" data-progress-bid="'+safe(b.id)+'" data-pkey="current" data-progress-metric="current" value="'+fig.curr+'"><small>This Month <span class="editHint">✎ Type here</span></small></label><div class="remaining"><b data-progress-metric="remaining">'+fig.remaining+'</b><small>Remaining (Auto)</small></div></div>';
  html+='<div class="barBg"><i data-progress-bar style="width:'+fig.pct+'%"></i></div><div class="progressPlannerActions"><span data-progress-percent>'+fig.pct+'% complete</span><span class="simpleSaveHint">Edit the two cells above — progress saves automatically</span></div>';
  html+='<div class="studioFormGrid progressFields"><label>Notebook Maintenance (%)<select data-progress-bid="'+safe(b.id)+'" data-pkey="notebook">'+[50,60,70,80,90,100].map(n=>'<option '+(Number(d.notebook)===n?'selected':'')+'>'+n+'</option>').join('')+'</select></label><label>Classroom Cleanliness<select data-progress-bid="'+safe(b.id)+'" data-pkey="cleanliness">'+['Good','Very Good','Fair','Excellent','Needs Improvement'].map(v=>'<option '+(d.cleanliness===v?'selected':'')+'>'+v+'</option>').join('')+'</select></label><label>Formative Test Feedback<select data-progress-bid="'+safe(b.id)+'" data-pkey="feedback">'+['Good','Fair','Very Good','Excellent','Needs Improvement'].map(v=>'<option '+(d.feedback===v?'selected':'')+'>'+v+'</option>').join('')+'</select></label><label class="wideField">Improvement Suggestions<textarea data-progress-bid="'+safe(b.id)+'" data-pkey="suggestion" rows="2" placeholder="Subject-wise suggestions">'+safe(d.suggestion||'')+'</textarea></label></div><div class="subjectBottom"><span data-progress-bottom>'+fig.pct+'% completed · '+fig.remaining+' remaining</span><button class="btn ghost" data-studio-savesub="'+safe(b.id)+'">💾 Save This Subject</button></div></article>'
 
@@ -225,6 +225,7 @@ const Studio=(()=>{
  async function openPeriod(p){ensure();if(!selectedGrades().length)return notify('Select the school classes first, then assign teachers and subjects.',true);if(!/^20\d\d-(0[1-9]|1[0-2])$/.test(p||''))return notify('Choose a valid reporting month.',true);
  try{
  await settleSetup();
+ if(progressDirty.size){await Promise.all([...progressDirty].map(id=>saveSubject(id)));if(progressDirty.size)throw Error('Unsaved subject progress. Save it before switching months.')}
  const t=await waitTemplate(),initial=clone(t);
  initial.schoolName=account.school_name;initial.semis=account.semis;initial.hmName=account.hm_name;initial.teachers=setup.teachers.map(x=>({id:x.id,name:x.name,pid:x.pid,designation:x.designation}));
  initial.books=Object.fromEntries(selectedGrades().map(n=>[n,clone(setup.books[n]||[])]));
@@ -243,11 +244,34 @@ const Studio=(()=>{
   const b=assigned().find(x=>x.id===bookId),card=[...document.querySelectorAll('[data-progress-card]')].find(x=>x.dataset.progressCard===bookId);
   if(!b||!card)return;
   const d=progressBy(b),v=progressFigures(b,d);
-  for(const [key,n] of [['total',v.total],['previous',v.prev],['current',v.curr],['remaining',v.remaining]]){const el=card.querySelector('[data-progress-metric="'+key+'"]');if(el){if(el.tagName==='INPUT')el.value=String(n);else el.textContent=n}}
+  for(const [key,n] of [['total',v.total],['previous',v.prev],['current',v.curr],['remaining',v.remaining]]){const el=card.querySelector('[data-progress-metric="'+key+'"]');if(el){if(el.tagName==='INPUT'){if(document.activeElement!==el || Number(el.value)!==n)el.value=String(n)}else el.textContent=n}}
   const percent=card.querySelector('[data-progress-percent]');if(percent)percent.textContent=v.pct+'% complete';
   const bottom=card.querySelector('[data-progress-bottom]');if(bottom)bottom.textContent=v.pct+'% completed · '+v.remaining+' remaining';
   const prevInput=card.querySelector('[data-pkey="previous"]'),currInput=card.querySelector('[data-pkey="current"]');if(prevInput)prevInput.max=Math.max(0,v.total-v.curr);if(currInput)currInput.max=Math.max(0,v.total-v.prev);
   const bar=card.querySelector('[data-progress-bar]');if(bar)bar.style.width=v.pct+'%';
+ }
+ function startMonthForTyping(bookId,key,value){
+  if(value!==undefined)queuedFirstInputs.set(bookId+'::'+key,String(value));
+  queuedInputFocus={bookId,key};
+  if(openingMonthPromise)return openingMonthPromise;
+  const wanted=$s('studioMonthInput')?.value || new Date().toISOString().slice(0,7);
+  openingMonthPromise=(async()=>{
+    try{
+      await openPeriod(wanted);
+      if(schoolPeriod!==wanted){notify('The reporting month could not be opened. Your number was not saved. Please try Open / Continue Month.',true);return false}
+      for(const [joined,typed] of queuedFirstInputs){
+        const [id,k]=joined.split('::');updateEntry(id,k,typed);
+      }
+      const pending=queuedInputFocus;
+      if(pending){
+        const newInput=[...document.querySelectorAll('[data-progress-bid]')].find(el=>el.dataset.progressBid===pending.bookId&&el.dataset.pkey===pending.key);
+        if(newInput)newInput.focus({preventScroll:true});
+      }
+      return true;
+    }catch(err){notify('Cannot open month: '+err.message,true);return false}
+    finally{openingMonthPromise=null;queuedFirstInputs.clear();queuedInputFocus=null}
+  })();
+  return openingMonthPromise;
  }
  function updateEntry(bookId,k,v){
  if(!schoolPeriod)return notify('Open your reporting month first.',true);
@@ -434,13 +458,13 @@ const Studio=(()=>{
  if(el.hasAttribute('data-assignment-editname')&&assignmentEditorDraft){assignmentEditorDraft.name=el.value;return}if(el.hasAttribute('data-assignment-chapter')&&assignmentEditorDraft){assignmentEditorDraft.chapters[Number(el.dataset.assignmentChapter)]=el.value;return}if(el.dataset.tid){const t=teacher(el.dataset.tid);if(t)t[el.dataset.field]=el.value;markSetup();return}
  if(el.dataset.studioSubname){let b=findBook(grade,el.dataset.studioSubname);if(b)b.name=el.value;markSetup();return}
  if(el.dataset.studioChapter){let b=findBook(grade,el.dataset.studioChapter);if(b)b.chapters[+el.dataset.i]=el.value;markSetup();return}
- if(el.dataset.progressBid){updateEntry(el.dataset.progressBid,el.dataset.pkey,el.value);return}}
- function handleChange(e){const el=e.target;if(el.hasAttribute('data-assignment-edittotal')&&assignmentEditorDraft){const n=Math.max(0,Math.min(250,Number(el.value)||0));while(assignmentEditorDraft.chapters.length<n)assignmentEditorDraft.chapters.push('');assignmentEditorDraft.chapters.length=n;render();return}if(el.dataset.classTid){const t=teacher(el.dataset.classTid),n=+el.value;if(!t)return;if(el.checked){if(!t.classes.includes(n))t.classes.push(n)}else{t.classes=t.classes.filter(x=>x!==n);for(const b of setup.books[n]||[])if(b.teacherId===t.id){b.teacherId='';b.active=false}}markSetup();return render()}
+ if(el.dataset.progressBid){if(!schoolPeriod){startMonthForTyping(el.dataset.progressBid,el.dataset.pkey,el.value);return}updateEntry(el.dataset.progressBid,el.dataset.pkey,el.value);return}}
+ function handleChange(e){const el=e.target;if(el.id==='studioMonthInput'){if(el.value&&el.value!==schoolPeriod)openPeriod(el.value);return}if(el.hasAttribute('data-assignment-edittotal')&&assignmentEditorDraft){const n=Math.max(0,Math.min(250,Number(el.value)||0));while(assignmentEditorDraft.chapters.length<n)assignmentEditorDraft.chapters.push('');assignmentEditorDraft.chapters.length=n;render();return}if(el.dataset.classTid){const t=teacher(el.dataset.classTid),n=+el.value;if(!t)return;if(el.checked){if(!t.classes.includes(n))t.classes.push(n)}else{t.classes=t.classes.filter(x=>x!==n);for(const b of setup.books[n]||[])if(b.teacherId===t.id){b.teacherId='';b.active=false}}markSetup();return render()}
  if(el.dataset.assignTid){const g=Number(el.dataset.assignGrade),t=teacher(el.dataset.assignTid),b=findBook(g,el.dataset.assignBid);if(!b||!t)return;if(el.checked){if(b.active&&b.teacherId&&b.teacherId!==t.id){el.checked=false;notify('⚠ DUPLICATE ASSIGNMENT BLOCKED: "'+b.name+'" (Class '+roman[g]+') is already assigned to '+tname(b.teacherId)+'. It cannot be assigned to a second teacher.',true);return}if(!t.classes.includes(g)){el.checked=false;notify('Teacher is not assigned to this class.',true);return}if(duplicateName(g,b.name,b.id)){el.checked=false;notify('⚠ DUPLICATE SUBJECT NAME: "'+b.name+'" is already listed for Class '+roman[g]+'. Rename duplicate subjects first.',true);return}b.active=true;b.teacherId=t.id}else if(b.teacherId===t.id){b.active=false;b.teacherId=''}markSetup();return render()}
  if(el.dataset.studioCount){let b=findBook(grade,el.dataset.studioCount);if(b){let n=Math.max(0,Math.min(250,Number(el.value)||0));while(b.chapters.length<n)b.chapters.push('');b.chapters.length=n;markSetup();return render()}}
  if(el.id==='studioTeacherFilter'){filterTeacher=el.value;return render()}
  }
- function bind(){document.addEventListener('click',e=>{if(e.target.closest('#studioPanel'))handleClick(e)});document.addEventListener('input',e=>{if(e.target.closest('#studioPanel'))handleInput(e)});document.addEventListener('change',e=>{if(e.target.closest('#studioPanel'))handleChange(e)});
+ function bind(){document.addEventListener('focusin',e=>{const el=e.target;if(!schoolPeriod&&el?.dataset?.progressBid&&['previous','current'].includes(el.dataset.pkey))startMonthForTyping(el.dataset.progressBid,el.dataset.pkey)});document.addEventListener('click',e=>{if(e.target.closest('#studioPanel'))handleClick(e)});document.addEventListener('input',e=>{if(e.target.closest('#studioPanel'))handleInput(e)});document.addEventListener('change',e=>{if(e.target.closest('#studioPanel'))handleChange(e)});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&schoolPeriod&&$s('studioPanel')&&!$s('studioPanel').classList.contains('hidden'))loadEntries()});
  refreshHandle=setInterval(()=>{if(!document.hidden&&schoolPeriod&&auth&&!auth.admin&&stage===5&&!progressDirty.size)loadEntries()},18000);
  }
