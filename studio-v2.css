@@ -179,3 +179,17 @@
  .assignmentGradeSummary strong{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){.assignmentGradeBody{animation:none!important}}
+
+/* Subject catalog recovery + previously-assigned visibility */
+.assignmentHeaderActions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.assignmentHeaderActions .ghostMini{white-space:nowrap}
+.assignmentHeaderActions [data-assignment-restoregrade]{background:#f3fbf6;border-color:#b8e8d0;color:#176e5a}
+.subjectHiddenDetails{border:1px solid #d3e8dc;border-radius:11px;background:#f4fcf7;margin:8px 0 14px;padding:11px 14px;font-size:12px;color:#406e5e}
+.subjectHiddenDetails summary{cursor:pointer;font-size:12px;font-weight:800;color:#1a7864;line-height:1.6}
+.subjectHiddenDetails p{margin:9px 0 0;font-size:11px;line-height:1.6;color:#688677}
+.assignedElsewhereList{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.assignedElsewhereList>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid #daebe2;border-radius:9px;background:#fff;padding:8px 11px}
+.assignedElsewhereList>div span{font-size:12px;font-weight:800;color:#1a5e51;flex:1}
+.assignedElsewhereList>div small{font-size:10px;color:#7a9188}
+.assignedElsewhereList button{white-space:nowrap}
+@media(max-width:650px){.assignmentHeaderActions{width:100%}.assignmentHeaderActions button{flex:1;font-size:10px}.assignedElsewhereList>div span{flex-basis:100%}.assignedElsewhereList button{flex:1}}
