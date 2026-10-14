@@ -38,9 +38,9 @@ async function main(){
   }else throw Error('Unexpected request: '+body.action);
   return {ok:true,status:200,json:async()=>response};
  };
- w.eval("const auth={token:'fixture',admin:false},account={semis:'123456789',school_name:'Fixture School',hm_name:'HM'};const template={books:{}};let period=null,version=0,pendingState=null,periods=[],saving=false,saveTimer=null;async function postLogin(){};function dashTab(){};function refreshSaveDock(){};async function request(){return {}};async function refreshSchool(){};");
- w.eval(fs.readFileSync('studio-core-v2.js','utf8'));
- const studio=w.eval('Studio');
+ const fixture="const auth={token:'fixture',admin:false},account={semis:'123456789',school_name:'Fixture School',hm_name:'HM'};const template={books:{}};let period=null,version=0,pendingState=null,periods=[],saving=false,saveTimer=null;async function postLogin(){};function dashTab(){};function refreshSaveDock(){};async function request(){return {}};async function refreshSchool(){};";
+ w.eval(fixture+"\n"+fs.readFileSync('studio-core-v2.js','utf8')+"\nwindow.StudioForTest=Studio;");
+ const studio=w.StudioForTest;
  await studio.activate();studio.stage(3);
  const one=selector=>{const el=d.querySelector(selector);assert.ok(el,'Missing element: '+selector);return el};
  const absent=selector=>assert.equal(d.querySelector(selector),null,'Should not exist: '+selector);
