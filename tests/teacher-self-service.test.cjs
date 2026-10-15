@@ -1,80 +1,69 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),{JSDOM}=require('jsdom');
 async function main(){
- const html='<!doctype html><html><body><section id="teacherdash"><div id="teacherHeading"></div><div id="teacherSemis"></div><div id="teacherTabs"></div><div id="teacherSide"></div><div id="teacherView"></div><p id="teacherNotice"></p></section></body></html>';
- const dom=new JSDOM(html,{url:'https://school.test/',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,d=w.document;
- w.crypto.randomUUID=()=>'ae1e4deb-95cb-4c98-973c-f3c4cd6ff115';
- w.confirm=()=>true;w.alert=msg=>{throw Error('Alert: '+msg)};
- w.esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
- let version=0,savedSubjects=[],monthSaved=[],lastProfile=null;
- const token='unit-test-teacher',source=fs.readFileSync('teacher-workspace-v1.js','utf8');
- w.fetch=async(url,opts={})=>{
-  const request=JSON.parse(opts.body||'{}');let res;
-  assert.ok(String(opts.headers.Authorization).includes(token),'Teacher authenticated cloud API');
-  if(request.action==='teacher-load')res={school:{semis:'123456789',school_name:'Fixture School',hm_name:'HM'},profile:{id:'teacher1',pid:'112233',name:'Test Teacher',designation:'PST',classes:[],subjects:[],profile_status:'draft',version:0}};
-  else if(request.action==='teacher-save'){
-   assert.equal(request.version,version,'Profile version must use optimistic concurrency');
-   version++;lastProfile=request.profile;savedSubjects=request.profile.subjects;res={status:request.submit?'submitted':'draft',version};
-  }else if(request.action==='teacher-month-load'){
-   res={period:request.period,status:'draft',subjects:savedSubjects.map(b=>({id:b.id,name:b.name,grade:b.grade,total:b.total,version:0,details:{previous:2,current:null,notebook:null,cleanliness:'',feedback:'',suggestion:''},source_period:'2026-09'}))};
-  }else if(request.action==='teacher-month-save'){
-   monthSaved.push(request);res={version:1}
-  }else throw Error('Unexpected cloud action: '+request.action);
-  return{ok:true,status:200,json:async()=>res}
+ const dom=new JSDOM('<!doctype html><html><body><section id="teacherdash"><h1 id="teacherHeading"></h1><p id="teacherSemis"></p><nav id="teacherTabs"></nav><aside id="teacherSide"></aside><div id="teacherView"></div><p id="teacherNotice"></p></section></body></html>',{url:'https://portal.test/',runScripts:'outside-only',pretendToBeVisual:true});
+ const w=dom.window,d=w.document;
+ w.crypto.randomUUID=()=>'abcdef12-3456-7890-abcd-123456789012';
+ w.confirm=()=>true;w.alert=x=>{throw Error('Unexpected alert: '+x)};
+ w.esc=x=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+ let stored=null,version=0,monthly=[],submitted=false,calls=[];
+ w.fetch=async(url,opts)=>{
+  const q=JSON.parse(opts.body);calls.push(q.action);
+  assert.equal(opts.headers.Authorization,'Bearer school-staff-token','Staff requests must be authenticated');
+  let payload={};
+  if(q.action==='staff-load')payload={school:{semis:'123456789',school_name:'Fixture School',hm_name:'HM'},teachers:stored?[{id:stored.id,name:stored.name,pid:stored.pid,designation:stored.designation,classes:stored.classes,subjects:stored.subjects.length}]:[]};
+  else if(q.action==='staff-save'){assert.ok(q.profile.name&&q.profile.pid&&q.profile.designation);stored=structuredClone(q.profile);payload={ok:true,version:++version}}
+  else if(q.action==='staff-select')payload={profile:structuredClone(stored)};
+  else if(q.action==='staff-month-load')payload={period:q.period,status:'draft',submitted:false,subjects:stored.subjects.map(x=>({id:x.id,grade:x.grade,name:x.name,total:x.chapters.length,version:0,details:{previous:2,current:null,notebook:null,cleanliness:'',feedback:'',suggestion:''},source_period:'2026-09'}))};
+  else if(q.action==='staff-month-save'){monthly.push(q);payload={version:1}}
+  else if(q.action==='staff-month-submit'){assert.equal(monthly.length,1,'Every subject must be saved before submission');submitted=true;payload={ok:true,status:'submitted'}}
+  else throw Error('Unexpected action '+q.action);
+  return{ok:true,status:200,json:async()=>payload}
  };
- w.eval("const auth={role:'teacher',token:'"+token+"'};"+source+"\nwindow.TestTeacher=TeacherWorkspace;");
- const t=w.TestTeacher,one=selector=>{const x=d.querySelector(selector);assert.ok(x,'Missing '+selector);return x};
- const click=selector=>one(selector).click();
- await t.activate();
- assert.equal(one('#teacherHeading').textContent,'Fixture School');
- assert.ok(d.body.textContent.includes('112233'),'Teacher PID shown at entry');
- assert.equal(d.querySelector('[data-workflow-final]'),null,'Teacher cannot Final submit');
- assert.equal(d.querySelector('[data-month-download]'),null,'Teacher sees no Excel History download');
- for(const n of [5,10,12]){const cb=one('[data-teacher-grade="'+n+'"]');cb.checked=true;cb.dispatchEvent(new w.Event('change',{bubbles:true}))}
- assert.deepEqual(Array.from(t.profile().classes).sort((a,b)=>a-b),[5,10,12],'Teacher may select Primary, Matric and Intermediate');
- assert.equal(await t.save(),true,'Save Draft succeeds');
- await t.view('subjects');
- const set=(selector,val)=>{const el=one(selector);el.value=String(val);el.dispatchEvent(new w.Event('input',{bubbles:true}))};
- set('#teacherNewGrade','5');one('#teacherNewGrade').dispatchEvent(new w.Event('change',{bubbles:true}));
- set('#teacherNewName','Mathematics');set('#teacherNewTotal','9');click('[data-teacher-add]');
- assert.equal(t.profile().subjects.length,1);
- set('[data-teacher-book-chapters]',"Numbers\nFactors and Multiples\nFractions");
- assert.equal(t.profile().subjects[0].chapters[2],'Fractions','Edited lesson names persist in draft');
- await t.save();
- assert.equal(savedSubjects[0].total,9);
- assert.equal(savedSubjects[0].chapters[2],'Fractions');
- set('#teacherNewGrade','12');one('#teacherNewGrade').dispatchEvent(new w.Event('change',{bubbles:true}));
- set('#teacherNewName','Physics');set('#teacherNewTotal','11');click('[data-teacher-add]');
- await t.save(true);
- assert.equal(t.profile().profile_status,'submitted','Teacher may submit completed own profile');
- assert.ok(savedSubjects.some(b=>b.grade===12&&b.name==='Physics'),'Inter teaching assignment reaches server');
- await t.view('progress');
- assert.equal(one('[data-month-value="previous"]').value,'2','Previous month chapters carry forward');
- assert.equal(one('[data-month-value="current"]').value,'','Instant month requires new entry');
- assert.equal(one('[data-month-value="notebook"]').value,'','Notebook rating must start blank');
- const first=one('[data-month-book]');
- first.querySelector('[data-month-value="current"]').value='1';
- first.querySelector('[data-month-value="notebook"]').value='80';
- first.querySelector('[data-month-value="cleanliness"]').value='Good';
- first.querySelector('[data-month-value="feedback"]').value='Excellent';
- first.querySelector('[data-month-value="suggestion"]').value='Improve revision';
- first.querySelector('[data-month-save]').click();
- await new Promise(ok=>setTimeout(ok,30));
- assert.equal(monthSaved.length,1,'Only own progress subject saved');
- assert.equal(monthSaved[0].details.previous,2);
- assert.equal(monthSaved[0].details.current,1);
- assert.equal(monthSaved[0].details.notebook,80);
- const studioSource=fs.readFileSync('studio-core-v2.js','utf8'),index=fs.readFileSync('index.html','utf8');
- assert.ok(studioSource.includes("auth.role==='teacher'"),'HM Studio must skip teacher sessions');
- assert.ok(index.includes('teacher-register'),'Teacher private enrollment is linked from public page');
- assert.ok(index.includes('teacher-signin'),'Teacher PID-bound sign in is linked from public page');
- assert.ok(index.includes('role:r.role'),'Client session stores role securely');
- const workbook=fs.readFileSync('MPR_Online_Editor.html','utf8');
- assert.ok(workbook.includes("12:'XII'"),'Excel Proforma labels Intermediate Class XII');
- assert.ok(workbook.includes('[12,11,10,9,8,7,6,5,4,3,2,1].flatMap'),'HM Excel export includes all classes I–XII');
- assert.ok(workbook.includes('for(let g of [1,2,3,4,5,6,7,8,9,10,11,12])'),'Excel state hydrate retains Matric and Inter subjects');
- assert.ok(index.includes('hm-set-teacher-code')===false,'Enrollment secret is submitted from HM-only management script, not inline in public HTML');
- dom.window.close();console.log('PASS: teacher personal login, primary/matric/inter grade picks, subject chapters, cloud draft, submit and monthly progress; HM reports absent')
+ w.eval("const auth={token:'school-staff-token',role:'staff'};"+fs.readFileSync('school-staff-v1.js','utf8')+'\nwindow.TestStaff=SharedStaff;');
+ const staff=w.TestStaff,one=q=>{const x=d.querySelector(q);assert.ok(x,'Missing '+q);return x};
+ const tick=()=>new Promise(ok=>setTimeout(ok,30));
+ const input=(q,v)=>{const el=one(q);el.value=String(v);el.dispatchEvent(new w.Event('input',{bubbles:true}));return el};
+ await staff.activate();
+ assert.match(d.body.textContent,/Who is reporting today/);
+ assert.ok(one('[data-staff-new]'),'Teacher can create their own name tab');
+ staff.create();
+ input('[data-staff-field="name"]','Teacher A');input('[data-staff-field="pid"]','12345');input('[data-staff-field="designation"]','PST');
+ assert.equal(await staff.save(),true,'Teacher name tab saved');
+ await staff.go('classes');
+ const check=one('[data-staff-class="5"]');check.checked=true;check.dispatchEvent(new w.Event('change',{bubbles:true}));
+ assert.ok(staff.profile().classes.includes(5),'Class V chosen');
+ await staff.go('subjects');
+ input('#staffNewTitle','Mathematics');input('#staffNewTotal',10);one('[data-staff-add]').click();
+ assert.equal(staff.profile().subjects.length,1,'Subject picked exactly once');
+ assert.equal(staff.profile().subjects[0].chapters.length,10,'10 chapters retained');
+ await staff.save();
+ await staff.go('month');
+ assert.equal(one('[data-staff-remaining]').textContent,'8','10 minus 2 previous = 8 before current');
+ assert.equal(one('[data-staff-submit]').disabled,true,'HM submission locked until progress complete');
+ const current=one('[data-staff-progress="current"]');current.value='3';current.dispatchEvent(new w.Event('change',{bubbles:true}));
+ assert.equal(one('[data-staff-remaining]').textContent,'5','10 - 2 previous - 3 current = 5 remaining LIVE');
+ assert.match(one('[data-staff-equation]').textContent,/10 .* 2 previous .* 3 this month.*5 remaining/);
+ assert.equal(one('[data-staff-submit]').disabled,true,'Editing does not prematurely enable submission');
+ for(const [key,val] of [['notebook','80'],['cleanliness','Good'],['feedback','Excellent'],['suggestion','Improve revision']]){
+  const el=one('[data-staff-progress="'+key+'"]');el.value=val;el.dispatchEvent(new w.Event('input',{bubbles:true}))
+ }
+ await staff.saveBook(staff.profile().subjects[0].id);
+ assert.equal(monthly.length,1);
+ assert.equal(monthly[0].details.previous,2);
+ assert.equal(monthly[0].details.current,3);
+ assert.equal(staff.counters().done,1,'7 complete saved fields');
+ assert.equal(one('[data-staff-submit]').disabled,false,'Submit enabled after final saved subject');
+ await staff.submitMonth();
+ assert.equal(submitted,true,'Teacher can submit monthly progress only after saving it');
+ assert.equal(one('[data-staff-submit]').disabled,true,'Submitted report no longer accepts duplicate click');
+ const index=fs.readFileSync('index.html','utf8');
+ assert.ok(index.includes('staff-signin'),'Shared school password sign-in enabled');
+ assert.ok(index.includes('hmOfficeForm'),'HM Office PIN entry separate');
+ assert.ok(!index.includes('id="teacherRegisterForm"'),'Separate teacher registration removed');
+ assert.ok(index.includes('school-staff-v1.js'),'Teacher name tab client loaded');
+ assert.ok(!d.body.textContent.includes('Export Excel'),'Teacher dashboard contains no Excel Export actions');
+ dom.window.close();console.log('PASS: shared school login, teacher name tab, classes, subjects, 10−2−3=5 live remaining, seven-field submission gate, HM-only export');
 }
-const timer=setTimeout(()=>{console.error('Teacher dashboard test timed out');process.exit(2)},20000);
-main().then(()=>{clearTimeout(timer);process.exit(0)}).catch(e=>{clearTimeout(timer);console.error(e);process.exit(1)});
+const watchdog=setTimeout(()=>{console.error('Shared-staff tests timed out');process.exit(2)},20000);
+main().then(()=>{clearTimeout(watchdog);process.exit(0)}).catch(e=>{clearTimeout(watchdog);console.error(e);process.exit(1)});
