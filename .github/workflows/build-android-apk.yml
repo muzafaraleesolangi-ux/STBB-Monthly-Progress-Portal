@@ -64,8 +64,8 @@ jobs:
       - name: Publish direct-download GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: android-v1.0.0
-          name: STBB Monthly Progress Android v1.0.0
+          tag_name: android-v1.0.1
+          name: STBB Monthly Progress Android v1.0.1
           files: |
             STBB-Monthly-Progress.apk
             STBB-Monthly-Progress.sha256
