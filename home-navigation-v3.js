@@ -13,7 +13,7 @@
  }
  const adminTabs=$('adminTabs'),schoolTabs=$('schoolTabs');
  if(adminTabs&&!$('adminHomeTab')){const home=document.createElement('button');home.id='adminHomeTab';home.type='button';home.textContent='⌂ Overview';home.onclick=()=>adminTab('home',home);adminTabs.prepend(home)}
- if($('admindash')&&!$('admin-home')){const content=document.createElement('div');content.id='admin-home';content.className='panel adminHomeOverview';content.style.marginTop='16px';content.innerHTML='<div class="adminHomeLead"><span>ADMINISTRATOR · DASHBOARD</span><h2>School Reporting Overview</h2><p>School registrations, monthly drafts and the latest Excel exports in one place.</p></div><div id="adminHomeNumbers" class="adminHomeNumbers"></div><div class="adminHomeActions"><button type="button" data-admin-shortcut="schools">🏫 School Profiles</button><button type="button" data-admin-shortcut="drafts">✎ Monthly Drafts</button><button type="button" data-admin-shortcut="reports">📁 Exported Excel Files</button><button type="button" data-admin-shortcut="resets">🔐 Recovery Requests</button></div><div id="adminHomeRecent"></div>';adminTabs?.after(content)}
+ if($('admindash')&&!$('admin-home')){const content=document.createElement('div');content.id='admin-home';content.className='panel adminHomeOverview hidden';content.style.marginTop='16px';content.innerHTML='<div class="adminHomeLead"><span>ADMINISTRATOR · DASHBOARD</span><h2>School Reporting Overview</h2><p>School registrations, monthly drafts and the latest Excel exports in one place.</p></div><div id="adminHomeNumbers" class="adminHomeNumbers"></div><div class="adminHomeActions"><button type="button" data-admin-shortcut="schools">🏫 School Profiles</button><button type="button" data-admin-shortcut="drafts">✎ Monthly Drafts</button><button type="button" data-admin-shortcut="reports">📁 Exported Excel Files</button><button type="button" data-admin-shortcut="resets">🔐 Recovery Requests</button></div><div id="adminHomeRecent"></div>';adminTabs?.after(content)}
  const views=['home','schools','drafts','reports','feedback','resets'];
  const originalAdminTab=adminTab;
  adminTab=function(tab,button){
@@ -32,6 +32,7 @@
   if(recent)recent.innerHTML='<h3>Recent Export Files</h3>'+(total(data.exports)?'<div class="recentExportCards">'+data.exports.slice(0,6).map(x=>'<div><b>'+esc(x.filename)+'</b><small>SEMIS '+esc(x.semis)+' · '+esc(x.period)+' · '+esc(new Date(x.created_at).toLocaleString())+'</small><button type="button" data-export-details="'+esc(x.id)+'">View full report ↗</button></div>').join('')+'</div>':'<p class="desc">No Excel report saved in cloud History yet. A successful submitted export will appear here.</p>')
  }
  window.renderAdminHome=renderAdminHome;
+ const prevLoadAdmin=loadAdmin;loadAdmin=async function(...args){const res=await prevLoadAdmin(...args);renderAdminHome();return res};
  // Track meaningful dashboard routes with no browser reload or session loss.
  let route=null,stack=[],restoring=false;
  function currentArea(){return auth?(auth.admin?'admin':'school'):'public'}
