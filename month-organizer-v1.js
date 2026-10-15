@@ -15,7 +15,7 @@ const MonthOrganizer=(()=>{
  const human=period=>{const a=String(period).split('-');const year=Number(a[0]),month=Number(a[1]);return Number.isFinite(year)&&month>=1&&month<=12?new Date(Date.UTC(year,month-1,1)).toLocaleDateString('en-PK',{month:'long',year:'numeric',timeZone:'UTC'}):String(period)};
  const monthAfter=s=>{const [y,m]=String(s).split('-').map(Number);return !y||!m?new Date().toISOString().slice(0,7):m===12?String(y+1)+'-01':String(y)+'-'+String(m+1).padStart(2,'0')};
  const title=row=>human(row.period);
- const state=row=>{if(row.status==='exported'||(row.exports?.length&&row.status!=='draft'))return 'exported';return row.status==='submitted'?'submitted':row.status==='final'?'final':'draft'};
+ const state=row=>['draft','final','submitted','exported'].includes(row.status)?row.status:'draft';
  const badge=row=>({exported:'✓ Exported',submitted:'✓ Submitted',final:'✓ Final',draft:'✎ Draft'}[state(row)]);
  const files=row=>Array.isArray(row.exports)?row.exports:[];
  function render(){
