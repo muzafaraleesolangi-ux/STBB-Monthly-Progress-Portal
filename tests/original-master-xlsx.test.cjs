@@ -10,8 +10,9 @@ async function main(){
  const w=doc.window;w.TextEncoder=TextEncoder;w.TextDecoder=TextDecoder;w.structuredClone=structuredClone;w.scrollTo=()=>{};
  const inline=[...w.document.querySelectorAll('script')].find(x=>x.textContent.includes('const XLSX_PARTS ='));
  assert.ok(inline,'Official original master XLSX contents embedded in editor.');
- w.eval(inline.textContent);
- const result=w.eval("(()=>{const xml=updateXlsx(),out={};for(const [filename,value] of Object.entries(XLSX_PARTS))out[filename]=filename==='xl/worksheets/sheet1.xml'?new TextEncoder().encode(xml):base64bytes(value);return {blob:zipFile(out),xml,sourceStyles:XLSX_PARTS['xl/styles.xml'],sourceWorkbook:XLSX_PARTS['xl/workbook.xml']}})()");
+ // The editor's inline script uses strict mode, so functions are scoped to
+ // this one eval. Collect the exported workbook in that very same evaluation.
+ const result=w.eval(inline.textContent+"\n(()=>{const xml=updateXlsx(),out={};for(const [filename,value] of Object.entries(XLSX_PARTS))out[filename]=filename==='xl/worksheets/sheet1.xml'?new TextEncoder().encode(xml):base64bytes(value);return {blob:zipFile(out),xml,sourceStyles:XLSX_PARTS['xl/styles.xml'],sourceWorkbook:XLSX_PARTS['xl/workbook.xml']}})()");
  assert.equal(typeof result.xml,'string','Original spreadsheet row XML was generated');
  assert.ok(result.xml.includes('sheetData'),'Master worksheet must contain sheetData');
  assert.ok(result.xml.includes('mergeCells'),'Master worksheet must keep original merge layout');
