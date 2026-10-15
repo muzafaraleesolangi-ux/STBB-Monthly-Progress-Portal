@@ -361,7 +361,7 @@ function renderProgress(){const c=counts(),selected=filterTeacher==='all'?null:s
  t.schoolName=account.school_name;t.semis=account.semis;t.hmName=account.hm_name;t.hmDesignation=account.hm_gender==='female'?'HEAD MISTRESS':'HEAD MASTER';t.teachers=setup.teachers.map(x=>({id:x.id,name:x.name,pid:x.pid,designation:x.designation}));
  t.books=Object.fromEntries(selectedGrades().map(n=>[n,clone(setup.books[n]||[])]));
  for(const g of selectedGrades())for(const b of t.books[g]||[]){
- const source=progressBy({...b,grade:g});for(const k of ['previous','current','notebook','cleanliness','feedback','suggestion'])b[k]=source[k]??(k==='notebook'?0:k==='previous'||k==='current'?0:'');if(source.lessonSelections)b.lessonSelections=clone(source.lessonSelections);
+ const source=progressBy({...b,grade:g});for(const k of ['previous','current'])b[k]=Number(source[k])||0;b.notebook=null;b.cleanliness='';b.feedback='';b.suggestion='';if(source.lessonSelections)b.lessonSelections=clone(source.lessonSelections);
  b.active=Boolean(b.active&&b.teacherId&&selectedGrades().includes(g));
  }return t
  }
