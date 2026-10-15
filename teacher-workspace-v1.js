@@ -8,7 +8,7 @@ const TeacherWorkspace=(()=>{
  const catalog={1:['Sindhi Reader','English','Mathematics','General Knowledge'],2:['Sindhi Reader','English','Mathematics','General Knowledge'],3:['Sindhi Reader','Asan Urdu','English','Mathematics','General Knowledge','Islamiat'],4:['Sindhi Reader','Asan Urdu','English','Mathematics','General Science','Social Studies','Islamiat'],5:['Sindhi Reader','Asan Urdu','English','Mathematics','General Science','Social Studies','Islamiat'],6:['Sindhi','Urdu','English','Mathematics','General Science','Social Studies','Islamiat','Computer Science'],7:['Sindhi','Urdu','English','Mathematics','General Science','Social Studies','Islamiat','Computer Science'],8:['Sindhi','Urdu','English','Mathematics','General Science','Social Studies','Islamiat','Computer Science'],9:['Sindhi','Urdu','English','Mathematics','Physics','Chemistry','Biology','Computer Science','Pakistan Studies','Islamiat'],10:['Sindhi','Urdu','English','Mathematics','Physics','Chemistry','Biology','Computer Science','Pakistan Studies','Islamiat'],11:['Urdu','English','Mathematics','Physics','Chemistry','Biology','Computer Science','Economics','Statistics','Accounting','Commerce','Education','Islamic Studies'],12:['Urdu','English','Mathematics','Physics','Chemistry','Biology','Computer Science','Economics','Statistics','Accounting','Commerce','Education','Islamic Studies']};
  const e=v=>esc(v??''),id=()=>('tbook_'+(crypto.randomUUID?.()||String(Date.now())+Math.random().toString(16).slice(2)).replace(/[^a-zA-Z0-9_-]/g,''));
  const rating=['Excellent','Very Good','Good','Fair','Needs Improvement'];
- let profile=null,school=null,tab='profile',months={},workingMonth=new Date().toISOString().slice(0,7),busy=false,dirty=false,saveLater=null,alertText='',lastStatus='';
+ let profile=null,school=null,tab='profile',tabTrail=[],months={},workingMonth=new Date().toISOString().slice(0,7),busy=false,dirty=false,saveLater=null,alertText='',lastStatus='';
  const $=s=>root.querySelector(s);
  const api=async(action,payload={})=>{
   if(!auth||auth.role!=='teacher')throw Error('Teacher sign in required');
@@ -55,7 +55,7 @@ const TeacherWorkspace=(()=>{
   if(!records.subjects?.length)return out+'<div class="teacherEmpty">No subjects available for this month. Save your class-subject profile first.</div>';
   for(const b of records.subjects){
    const d=b.details||{},total=b.total,completed=b.version>0&&d.current!==null&&d.notebook!==null&&!!d.cleanliness&&!!d.feedback&&!!d.suggestion;
-   out+='<article class="teacherMonthlyCard '+(completed?'complete':'pending')+'" data-month-book="'+e(b.id)+'"><header><div><small>'+className(b.grade)+' · '+e(b.name)+'</small><h3>'+e(b.name)+'</h3></div><span>'+ (completed?'✓ Saved':'◉ Pending')+'</span></header><div class="teacherMonthlyFields" '+(closed?'inert':'')+'><label>Total Chapters / Lessons<strong>'+total+'</strong></label><label>Previous Months (auto-filled)<select data-month-value="previous">'+opts(total,d.previous)+'</select>'+(b.source_period?'<small>Carried from '+e(b.source_period)+'</small>':'')+'</label><label>This Month Chapters<select data-month-value="current">'+opts(total,d.current)+'</select></label><label>Still Remaining<strong>'+Math.max(0,total-(Number(d.previous)||0)-(Number(d.current)||0))+'</strong></label><label>Notebooks & Textbooks (%)<select data-month-value="notebook">'+[0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100].map(v=>'<option value="'+v+'" '+(d.notebook===v?'selected':'')+'>'+v+'%</option>').join('')+'</select></label><label>Classroom Management<select data-month-value="cleanliness">'+rateOpts(d.cleanliness)+'</select></label><label>Student Feedback<select data-month-value="feedback">'+rateOpts(d.feedback)+'</select></label><label class="full">Improvement Suggestion<textarea data-month-value="suggestion" rows="2" maxlength="900" placeholder="Enter suggestion or No further improvement suggested">'+e(d.suggestion||'')+'</textarea></label></div><div class="teacherMonthFooter"><small data-month-sync="'+e(b.id)+'">'+(completed?'✓ Saved in school report':'Fill this month and save')+'</small><button type="button" data-month-save="'+e(b.id)+'" '+(closed?'disabled':'')+'>💾 Save Subject Draft</button></div></article>'
+   out+='<article class="teacherMonthlyCard '+(completed?'complete':'pending')+'" data-month-book="'+e(b.id)+'"><header><div><small>'+className(b.grade)+' · '+e(b.name)+'</small><h3>'+e(b.name)+'</h3></div><span>'+ (completed?'✓ Saved':'◉ Pending')+'</span></header><div class="teacherMonthlyFields" '+(closed?'inert':'')+'><label>Total Chapters / Lessons<strong>'+total+'</strong></label><label>Previous Months (auto-filled)<select data-month-value="previous">'+opts(total,d.previous)+'</select>'+(b.source_period?'<small>Carried from '+e(b.source_period)+'</small>':'')+'</label><label>This Month Chapters<select data-month-value="current">'+opts(total,d.current)+'</select></label><label>Still Remaining<strong>'+Math.max(0,total-(Number(d.previous)||0)-(Number(d.current)||0))+'</strong></label><label>Notebooks & Textbooks (%)<select data-month-value="notebook"><option value="">— Select —</option>'+[0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100].map(v=>'<option value="'+v+'" '+(d.notebook===v?'selected':'')+'>'+v+'%</option>').join('')+'</select></label><label>Classroom Management<select data-month-value="cleanliness">'+rateOpts(d.cleanliness)+'</select></label><label>Student Feedback<select data-month-value="feedback">'+rateOpts(d.feedback)+'</select></label><label class="full">Improvement Suggestion<textarea data-month-value="suggestion" rows="2" maxlength="900" placeholder="Enter suggestion or No further improvement suggested">'+e(d.suggestion||'')+'</textarea></label></div><div class="teacherMonthFooter"><small data-month-sync="'+e(b.id)+'">'+(completed?'✓ Saved in school report':'Fill this month and save')+'</small><button type="button" data-month-save="'+e(b.id)+'" '+(closed?'disabled':'')+'>💾 Save Subject Draft</button></div></article>'
   }
   return out
  }
@@ -84,7 +84,7 @@ const TeacherWorkspace=(()=>{
   clearTimeout(saveLater);saveLater=null;busy=true;
   const button=$('[data-teacher-save]');if(button)button.disabled=true;
   try{
-   const payload={name:profile.name,designation:profile.designation,classes:profile.classes,subjects:profile.subjects.map(b=>({id:b.id,grade:b.grade,name:b.name,total:b.chapters.length}))};
+   const payload={name:profile.name,designation:profile.designation,classes:profile.classes,subjects:profile.subjects.map(b=>({id:b.id,grade:b.grade,name:b.name,total:b.chapters.length,chapters:b.chapters}))};
    const r=await api('teacher-save',{profile:payload,version:profile.version,submit});
    profile.version=r.version;profile.profile_status=r.status;dirty=false;notice(submit?'✓ Teacher Profile submitted to HM. You can continue monthly progress.':'✓ Teacher profile saved to cloud.');
    if(!silent)render();else{const label=$('#teacherDraftIndicator');if(label)label.textContent='✓ Cloud draft saved'}
@@ -113,9 +113,11 @@ const TeacherWorkspace=(()=>{
   }catch(err){notice('Save failed: '+err.message,true);alert(err.message)}
   finally{button.disabled=false}
  }
- async function view(next){if(dirty&&!(await save(false,true)))return;tab=next;render();if(tab==='progress')await openMonth(workingMonth)}
+ async function view(next,fromBack=false){if(dirty&&!(await save(false,true)))return;if(!fromBack&&tab!==next)tabTrail.push(tab);tab=next;render();if(tab==='progress')await openMonth(workingMonth)}
  root.addEventListener('click',async ev=>{
   const t=ev.target.closest('button');if(!t)return;
+  if(t.hasAttribute('data-teacher-home'))return view('profile');
+  if(t.hasAttribute('data-teacher-back'))return view(tabTrail.pop()||'profile',true);
   if(t.dataset.teacherTab)return view(t.dataset.teacherTab);
   if(t.dataset.teacherNext)return view(t.dataset.teacherNext);
   if(t.hasAttribute('data-teacher-save'))return save();
