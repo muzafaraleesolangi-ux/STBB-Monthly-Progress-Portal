@@ -30,3 +30,11 @@
 @media(max-width:760px){.studioAddFields{grid-template-columns:1fr 1fr}.studioAddFields label:nth-child(2){grid-column:span 2}.studioAddFields button{grid-column:span 2}.studioTeacherTabs button{padding:11px 13px}.premiumGuidePopover{bottom:10px}.progressManageRow .ghostMini{font-size:12px}}
 @media(max-width:420px){.studioAddFields{grid-template-columns:1fr}.studioAddFields label:nth-child(2),.studioAddFields button{grid-column:auto}.studioAddPanel{padding:14px}}
 @media(prefers-reduced-motion:reduce){.premiumGuidePopover,.studioTeacherTabs button{animation:none;transition:none}}
+/* Keep one guided editing workflow; the embedded legacy editor is export-only. */
+#schoolTabs > button[onclick*="editor"]{display:none!important}
+.studioNewClass{display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:13px}
+.studioNewClass select,.studioExistingSelect select{min-height:42px;border:1px solid #bfded5;border-radius:11px;background:#fff;color:#154744;font-size:13px;padding:9px 11px}
+.studioExistingSelect{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin:0 0 18px;padding:13px 18px;border:1px dashed #aadcc7;border-radius:15px;background:#f7fffa}
+.studioExistingSelect label{font-size:12px;font-weight:750;display:flex;flex-direction:column;gap:7px;min-width:180px;flex:1}
+.studioExistingSelect button{min-height:43px}
+@media(max-width:550px){.studioExistingSelect{padding:13px}.studioExistingSelect label{min-width:100%}.studioExistingSelect button{width:100%}}
