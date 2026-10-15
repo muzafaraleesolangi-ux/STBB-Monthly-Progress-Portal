@@ -115,3 +115,49 @@
 #studioPanel[data-stage="5"] .studioFooter>:not(#studioReviewAction){display:none!important}
 #studioPanel[data-stage="5"] .studioFooter:has(#studioReviewAction[hidden]){display:none!important}
 #studioPanel[data-stage="5"] .studioFooter:not(:has(#studioReviewAction[hidden])){justify-content:flex-end!important}
+
+/* v7 · Draft → Final → Submit → Export experience */
+.premiumFlow{position:relative;overflow:hidden;padding:15px 17px;margin:13px 0 17px;background:linear-gradient(130deg,#f5fffb,#eaf8f4);border:1px solid #cae8dc;border-radius:18px;box-shadow:0 14px 38px rgba(7,85,73,.07)}
+.premiumFlow:after{content:"";position:absolute;top:-40px;right:-30px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(17,189,148,.16),transparent 70%);pointer-events:none}
+.premiumFlow.final{background:linear-gradient(130deg,#f6fbff,#edf5ff);border-color:#bfdaf3}.premiumFlow.submitted{background:linear-gradient(130deg,#ecfff9,#e6f7f4);border-color:#96dcca}.premiumFlow.exported{background:linear-gradient(130deg,#edfdf6,#f7fcf9);border-color:#8bd7b9}
+.flowSteps{display:flex;align-items:center;gap:4px;flex-wrap:wrap;isolation:isolate}
+.flowSteps span{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;min-width:75px;border-radius:999px;font-size:11px;letter-spacing:.1px;font-weight:850;border:1px solid #dde9e4;background:#fff;color:#899e98;transition:all .25s}
+.flowSteps span.current{background:linear-gradient(110deg,#087c70,#08bc96);color:#fff;border-color:transparent;box-shadow:0 5px 18px #12a38435;animation:flowPulse 1.7s ease-in-out infinite alternate}
+.flowSteps span.passed{color:#0a9075;background:#dff6ec;border-color:#bfe7d5}
+.flowActions{position:relative;z-index:1;margin-top:13px;display:flex;gap:9px;flex-wrap:wrap}
+.flowAction{padding:11px 15px;border-radius:11px;border:1px solid #bfddcf;font-size:12px;font-weight:850;transition:transform .18s,box-shadow .18s,background .18s;min-height:42px}
+.flowAction:active{transform:scale(.97)}
+.flowAction:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 7px 16px #104f4923}
+.flowAction.neutral{background:white;color:#18715f}.flowAction.premium{background:linear-gradient(115deg,#0a6a62,#0ebe99);color:white;border-color:#0c9b82;box-shadow:0 6px 18px #0f9f8235}.flowAction:disabled{opacity:.43;box-shadow:none}
+.flowMessage{display:block;color:#567b6f;margin-top:9px;font-size:11px;line-height:1.4}
+.studioSubjectCards{display:flex;flex-direction:column;gap:10px;padding:6px 1px 16px}
+.premiumSubject{position:relative;margin:0!important;overflow:hidden;border:1.5px solid #f1cb8e!important;border-left:4px solid #e7ad46!important;background:linear-gradient(140deg,#fffdf7,#fff);box-shadow:0 8px 32px #604e2512!important;transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;animation:subjectRise .43s cubic-bezier(.17,.67,.34,1) both}
+.premiumSubject:nth-child(3n+2){animation-delay:.045s}.premiumSubject:nth-child(3n){animation-delay:.08s}
+.premiumSubject.isComplete{border:1.5px solid #95dcbf!important;border-left:4px solid #12b786!important;background:linear-gradient(145deg,#f9fffc,#f1fcf7);box-shadow:0 8px 24px #11694b10!important}
+.premiumSubject.isPending{border-left:4px solid #e7ad46!important}
+.premiumSubject.isPending .progressState{background:#fff0cc;color:#855715;border-radius:99px;border:1px solid #f7d994;animation:pendingGlow 2.4s ease-in-out infinite alternate}
+.premiumSubject.isComplete .progressState{background:#ddfaed;color:#07815f;border-radius:99px;border:1px solid #a7e7ca}
+.premiumSubject:hover{transform:translateY(-2px);box-shadow:0 15px 38px #16594b1c!important}
+.premiumSubject .progressCardHeader{display:flex;gap:10px;align-items:center}
+.premiumCardBadges{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.premiumCardBadges .collapseToggle{padding:5px 9px!important;color:#47766b!important;background:#eaf7f1!important;border:1px solid #d2e9dd!important;border-radius:9px;font-size:11px;white-space:nowrap}
+.premiumSubject.isCollapsed{padding:11px 15px!important;max-height:none}
+.premiumSubject.isCollapsed .progressCardHeader{border-bottom:0!important;padding-bottom:0!important;margin-bottom:0!important}
+.premiumSubject.isCollapsed .progressCardHeader h3{font-size:15px;margin:2px 0}
+.premiumSubject .masterCardBody[hidden]{display:none!important}
+.premiumSubject .masterCardBody{animation:expandCard .22s ease-out both}
+.premiumSubject.justSaved{animation:savedFloat .58s cubic-bezier(.15,.9,.25,1.1) both}
+.premiumSubject.justSaved:before{content:"✓  SAVED";position:absolute;top:0;left:42%;padding:4px 13px;border-radius:0 0 10px 10px;background:#14a77f;color:white;font-size:9px;font-weight:900;letter-spacing:1px;animation:saveFlag 1.35s ease forwards;pointer-events:none;z-index:2}
+.monthArchiveTray{margin-top:10px;border:1px solid #b7e1d0;border-radius:15px;padding:10px 14px;background:#f5fdf9}
+.monthArchiveTray>summary{font-weight:850;color:#138567;cursor:pointer;padding:8px 0;font-size:13px}
+.monthArchiveTray .studioSubjectCards{padding-top:16px}
+.premiumFlow:not(.draft)~.studioSubjectCards select,.premiumFlow:not(.draft)~.studioSubjectCards textarea{pointer-events:none}
+#studioPanel[data-stage="5"] .studioFooter{display:none!important}
+@keyframes subjectRise{from{opacity:0;transform:translateY(11px) scale(.995)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes expandCard{from{opacity:.6;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes savedFloat{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-5px) scale(1.007)}100%{transform:translateY(0) scale(1)}}
+@keyframes saveFlag{0%{opacity:1;transform:translateY(-100%)}25%{transform:translateY(0)}70%{opacity:1}100%{opacity:0;transform:translateY(-100%)}}
+@keyframes pendingGlow{from{box-shadow:0 0 0 0 #f0b64f00}to{box-shadow:0 0 0 3px #f0b64f25}}
+@keyframes flowPulse{from{box-shadow:0 5px 12px #13a28416}to{box-shadow:0 5px 21px #13a28446}}
+@media(max-width:600px){.premiumFlow{padding:12px}.flowSteps{gap:3px}.flowSteps span{padding:7px 8px;min-width:60px;font-size:10px}.flowActions .flowAction{flex:1;min-width:120px;padding:11px 8px}.premiumCardBadges{gap:5px}.premiumCardBadges .progressState{font-size:10px}.premiumSubject.isCollapsed{padding:10px 11px!important}}
+@media(prefers-reduced-motion:reduce){.premiumSubject,.premiumSubject.justSaved,.premiumFlow .current,.premiumSubject .progressState,.premiumSubject.justSaved:before{animation:none!important}.premiumSubject,.flowAction{transition:none!important}}
