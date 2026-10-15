@@ -1,7 +1,7 @@
 'use strict';
 /* Accessible shared-school micro-interactions: optional sounds, non-blocking toast and teacher confirmation dialog. */
 const StaffUI=(()=>{
- const isStaff=()=>typeof auth!=='undefined'&&auth?.role==='staff';
+ const isStaff=()=>typeof auth!=='undefined'&&!!auth&&!auth.admin&&auth.role!=='teacher';
  let enabled=true,context=null,toastTimer=null,modalResolver=null,previousFocus=null;
  try{enabled=localStorage.getItem('mpr_staff_sounds')!=='off'}catch{}
  const button=document.createElement('button');button.type='button';button.id='staffSoundToggle';
