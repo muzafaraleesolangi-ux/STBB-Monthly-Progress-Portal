@@ -58,12 +58,12 @@ const Studio=(()=>{
  
  function shell(){
  const dashboard=$s('schooldash'),tabs=$s('schoolTabs');if(!dashboard||$s('studioPanel'))return;
- const b=document.createElement('button');b.textContent='✦ Guided School Studio';b.id='studioTab';b.type='button';b.onclick=()=>showPanel();tabs.prepend(b);
+ const b=document.createElement('button');b.textContent='2 · Monthly Progress';b.id='studioTab';b.type='button';b.dataset.workflowTab='progress';b.onclick=()=>showPanel();tabs.insertBefore(b,tabs.children[1]||null);
  const panel=document.createElement('div');panel.id='studioPanel';panel.className='studioPanel hidden';
- panel.innerHTML='<div class="studioTop"><div><span class="studioEyebrow">STBB · FAST SCHOOL REPORTING</span><h2>School Academic Setup & Reporting</h2><p>Set up school classes and teachers once, then enter monthly progress quickly. Your school’s saved work stays available for future months.</p><div class="studioShortcuts"><button type="button" data-studio-quick-progress>⚡ Monthly Quick Fill</button><button type="button" data-studio-quick-assign>👩‍🏫 Teacher Subjects</button></div></div><div class="studioCloud"><span id="studioCloudDot">●</span><span id="studioCloudText">Cloud sync ready</span></div></div><div id="studioStageNav" class="studioStageNav"></div><div id="studioAlert" class="studioAlert">Your school setup is loading…</div><div id="studioBody"></div><div id="studioFooter" class="studioFooter"></div>';
+ panel.innerHTML='<div class="studioTop"><div><span class="studioEyebrow">STEP 2 / 3 · MONTHLY REPORT</span><h2>School Monthly Progress</h2><p>Select month, complete subject progress, then Final → Submit → Export. Earlier chapters carry into the next month.</p></div><div class="studioCloud"><span id="studioCloudDot">●</span><span id="studioCloudText">Cloud sync ready</span></div></div><div id="studioStageNav" class="studioStageNav"></div><div id="studioAlert" class="studioAlert">Your school setup is loading…</div><div id="studioBody"></div><div id="studioFooter" class="studioFooter"></div>';
  dashboard.insertBefore(panel,$s('school-overview'));return panel
  }
- function showPanel(){shell();['overview','editor','history','feedbackschool','teachers'].forEach(x=>$s('school-'+x)?.classList.add('hidden'));$s('studioPanel').classList.remove('hidden');document.querySelectorAll('#schoolTabs button').forEach(x=>x.classList.toggle('active',x.id==='studioTab'));render();refreshSaveDock();window.scrollTo({top:0,behavior:'smooth'})}
+ function showPanel(){shell();['overview','editor','history','feedbackschool','teachers'].forEach(x=>$s('school-'+x)?.classList.add('hidden'));$s('studioPanel').classList.remove('hidden');document.querySelectorAll('#schoolTabs button').forEach(x=>x.classList.toggle('active',x.id==='studioTab'));const nav=$s('simpleWorkflow');if(nav)nav.dataset.active='progress';render();refreshSaveDock();window.scrollTo({top:0,behavior:'smooth'})}
  function clearSchoolSession(){
  clearTimeout(setupTimer);for(const timer of Object.values(saveTimers))clearTimeout(timer);
  setup=null;setupVersion=0;setupBusy=false;setupTimer=null;setupDirty=false;setupConflict=false;
@@ -504,7 +504,8 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
   period=schoolPeriod;
   pendingState=null;
   notify('✓ Generating the original Excel Proforma and saving to cloud History…');
-  dashTab('editor',document.querySelectorAll('#schoolTabs button')[1]);
+  // Generate the original master workbook in a hidden service frame, without opening a duplicate editor.
+  showPanel();
   const frame=$s('editor');
   if(!frame?.contentWindow)throw Error('Excel editor is not available; reload the page.');
   const launch=()=>{
@@ -690,9 +691,9 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  refreshHandle=setInterval(()=>{if(!document.hidden&&schoolPeriod&&auth&&!auth.admin&&auth.role!=='staff'&&stage===5&&!progressDirty.size)loadEntries()},18000);
  }
  bind();
- const originalPostLogin=postLogin;postLogin=async function(result){await originalPostLogin(result);if(!auth.admin&&!['teacher','staff'].includes(auth.role)){await activate();dashTab('overview',document.querySelector('#schoolTabs button'));}return result};
+ const originalPostLogin=postLogin;postLogin=async function(result){await originalPostLogin(result);if(!auth.admin&&!['teacher','staff'].includes(auth.role)){await activate();dashTab('teachers',document.querySelector('#schoolTabs [data-workflow-tab="teachers"]'));}return result};
  const otherDashTab=dashTab;dashTab=function(tab,button){if($s('studioPanel'))$s('studioPanel').classList.add('hidden');return otherDashTab(tab,button)};
  // Restore the studio if the school session existed before a page refresh.
- setTimeout(()=>{if(auth&&!auth.admin&&!['teacher','staff'].includes(auth.role)&&account)activate().then(()=>dashTab('overview',document.querySelector('#schoolTabs button')))},1700);
+ setTimeout(()=>{if(auth&&!auth.admin&&!['teacher','staff'].includes(auth.role)&&account)activate().then(()=>dashTab('teachers',document.querySelector('#schoolTabs [data-workflow-tab="teachers"]')))},1700);
  return{activate,openPeriod,startFollowingMonth,followingMonth,activePeriod:()=>schoolPeriod,review,showPanel,saveSetup,settle,setStatus:workflowAction,status:()=>periodStatus,refresh:loadEntries,markExported:async()=>{if(!schoolPeriod)return;try{const r=await api('load-workflow',{period:schoolPeriod});periodWorkflow=r.workflow;periodStatus=periodWorkflow.status;render()}catch(e){notify('Excel saved; refresh status to view the archive: '+e.message,true)}},unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
 })();
