@@ -97,25 +97,26 @@ flushDraft=async function(){
  return !pendingState&&!saveTimer;
 };
 function refreshSaveDock(){
- const dock=document.getElementById('saveFloat'),label=document.getElementById('liveSaveText'),pulse=document.getElementById('syncPulse'),btn=document.getElementById('floatingSaveBtn');
- const visible=!!auth&&!auth.admin&&activeView==='schooldash';
- dock.classList.toggle('hidden',!visible);
+ const dock=document.getElementById('saveFloat'),btn=document.getElementById('floatingSaveBtn');
+ if(!dock||!btn)return;
+ const visible=!!auth&&!auth.admin&&activeView==='schooldash';dock.classList.toggle('hidden',!visible);
  if(!visible)return;
- const busy=saving;
- const dirty=changesUnsaved();
- if(!period)label.textContent='Choose a reporting month first';
- else if(busy)label.textContent='Saving to cloud…';
- else if(dirty)label.textContent='Unsaved edits · tap Save Draft';
- else label.textContent='Draft saved · '+period;
- pulse.classList.toggle('unsaved',dirty);pulse.classList.toggle('busy',busy);
- btn.disabled=!period||busy;btn.textContent=busy?'Saving…':'💾 Save Draft';
+ btn.disabled=saving;btn.textContent=saving?'Saving…':'Save Draft';
 }
-window.manualSaveDraft=function(){
- if(!auth)return showSaveToast('Sign in first','Your school account is needed to save a draft.','error');
- if(!auth.admin&&!period)return showSaveToast('Select a reporting month','Open or start a month from your dashboard.','error');
- if(auth.admin&&!adminEdit)return showSaveToast('Open a school draft','Select the report you wish to review and save.','error');
- if(!changesUnsaved())return showSaveToast('Already saved','Your last edits are stored in the cloud.');
- displaySaveDialog('save');
+window.manualSaveDraft=async function(){
+ if(!auth)return showSaveToast('Sign in required','','error');
+ const btn=document.getElementById('floatingSaveBtn');
+ if(btn){btn.disabled=true;btn.textContent='Saving…'}
+ try{
+  if(auth.admin){if(!adminEdit)return showSaveToast('Open a draft to save','','error');await saveAllSchoolEdits()}
+  else{
+   if(typeof Studio!=='undefined'&&Studio.getSetup())await Studio.settle();
+   if(pendingState)await flushDraft();
+   if(changesUnsaved())throw Error('Some changes are still syncing. Please retry.');
+  }
+  showSaveToast('Draft saved','Your current work is stored securely.');
+ }catch(e){showSaveToast('Could not save draft',e.message,'error')}
+ finally{refreshSaveDock()}
 };
 window.confirmSaveNow=async function(){
  let btn=dialogActions.querySelector('.primary');if(btn){btn.disabled=true;btn.textContent='Saving to cloud…'}
