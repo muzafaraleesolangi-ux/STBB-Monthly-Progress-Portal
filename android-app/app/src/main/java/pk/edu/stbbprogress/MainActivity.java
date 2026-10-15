@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
+import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -241,6 +242,9 @@ public final class MainActivity extends Activity {
         }
         CookieManager.getInstance().setAcceptCookie(true);
         if (Build.VERSION.SDK_INT >= 26) s.setSafeBrowsingEnabled(true);
+        // Native download bridge: the web page can hand off a validated Excel ZIP
+        // to Android ACTION_CREATE_DOCUMENT, avoiding WebView blob download bugs.
+        browser.addJavascriptInterface(new ExcelSaveBridge(), "STBBAndroid");
         browser.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 return routeUrl(request.getUrl());
@@ -374,6 +378,45 @@ public final class MainActivity extends Activity {
             else if (result != null && result.contains("ERROR")) message("Please refresh the portal to use this tab.");
             else selectTab(index);
         });
+    }
+
+
+    private final class ExcelSaveBridge {
+        @JavascriptInterface
+        public void saveExcel(String base64, String requestedName) {
+            // JavaScript-interface calls occur on a worker thread, not the UI thread.
+            // No cookie, token, JavaScript evaluation or arbitrary file write is exposed.
+            if (base64 == null || !base64.startsWith("UEs") || base64.length() > MAX_DOWNLOAD * 2) {
+                runOnUiThread(() -> message("Invalid Excel file. Reopen Export History and retry."));
+                return;
+            }
+            final byte[] data;
+            try {
+                data = Base64.decode(base64, Base64.DEFAULT);
+                if (data.length < 100 || data.length > MAX_DOWNLOAD ||
+                    data[0] != 0x50 || data[1] != 0x4b || data[2] != 0x03 || data[3] != 0x04) {
+                    throw new IllegalArgumentException("Invalid XLSX header.");
+                }
+            } catch (Exception ex) {
+                runOnUiThread(() -> message("Excel verification failed. Please retry."));
+                return;
+            }
+            final String safe = safeName(requestedName);
+            runOnUiThread(() -> {
+                String active = browser == null ? null : browser.getUrl();
+                if (active == null || !active.startsWith(START_URL)) {
+                    message("Excel Save blocked outside the school portal.");
+                    return;
+                }
+                if (downloadBusy || pendingSave != null) {
+                    message("Finish or cancel the previous Save Excel dialog first.");
+                    return;
+                }
+                pendingSave = data;
+                pendingName = safe;
+                launchSavePicker(safe);
+            });
+        }
     }
 
     private void startBlobDownload(String url, String filename) {
