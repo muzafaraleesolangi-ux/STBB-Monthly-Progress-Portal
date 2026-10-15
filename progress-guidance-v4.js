@@ -32,7 +32,15 @@
  document.addEventListener('focusin',e=>{if(!e.target.closest('#studioPanel'))return;reveal(e.target)});
  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
  const updateLauncher=()=>{launch.hidden=!(document.getElementById('studioPanel')?.offsetParent&&document.querySelector('#studioPanel [data-progress-card]'));if(launch.hidden)close()};
- new MutationObserver(updateLauncher).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','style','data-stage']});
+ // Observe only the Studio shell and its immediate content replacements.
+ // Watching all body class changes causes a self-triggering MutationObserver loop:
+ // close() toggles the guide's own class, which must NEVER be observed here.
+ const studioPanel=document.getElementById('studioPanel');
+ const studioBody=document.getElementById('studioBody');
+ const observer=new MutationObserver(updateLauncher);
+ if(studioPanel)observer.observe(studioPanel,{attributes:true,attributeFilter:['class','data-stage']});
+ if(studioBody)observer.observe(studioBody,{childList:true});
+
  document.addEventListener('click',e=>{if(e.target.matches('[data-studio-stage],[data-teacher-tab]'))setTimeout(updateLauncher,30)});
  updateLauncher();
 })();
