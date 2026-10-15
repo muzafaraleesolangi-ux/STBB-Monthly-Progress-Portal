@@ -19,6 +19,8 @@ const HMTeacherAdmin=(()=>{
   try{
    const r=await request('hm-teacher-list'),teachers=r.teachers||[];
    $('#hmTeacherRoster').innerHTML='<div class="hmRosterTitle"><div><h3>Registered Teacher Profiles</h3><p>Each teacher can sign in separately, choose classes I–XII and submit their subject assignments.</p></div><span>'+teachers.length+' Teacher'+(teachers.length===1?'':'s')+'</span></div><div class="hmRosterGrid">'+(teachers.length?teachers.map(t=>'<article class="hmRosterCard"><div class="hmRosterAvatar">👤</div><div><strong>'+esc(t.name)+'</strong><small>PID '+esc(t.pid)+' · '+esc(t.designation)+'</small></div><span class="hmRosterBadge '+(t.profile_status==='submitted'?'submitted':'draft')+'">'+(t.profile_status==='submitted'?'✓ Submitted':'✎ Draft')+'</span></article>').join(''):'<div class="hmRosterEmpty">No teachers registered yet. Set the registration code and ask each teacher to create their own profile from a phone.</div>')+'</div><div class="hmRosterFoot"><button type="button" data-hm-roster-refresh>↻ Refresh Teachers</button><small>Monthly Final Submit, Export Excel and report History are exclusively available in this HM dashboard.</small></div>';
+  const target=document.getElementById('hmTeacherDirectory');
+   if(target){target.innerHTML='<div class="hmDirectorActions"><button type="button" data-hm-directory-refresh>↻ Refresh Teacher Profiles</button><span>'+teachers.length+' registered teacher(s)</span></div>'+(document.querySelector('#hmTeacherRoster .hmRosterGrid')?.outerHTML||'');}
   }catch(e){$('#hmTeacherRoster').textContent='Unable to load teaching roster: '+e.message}
  }
  async function saveSchool(){
@@ -48,6 +50,7 @@ const HMTeacherAdmin=(()=>{
  });
  const originalRefreshSchool=refreshSchool;
  refreshSchool=async function(...args){const out=await originalRefreshSchool(...args);if(auth&&!auth.admin&&auth.role!=='teacher')refresh().catch(()=>{});return out};
+ document.getElementById('school-teachers')?.addEventListener('click',e=>{if(e.target.closest('[data-hm-directory-refresh]'))refresh()});
  if(auth&&!auth.admin&&auth.role!=='teacher')setTimeout(refresh,900);
  return{refresh}
 })();
