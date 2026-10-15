@@ -69,6 +69,10 @@ async function main(){
  assert.ok(index.includes('teacher-register'),'Teacher private enrollment is linked from public page');
  assert.ok(index.includes('teacher-signin'),'Teacher PID-bound sign in is linked from public page');
  assert.ok(index.includes('role:r.role'),'Client session stores role securely');
+ const workbook=fs.readFileSync('MPR_Online_Editor.html','utf8');
+ assert.ok(workbook.includes("12:'XII'"),'Excel Proforma labels Intermediate Class XII');
+ assert.ok(workbook.includes('[12,11,10,9,8,7,6,5,4,3,2,1].flatMap'),'HM Excel export includes all classes I–XII');
+ assert.ok(workbook.includes('for(let g of [1,2,3,4,5,6,7,8,9,10,11,12])'),'Excel state hydrate retains Matric and Inter subjects');
  assert.ok(index.includes('hm-set-teacher-code')===false,'Enrollment secret is submitted from HM-only management script, not inline in public HTML');
  dom.window.close();console.log('PASS: teacher personal login, primary/matric/inter grade picks, subject chapters, cloud draft, submit and monthly progress; HM reports absent')
 }
