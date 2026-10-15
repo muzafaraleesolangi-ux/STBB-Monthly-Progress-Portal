@@ -91,7 +91,7 @@ const Studio=(()=>{
  function render(){if(!setup||!$s('studioPanel')||$s('studioPanel').classList.contains('hidden'))return;
  $s('studioStageNav').innerHTML=stageBar();
  const body=$s('studioBody');body.innerHTML=[renderSchoolClasses,renderTeachers,renderClasses,renderAssignments,renderCourses,renderProgress][stage]();if(stage===5)progressVisibleFilter();
- $s('studioFooter').innerHTML=(stage>0?'<button class="btn line" type="button" data-studio-back>← Back</button>':'')+'<span class="spacer"></span><button class="btn primary" type="button" data-studio-save>💾 Save Draft</button>'+(stage<5?'<button class="btn primary" type="button" data-studio-next>'+(stage===3&&assignmentTeacherIndex<setup.teachers.length-1?'Save & Next Teacher →':stage===3?'✓ Start Monthly Report →':'Next: '+['Teachers','Teaching Classes','Subjects','Chapter Totals','Monthly Progress'][stage]+' →')+'</button>':'<button class="btn primary" type="button" data-studio-review>Review & Export Excel →</button>');
+ $s('studioFooter').innerHTML=(stage>0?'<button class="btn line" type="button" data-studio-back>← Back</button>':'')+'<span class="spacer"></span><button class="btn primary" type="button" data-studio-save>💾 Save Draft</button>'+(stage<5?'<button class="btn primary" type="button" data-studio-next>'+(stage===3&&assignmentTeacherIndex<setup.teachers.length-1?'Save & Next Teacher →':stage===3?'✓ Start Monthly Report →':'Next: '+['Teachers','Teaching Classes','Subjects','Chapter Totals','Monthly Progress'][stage]+' →')+'</button>':'<button class="btn primary" type="button" id="studioReviewAction" data-studio-review '+(!(schoolPeriod&&counts().total&&counts().left.length===0)?'hidden':'')+'>Review & Export Excel →</button>');
  }
  function renderSchoolClasses(){const selected=selectedGrades();return '<div class="studioHead"><div><h3>1. Select Classes Offered by Your School</h3><p>Only selected classes will appear in teacher assignments, textbooks, progress and Excel export. Add or remove classes any time; your textbook lesson lists stay available.</p></div><span class="studioCountBadge">'+selected.length+' Selected</span></div><div class="schoolClassCards">'+[1,2,3,4,5,6,7,8].map(n=>'<button type="button" class="schoolClassCard '+(selected.includes(n)?'chosen':'')+'" data-school-class="'+n+'"><span class="classEmblem">'+roman[n]+'</span><strong>Class '+roman[n]+'</strong><small>'+(selected.includes(n)?'✓ Added · Click to Remove':'+ Add Class')+'</small></button>').join('')+'</div><div class="classQuickButtons"><button class="ghostMini" data-classes-all>Select All Classes</button><button class="ghostMini" data-classes-none>Remove All</button></div><p class="studioHint">Next: Enter teachers, then assign them to these selected classes.</p>'}
  function renderTeachers(){return '<div class="studioHead"><div><h3>2. Enter Your School Teachers</h3><p>Add each teacher once. Enter full name, official PID and designation. Use Add Teacher for additional staff.</p></div><button class="btn ghost" data-studio-addteacher>＋ Add Teacher</button></div><div class="teacherCards">'+setup.teachers.map((t,i)=>'<article class="studioCard"><div class="studioCardTitle"><span class="indexBubble">'+(i+1)+'</span><strong>Teacher '+(i+1)+'</strong>'+(setup.teachers.length>1?'<button class="ghostMini" data-studio-removeteacher="'+safe(t.id)+'">Remove</button>':'')+'</div><div class="studioFormGrid"><label>Full Name<input data-tid="'+safe(t.id)+'" data-field="name" value="'+safe(t.name)+'" placeholder="As per school staff record"></label><label>PID Number<input data-tid="'+safe(t.id)+'" data-field="pid" value="'+safe(t.pid)+'" placeholder="Official PID"></label><label>Designation / BPS<input data-tid="'+safe(t.id)+'" data-field="designation" value="'+safe(t.designation)+'" placeholder="PST (BPS-14), JEST, HST…"></label></div></article>').join('')+'</div>'}
@@ -251,17 +251,28 @@ const Studio=(()=>{
   }
  }
  function refreshProgressSummary(){
- const c=counts();
- const done=$s('studioBody')?.querySelector('[data-quick-done]'),pending=$s('studioBody')?.querySelector('[data-quick-pending]');
- if(done)done.textContent=c.done;
- if(pending)pending.textContent=c.left.length;
+ const c=counts(),root=$s('studioBody');if(!root)return;
+ for(const [sel,v] of [['[data-quick-done]',c.done],['[data-quick-pending]',c.left.length],['[data-quick-total]',c.total]]){const el=root.querySelector(sel);if(el)el.textContent=String(v)}
+ const review=$s('studioReviewAction');if(review)review.hidden=!(schoolPeriod&&c.total>0&&c.left.length===0);
+ for(const person of setup.teachers){const books=assigned().filter(b=>b.teacherId===person.id),done=books.filter(b=>progressVersions[b.id]>0&&fullyEntered(b)&&!progressDirty.has(b.id)).length;const el=root.querySelector('[data-teacher-count="'+person.id+'"]');if(el)el.textContent=done+'/'+books.length}
+ for(const card of root.querySelectorAll('[data-progress-card]')){
+  const b=assigned().find(x=>x.id===card.dataset.progressCard);if(!b)continue;
+  const f=filledFields(b),n=Object.values(f).filter(Boolean).length,complete=progressVersions[b.id]>0&&n===7&&!progressDirty.has(b.id)&&!progressBusy.has(b.id);
+  card.classList.toggle('isComplete',complete);card.classList.toggle('isSaved',complete);card.classList.toggle('isPending',!complete);
+  for(const field of card.querySelectorAll('[data-field-wrap]')){const key=field.dataset.fieldWrap;field.classList.toggle('hasValue',key==='remaining'||Boolean(f[key]));field.classList.toggle('needsValue',key!=='remaining'&&!f[key])}
+  const mark=card.querySelector('.progressState');if(mark){mark.className='progressState '+(complete?'saved':'pending');mark.textContent=complete?'✓ Complete':'○ Pending · '+(7-n)+' left'}
+  const text=card.querySelector('[data-progress-percent]');if(text)text.textContent=n+'/7 fields filled';
+  const bar=card.querySelector('[data-progress-bar]');if(bar)bar.style.width=(n/7*100)+'%';
+ }
+ const list=root.querySelector('#studioPendingList');if(list){if(c.left.length){list.hidden=false;list.querySelector('summary').textContent=c.left.length+' subject(s) still pending — see which';list.querySelectorAll('span').forEach(x=>x.remove());for(const b of c.left){const p=document.createElement('span');p.textContent='Class '+roman[b.grade]+' · '+b.name+' — '+tname(b.teacherId);list.appendChild(p)}}else list.hidden=true}
+ if(progressPendingOnly)progressVisibleFilter()
 }
  function progressVisibleFilter(){
  const term=progressSearch.trim().toLowerCase();
  let visible=0;
  for(const card of document.querySelectorAll('#studioBody [data-progress-card]')){
   const search=(card.dataset.search||'').toLowerCase();
-  const match=(!term||search.includes(term))&&(!progressPendingOnly||!card.classList.contains('isSaved'));
+  const match=(!term||search.includes(term))&&(!progressPendingOnly||!card.classList.contains('isComplete'));
   card.hidden=!match;if(match)visible++;
  }
  const label=$s('studioVisibleCount');if(label)label.textContent=visible+' matching subjects';
@@ -315,15 +326,16 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  notify('✓ '+p+' opened. Each subject can now be saved independently. Choose a teacher and enter progress.');stage=5;render();await refreshSchool();
  }catch(e){notify(e.message,true)}
  }
- async function loadEntries(){if(!schoolPeriod)return;try{const readingMonth=schoolPeriod,list=await api('load-period',{period:readingMonth});if(readingMonth!==schoolPeriod)return;for(const x of list.entries){if(!progressDirty.has(x.book_id)&&!progressBusy.has(x.book_id)){progressEntries[x.book_id]=x;progressVersions[x.book_id]=x.version}}const active=document.activeElement,editing=active?.closest?.('#studioBody')&&/^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName);if(stage===5&&!editing&&!progressDirty.size&&!progressBusy.size&&$s('studioPanel')&&!$s('studioPanel').classList.contains('hidden'))render()}catch(e){notify('Refresh failed: '+e.message,true)}}
+ async function loadEntries(){if(!schoolPeriod)return;try{const readingMonth=schoolPeriod,list=await api('load-period',{period:readingMonth});if(readingMonth!==schoolPeriod)return;for(const x of list.entries){if(!progressDirty.has(x.book_id)&&!progressBusy.has(x.book_id)){progressEntries[x.book_id]=x;progressVersions[x.book_id]=x.version}}refreshProgressSummary();const active=document.activeElement,editing=active?.closest?.('#studioBody')&&/^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName);if(stage===5&&!editing&&!progressDirty.size&&!progressBusy.size&&$s('studioPanel')&&!$s('studioPanel').classList.contains('hidden'))render()}catch(e){notify('Refresh failed: '+e.message,true)}}
  function redrawProgressMetrics(bookId){
   const b=assigned().find(x=>x.id===bookId),card=[...document.querySelectorAll('[data-progress-card]')].find(x=>x.dataset.progressCard===bookId);
   if(!b||!card)return;
   const d=progressBy(b),v=progressFigures(b,d);
-  for(const [key,n] of [['total',v.total],['previous',v.prev],['current',v.curr],['remaining',v.remaining]]){const el=card.querySelector('[data-progress-metric="'+key+'"]');if(el){if(el.tagName==='INPUT'){if(document.activeElement!==el || Number(el.value)!==n)el.value=String(n)}else el.textContent=n}}
+  const remaining=card.querySelector('[data-progress-metric="remaining"]');if(remaining)remaining.textContent=v.remaining;
+ for(const key of ['previous','current']){const el=card.querySelector('[data-pkey="'+key+'"]');if(!el)continue;const expected=enteredNumber(d[key])?String(d[key]):'';if(el.value!==expected)el.value=expected;const limit=key==='previous'?v.total-v.curr:v.total-v.prev;for(const opt of el.options)if(opt.value!=='')opt.disabled=Number(opt.value)>limit}
   const percent=card.querySelector('[data-progress-percent]');if(percent)percent.textContent=v.pct+'% complete';
   const bottom=card.querySelector('[data-progress-bottom]');if(bottom)bottom.textContent=v.pct+'% completed · '+v.remaining+' remaining';
-  const prevInput=card.querySelector('[data-pkey="previous"]'),currInput=card.querySelector('[data-pkey="current"]');if(prevInput)prevInput.max=Math.max(0,v.total-v.curr);if(currInput)currInput.max=Math.max(0,v.total-v.prev);
+  refreshProgressSummary();
   const bar=card.querySelector('[data-progress-bar]');if(bar)bar.style.width=v.pct+'%';
  }
  function startMonthForTyping(bookId,key,value){
@@ -354,10 +366,10 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  const book=assigned().find(x=>x.id===bookId);if(!book)return;
  let x=progressEntries[bookId];if(!x){x={book_id:bookId,details:progressBy(book),version:0};progressEntries[bookId]=x}
  if(['previous','current','notebook'].includes(k)){
-  v=Math.max(0,Number(v)||0);if(k==='previous'||k==='current')v=Math.floor(v);
+  v=v===''||v===null?null:Math.max(0,Number(v)||0);if(v!==null&&(k==='previous'||k==='current'))v=Math.floor(v);
   if(k==='previous')v=Math.min(book.chapters.length-(Number(x.details.current)||0),v);
   if(k==='current')v=Math.min(book.chapters.length-(Number(x.details.previous)||0),v);
-  if(k==='notebook')v=Math.min(100,v);
+  if(k==='notebook'&&v!==null)v=Math.min(100,v);
   if((k==='previous'||k==='current')&&x.details.lessonSelections){delete x.details.lessonSelections;notify('Chapter counts updated. Remaining recalculated automatically.')}
  }
  if(k==='lessonSelections'){
@@ -374,14 +386,14 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  if(k==='previous'||k==='current'){
    const card=[...document.querySelectorAll('[data-progress-card]')].find(el=>el.dataset.progressCard===bookId);
    const edited=card?.querySelector('[data-pkey="'+k+'"][data-progress-bid]');
-   if(edited&&Number(edited.value)!==Number(v))edited.value=v;
+   if(edited&&edited.value!==(v===null?'':String(v)))edited.value=v===null?'':String(v);
  }
  clearTimeout(saveTimers[bookId]);saveTimers[bookId]=setTimeout(()=>saveSubject(bookId),1100);
  }
  async function saveSubject(bookId){if(!progressDirty.has(bookId)||progressBusy.has(bookId))return true;const book=assigned().find(x=>x.id===bookId);if(!book)return false;const entry=progressEntries[bookId];if(!entry)return false;
  clearTimeout(saveTimers[bookId]);progressBusy.add(bookId);const snapshot=clone(entry.details),ver=progressVersions[bookId]||0,mark=$s('status-'+bookId);
  if(mark)mark.textContent='Saving…';
- try{const r=await api('save-subject',{period:schoolPeriod,book_id:bookId,details:snapshot,version:ver});progressVersions[bookId]=r.version;if(JSON.stringify(entry.details)===JSON.stringify(snapshot))progressDirty.delete(bookId);if(mark){mark.textContent='✓ Saved';mark.className='progressState saved'}const card=[...document.querySelectorAll('[data-progress-card]')].find(el=>el.dataset.progressCard===bookId);if(card&&!progressDirty.has(bookId))card.classList.add('isSaved');refreshProgressSummary();if(progressPendingOnly)progressVisibleFilter();return true}
+ try{const r=await api('save-subject',{period:schoolPeriod,book_id:bookId,details:snapshot,version:ver});progressVersions[bookId]=r.version;if(JSON.stringify(entry.details)===JSON.stringify(snapshot))progressDirty.delete(bookId);if(mark){mark.textContent='✓ Draft saved'}refreshProgressSummary();if(progressPendingOnly)progressVisibleFilter();return true}
  catch(e){notify('⚠ '+book.name+': '+e.message,true);if(mark){mark.textContent='⚠ Save conflict';mark.className='progressState pending'}return false}
  finally{progressBusy.delete(bookId);if(progressDirty.has(bookId)&&JSON.stringify(entry.details)!==JSON.stringify(snapshot))saveTimers[bookId]=setTimeout(()=>saveSubject(bookId),1300)}
  }
