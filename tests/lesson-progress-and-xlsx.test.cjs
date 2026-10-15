@@ -131,6 +131,15 @@ async function main(){
  assert.equal(d.querySelector('[data-progress-card="5-english"]').hidden,true,'Saved subjects are hidden by Pending Only filter');
  d.querySelector('[data-progress-show-all]').click();
  assert.equal(d.querySelector('[data-progress-card="5-english"]').hidden,false,'All Subjects restores saved rows');
+ // Saved counts update without a page reload and the teacher profile can be remembered on one phone.
+ assert.equal(Number(d.querySelector('[data-quick-done]').textContent),1,'Saved count updates live');
+ assert.equal(Number(d.querySelector('[data-quick-pending]').textContent),0,'Pending count updates live');
+ const select=one('#studioTeacherFilter');select.value='t1';select.dispatchEvent(new w.Event('change',{bubbles:true}));
+ const remembered=one('#studioRememberTeacher');remembered.checked=true;remembered.dispatchEvent(new w.Event('change',{bubbles:true}));
+ assert.equal(w.localStorage.getItem('mpr_teacher_choice_123456789'),'t1','Device-specific remembered teacher saved');
+ await studio.activate();
+ assert.equal(one('#studioTeacherFilter').value,'t1','Returning teacher resumes their own subject filter');
+ assert.equal(one('#studioRememberTeacher').checked,true,'Teacher preference restored');
  dom.window.close();
  console.log('PASS: original Excel unfreeze, inline Previous/This Month cells, auto Remaining, count limits, cloud save and no extra progress editing UI');
 }
