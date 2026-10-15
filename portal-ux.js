@@ -99,7 +99,7 @@ flushDraft=async function(){
 function refreshSaveDock(){
  const dock=document.getElementById('saveFloat'),btn=document.getElementById('floatingSaveBtn');
  if(!dock||!btn)return;
- const visible=!!auth&&!auth.admin&&activeView==='schooldash';dock.classList.toggle('hidden',!visible);
+ const visible=!!auth&&!auth.admin&&activeView==='schooldash'&&(typeof Studio==='undefined'||Studio.status?.()==='draft');dock.classList.toggle('hidden',!visible);
  if(!visible)return;
  btn.disabled=saving;btn.textContent=saving?'Saving…':'Save Draft';
 }
