@@ -1,0 +1,163 @@
+/* Unified School Desk 2026 — compact, clear, muted-slate & teal; same reporting features. */
+:root{
+ --desk-ink:#193345;--desk-muted:#65798a;--desk-border:#dce7ec;--desk-teal:#167f88;
+ --desk-teal-dark:#116773;--desk-soft:#eef7f8;--desk-ground:#f5f8fa;
+}
+body{background:var(--desk-ground);color:var(--desk-ink);font-size:12px;line-height:1.52}
+main.wrap{max-width:1370px}
+main.wrap>.dashboard{font-size:12px;color:var(--desk-ink)}
+#schooldash>.heading,#admindash>.heading{border:1px solid var(--desk-border);border-radius:15px;background:#fff;box-shadow:0 5px 16px #1a49630b;padding:15px 18px;gap:12px}
+#schooldash>.heading h1,#admindash>.heading h1{font-size:19px;font-weight:850;letter-spacing:-.35px;color:var(--desk-ink);margin:3px 0}
+#schooldash>.heading p,#admindash>.heading p{font-size:11px;color:var(--desk-muted)}
+#schooldash>.heading .tag{font-size:9px!important;letter-spacing:.12em;color:var(--desk-teal)!important}
+#schooldash .pill,#admindash .pill{border:1px solid #c9e7e6;background:#f3fbfb;color:#317a80;font-size:10px;padding:6px 10px;box-shadow:none}
+#schooldash>.tabs,#adminTabs{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;background:#fff;border:1px solid var(--desk-border);padding:6px;border-radius:13px}
+#schooldash>.tabs button,#adminTabs button{white-space:nowrap;font-size:11px;letter-spacing:0;font-weight:740;min-height:37px;padding:9px 13px;border:1px solid transparent;border-radius:9px;color:#5e7886;background:transparent;box-shadow:none}
+#schooldash>.tabs button:hover,#adminTabs button:hover{color:var(--desk-teal);background:#f0f8fa}
+#schooldash>.tabs button.active,#adminTabs button.active{color:#fff;border-color:#157d86;background:linear-gradient(135deg,#197e89,#216e89);box-shadow:0 3px 10px #166a8031}
+#schooldash .metrics .metric,#schooldash .metrics>div,#admindash .metrics>div{border:1px solid var(--desk-border);box-shadow:0 4px 14px #184e6710;border-radius:12px;background:white}
+#schooldash .panel,#admindash .panel{border:1px solid var(--desk-border);box-shadow:0 4px 16px #20465e0b;border-radius:14px;background:#fff;color:var(--desk-ink)}
+#schooldash .panel h2,#schooldash .panel h3{color:var(--desk-ink)}
+#schooldash .desc,#schooldash .panel p{color:var(--desk-muted);font-size:11px;line-height:1.55}
+#schooldash button,#teacherdash button{cursor:pointer}
+#schooldash button:focus-visible,#teacherdash button:focus-visible,#schooldash input:focus-visible,#schooldash select:focus-visible{outline:2px solid var(--desk-teal);outline-offset:2px}
+#schooldash .btn,#teacherdash .btn{font-size:11px;min-height:35px;padding:8px 13px;font-weight:780;border-radius:9px}
+#schooldash .btn.primary,#teacherdash .btn.primary{background:linear-gradient(125deg,var(--desk-teal),#236c91);color:#fff}
+#schooldash .dashboardNavigation button{font-size:10px;background:#f4f9fb;border:1px solid #d6e5eb;color:#416d82;border-radius:8px;padding:7px 11px;min-height:34px;box-shadow:none}
+#schooldash .workflowStrip{padding:9px 11px;border-radius:10px;background:#f7fafb;border-color:var(--desk-border);gap:8px}
+#schooldash .workflowStrip span{font-size:10px;color:#527180}
+#schooldash .workflowStrip span b{width:21px;height:21px;background:#e1f0f1;color:#147887}
+#schooldash .monthPicker select{font-size:12px;min-height:39px;border-radius:8px;padding:8px}
+#schooldash .monthGuide{font-size:11px;background:#edf7f8;border-left-color:var(--desk-teal);color:#3c717b}
+#schooldash.monthOrganized{grid-template-columns:minmax(0,1fr) 223px;gap:11px 14px}
+.monthOrganizer{border-color:var(--desk-border);background:#fff;border-radius:12px;box-shadow:0 5px 16px #224b6111}
+.monthSidebarHeading{background:#f5fafb;border-color:var(--desk-border);padding:10px 12px}
+.monthSidebarHeading span{color:var(--desk-teal);font-size:9px}
+.monthSidebarHeading strong{color:var(--desk-ink);font-size:12px}
+.monthSideCard,.monthTimelineCard{border-color:var(--desk-border);border-radius:10px;box-shadow:none}
+.monthSideTitle,.monthTimelineTop strong{color:var(--desk-ink);font-size:11px}
+.monthSideFile button,.monthTimelineActions button{font-size:10px}
+.monthNextBanner{border-color:#c5e2e7;background:#f1f8f9}
+.monthNextBanner button,.monthSideBottom button{background:linear-gradient(120deg,var(--desk-teal),#247091);border:0;box-shadow:none;font-size:11px}
+.hmTeacherAdmin.unifiedSchoolCard{background:#fff;border:1px solid var(--desk-border);border-radius:13px;box-shadow:0 4px 12px #2446580d;padding:12px;margin-bottom:15px}
+.unifiedSchoolCard .hmAdminHeading{background:linear-gradient(120deg,#21415c,#276d7c);padding:14px 17px;border-radius:10px}
+.unifiedSchoolCard .hmAdminHeading span{font-size:9px;color:#addfeb}
+.unifiedSchoolCard .hmAdminHeading h2{font-size:15px;margin:3px 0}
+.unifiedSchoolCard .hmAdminHeading p{font-size:11px;color:#e2f1f6}
+.unifiedSchoolCard .hmSchoolFields{margin:12px 0;gap:8px;grid-template-columns:repeat(3,minmax(0,1fr)) auto}
+.unifiedSchoolCard .hmSchoolFields input{font-size:11px;padding:9px 10px;min-width:0;border-color:var(--desk-border)}
+.unifiedSchoolCard .hmSchoolFields button{font-size:10px;background:var(--desk-teal);border-radius:9px;padding:9px 12px;min-height:35px}
+.unifiedRosterHead{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:13px;border-top:1px solid var(--desk-border);padding-top:12px}
+.unifiedRosterHead h3{font-size:12px;margin:0;color:var(--desk-ink)}
+.unifiedRosterHead p{font-size:10px;color:var(--desk-muted);margin:4px 0}
+.unifiedRosterHead button{border:1px solid #cce4e9;background:#f0f8fa;color:#207480;border-radius:8px;font-weight:800;font-size:10px;padding:8px 11px}
+.unifiedRosterList{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:7px;margin-top:9px}
+.unifiedRosterRow{display:flex;align-items:center;flex-wrap:wrap;gap:5px;border:1px solid var(--desk-border);border-radius:8px;padding:8px 9px;background:#fbfdfd}
+.unifiedRosterRow span{font-size:12px}.unifiedRosterRow strong{font-size:11px;color:var(--desk-ink)}
+.unifiedRosterRow small{font-size:9px;color:var(--desk-muted)}
+.unifiedTeachersHeading{background:#fff;border:1px solid var(--desk-border);border-radius:12px;padding:12px 15px;margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.unifiedTeachersHeading span{font-size:9px;color:var(--desk-teal);letter-spacing:.1em;font-weight:800}
+.unifiedTeachersHeading h2{font-size:16px;letter-spacing:-.2px;margin:4px 0;color:var(--desk-ink)}
+.unifiedTeachersHeading p{margin:0;font-size:11px;color:var(--desk-muted)}
+.unifiedTeachersHeading .btn{white-space:nowrap;font-size:10px}
+#teacherdash{font-size:12px;padding-bottom:14px;max-width:100%;min-width:0}
+#teacherdash>.teacherDashHeader{margin:0 0 9px;background:linear-gradient(120deg,#21415c,#236b81);border:1px solid #204e67;box-shadow:0 4px 14px #1e57651c;border-radius:12px;padding:13px 16px}
+#teacherdash .teacherDashHeader span{font-size:9px;color:#bbdfeb}
+#teacherdash .teacherDashHeader h1{font-size:16px;margin:4px 0}
+#teacherdash .teacherDashHeader p{font-size:10px;color:#dceff5}
+#teacherdash .teacherTopNav button{font-size:10px;padding:7px 10px;border-radius:8px;min-height:32px}
+#teacherdash .teacherDashTabs{position:relative;top:auto;margin-bottom:9px;padding:5px;background:#fff;border:1px solid var(--desk-border);border-radius:10px;box-shadow:none}
+#teacherdash .teacherDashTabs button{font-size:10px;padding:8px 10px;min-height:33px;border-radius:7px;background:transparent;border-color:transparent;color:#567583}
+#teacherdash .teacherDashTabs button.active{background:#216f85;border-color:#216f85;color:#fff;box-shadow:none}
+#teacherdash .teacherDashGrid{grid-template-columns:174px minmax(0,1fr);gap:10px}
+#teacherdash #teacherSide{top:8px;background:#fff;border:1px solid var(--desk-border);border-radius:10px;padding:10px;box-shadow:none}
+#teacherdash .teacherIdentity{padding:11px;background:#edf6f8;border:1px solid #d4e6eb;border-radius:9px}
+#teacherdash .teacherIdentity>span{font-size:9px;color:#337a88}
+#teacherdash .teacherIdentity h3{font-size:12px;color:var(--desk-ink)}
+#teacherdash .teacherIdentity small{font-size:10px;color:var(--desk-muted)}
+#teacherdash .teacherSteps{gap:5px}
+#teacherdash .teacherSteps button{padding:8px;border:1px solid var(--desk-border);border-radius:8px;font-size:10px;font-weight:750;color:#527181}
+#teacherdash .teacherSteps button.active{border:1px solid #75b0be;background:#e5f3f6;color:#176e81}
+#teacherdash .teacherTopCard{background:#eff7f8;border:1px solid #d4e7eb;border-radius:10px;padding:13px 15px;margin:0 0 10px;box-shadow:none}
+#teacherdash .teacherTopCard span{font-size:9px;color:#277a88}
+#teacherdash .teacherTopCard h2{font-size:15px;color:var(--desk-ink);margin:3px 0}
+#teacherdash .teacherTopCard p{font-size:11px;line-height:1.55;color:#5b7984}
+#teacherdash .staffPicker{grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px}
+#teacherdash .staffNameCard{min-height:99px;padding:11px;border:1px solid #d6e4e9;border-left:3px solid #4a97a7;border-radius:10px;background:#fff;box-shadow:0 4px 14px #2e546609;gap:6px}
+#teacherdash .staffNameCard b{font-size:12px;color:var(--desk-ink)}
+#teacherdash .staffNameCard small{font-size:10px;color:var(--desk-muted)}
+#teacherdash .staffNameCard span{font-size:10px;color:#207b8b}
+#teacherdash .staffNewCard{background:#eef7f9;border-style:dashed;border-color:#9dc7d2}
+#teacherdash .teacherFormGrid{padding:12px;border-color:var(--desk-border);border-radius:10px}
+#teacherdash .teacherFormGrid label,#teacherdash .teacherNewFields label,#teacherdash .teacherMonthlyFields label{font-size:11px;color:#567582}
+#teacherdash .teacherFormGrid input,#teacherdash .teacherNewFields input,#teacherdash .teacherNewFields select,#teacherdash .teacherMonthlyFields select,#teacherdash .teacherMonthlyFields textarea,#teacherdash .teacherBook input,#teacherdash .teacherBook textarea{font-size:12px;border-color:var(--desk-border);border-radius:8px;padding:8px 10px;background:#fff;color:var(--desk-ink)}
+#teacherdash .teacherGradeGrid{grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:7px}
+#teacherdash .teacherGradeChoice{min-height:60px;background:#fff;border:1px solid var(--desk-border);border-left:3px solid #c3d8dd;border-radius:8px;padding:9px}
+#teacherdash .teacherGradeChoice.picked{border-color:#5ca8ae;border-left-color:#198797;background:#eaf6f7;box-shadow:none}
+#teacherdash .teacherGradeChoice strong{font-size:11px;color:var(--desk-ink)}
+#teacherdash .teacherGradeChoice small{font-size:9px}
+#teacherdash .teacherNewSubject,#teacherdash .teacherClassGroup{border:1px solid var(--desk-border);border-radius:10px;background:#fff;padding:11px}
+#teacherdash .teacherNewSubject h3{font-size:12px;color:var(--desk-ink)}
+#teacherdash .teacherBookGrid{gap:8px;padding:8px}
+#teacherdash .teacherBook{border-radius:8px;border:1px solid #cee0e6;border-left:3px solid #288ba0;background:#fbfefe;padding:10px;box-shadow:none}
+#teacherdash .teacherBookHead span{font-size:9px;color:#287e91}
+#teacherdash .teacherFoot{margin:12px 0}
+#teacherdash .teacherFoot button,#teacherdash .teacherNewFields>button,#teacherdash .teacherMonthSwitch>button,#teacherdash .teacherMonthFooter button{font-size:10px;font-weight:800;background:var(--desk-teal);border:1px solid var(--desk-teal);color:white;border-radius:8px;min-height:35px;padding:8px 11px;box-shadow:none}
+#teacherdash .teacherMonthlyCard{border:1px solid #d7e4eb;border-left:4px solid #dcac61;border-radius:10px;box-shadow:none;padding:11px}
+#teacherdash .teacherMonthlyCard.complete{border-color:#c3e2dd;border-left-color:#2d9991;background:#f8fdfc;box-shadow:none}
+#teacherdash .teacherMonthlyCard>header h3{font-size:12px;color:var(--desk-ink);margin-bottom:7px}
+#teacherdash .teacherMonthlyFields{grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:7px}
+#teacherdash .teacherMonthlyFields label{padding:8px;border-color:var(--desk-border);border-radius:7px}
+#teacherdash .teacherRemainingNumber{background:#e4f3f4;color:#17798a!important;font-size:18px!important;border-radius:7px}
+#teacherdash .staffMath{background:#f4f9fa;border-color:#d9e9ee;border-radius:7px}
+#teacherdash .staffMath strong{color:#2d6f83;font-size:11px}
+#teacherdash .teacherFinalSubmit{background:#edf7f8;border:1px solid #d0e6e7;border-radius:10px;padding:11px}
+#teacherdash .teacherFinalSubmit h3{font-size:13px;color:var(--desk-ink)}
+#teacherdash .teacherFinalSubmit button{font-size:11px;background:var(--desk-teal);box-shadow:none}
+#teacherdash .teacherStageProgress i,#teacherdash .staffMath [data-staff-line]{background:linear-gradient(90deg,#238a97,#60b8b8)}
+#teacherdash #teacherNotice{border:1px solid #c7e5e4;background:#eef9f8;color:#227681;border-radius:8px;font-size:11px;box-shadow:none;padding:9px 11px;bottom:10px}
+#teacherdash #teacherNotice.isError{color:#a74634;background:#fff5f2;border-color:#ebc9c2}
+#teacherdash .staffToast{font-size:11px}
+#schooldash .studioTop{background:linear-gradient(120deg,#21415c,#267386);border-radius:15px;padding:19px 21px;box-shadow:0 7px 21px #22566d25}
+#schooldash .studioTop h2{font-size:19px}
+#schooldash .studioTop p{font-size:11px}
+#schooldash .wizardTrack>button{border:1px solid var(--desk-border);background:#fff;color:#537588;border-radius:9px;padding:8px 6px;font-size:10px;min-height:58px}
+#schooldash .wizardTrack>button.current{background:#236e83;color:#fff;border-color:#236e83;box-shadow:none}
+#schooldash #studioBody{border:1px solid var(--desk-border);padding:16px;border-radius:13px}
+#schooldash .studioHead h3{font-size:16px}
+#schooldash .schoolClassCard{min-height:110px;padding:12px 7px;border-radius:10px}
+#schooldash .schoolClassCard strong{font-size:12px}
+#schooldash .classEmblem{width:40px;height:40px;font-size:16px;border-radius:9px}
+#schooldash .studioCard{border-radius:11px}
+#landing .hero h1{font-size:clamp(24px,3.7vw,37px);line-height:1.19}
+#landing .hero p{font-size:12px;line-height:1.6}
+#landing .premiumRibbon span{font-size:10px}
+#signin{border:1px solid var(--desk-border);box-shadow:0 10px 40px #224b6130;border-radius:15px}
+#signin h2{font-size:19px;color:var(--desk-ink)}
+#signin .desc{font-size:12px;color:var(--desk-muted)}
+#signin label{font-size:11px}
+#signin input{font-size:13px;border-color:var(--desk-border);border-radius:9px;min-height:40px}
+#portraitAdminLogin{display:none!important}
+@media(max-width:970px){
+ #schooldash.monthOrganized{display:flex;flex-direction:column;gap:10px}
+ #schooldash.monthOrganized>*,#schooldash.monthOrganized>#monthOrganizer{width:100%;max-width:100%}
+ #schooldash.monthOrganized>#school-teachers{order:2!important}
+ #teacherdash .teacherDashGrid{grid-template-columns:1fr}
+ #teacherdash #teacherSide{position:relative;top:auto;max-height:none}
+ #teacherdash .teacherSteps{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
+ #teacherdash .teacherSteps button{white-space:nowrap}
+}
+@media(max-width:680px){
+ .unifiedTeachersHeading{align-items:flex-start;flex-direction:column}
+ .unifiedSchoolCard .hmSchoolFields{grid-template-columns:1fr 1fr}
+ .unifiedSchoolCard .hmSchoolFields button{grid-column:1/-1}
+ #teacherdash>.teacherDashHeader{padding:11px 13px}
+ #teacherdash .teacherTopNav{gap:5px}
+ #teacherdash .teacherGradeGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #teacherdash .teacherBookGrid{grid-template-columns:1fr}
+ #teacherdash .staffPicker{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #schooldash>.tabs button{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ #schooldash *,#teacherdash *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
