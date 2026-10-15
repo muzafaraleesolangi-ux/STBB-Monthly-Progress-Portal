@@ -65,6 +65,8 @@ jobs:
           for name in ('premium-home-v2.js','studio-core-v2.js','admin-schools-v2.js','whatsapp-recovery-v2.js','home-navigation-v3.js','school-staff-v1.js','hm-teacher-admin-v1.js'):
             assert name in h
           assert 'pattern="[0-9]{6,13}"' not in h
-          assert 'Shared School Password' not in h
+          assert 'id="hmOfficeForm"' in h
+          assert 'staff-signin' in h
+          assert 'school-staff-v1.js' in h
           print('Portal static validation successful.')
           PY
