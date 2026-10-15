@@ -25,16 +25,17 @@ const signupForm=document.getElementById('signupForm');
 const fieldGuidance=[
  ['semis','Step 1 — SEMIS Username','Enter the 8–12 digit SEMIS Code registered for your school. Teachers will use this as the sign-in username.'],
  ['school_name','Step 2 — School Name','Enter the official school name as shown in the school record.'],
- ['hm_name','Step 3 — Head Teacher','Enter the name of the Head Master or Head Mistress who is registering the school.'],
- ['password','Step 4 — Create Password','Use any mix of letters, numbers and symbols, 8–128 characters. It does not need to be numbers only.'],
- ['confirm_password','Step 5 — Confirm Password','Re-enter your chosen password. Then tick the acknowledgement and create the school account.']
+ ['hm_name','Step 3 — Head Teacher','Enter the full name of the Head Master or Head Mistress.'],
+ ['hm_gender','Step 4 — HM Gender','Select Male for Head Master or Female for Head Mistress. The Excel Proforma will show the appropriate head designation.'],
+ ['password','Step 5 — Create Password','Use any mix of letters, numbers and symbols, 8–128 characters. It does not need to be numbers only.'],
+ ['confirm_password','Step 6 — Confirm Password','Re-enter your chosen password. Then tick the acknowledgement and create the school account.']
 ];
 function updateSignupGuide(key){
  let i=Math.max(0,fieldGuidance.findIndex(x=>x[0]===key));const [id,title,desc]=fieldGuidance[i];
  document.getElementById('signupGuideTitle').textContent=title;
  document.getElementById('signupGuideText').textContent=desc;
- document.getElementById('signupGuideCounter').textContent=(i+1)+' / 5';
- const guide=document.getElementById('signupGuide');guide.style.setProperty('--guide-width',((i+1)*20)+'%');
+ document.getElementById('signupGuideCounter').textContent=(i+1)+' / 6';
+ const guide=document.getElementById('signupGuide');guide.style.setProperty('--guide-width',((i+1)*100/6)+'%');
 }
 signupForm.addEventListener('focusin',e=>{if(e.target.name)updateSignupGuide(e.target.name)});
 signupForm.addEventListener('input',e=>{
