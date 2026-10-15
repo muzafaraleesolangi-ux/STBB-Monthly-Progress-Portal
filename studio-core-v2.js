@@ -15,7 +15,7 @@ const Studio=(()=>{
  function repairSubjects(state){let changed=false;if(!state.books||typeof state.books!=='object'||Array.isArray(state.books)){state.books={};changed=true}if(!state.subjectCatalogInitialized||typeof state.subjectCatalogInitialized!=='object'){state.subjectCatalogInitialized={};changed=true}for(const grade of numbers){if(!Array.isArray(state.books[grade])){state.books[grade]=[];changed=true}if(!state.subjectCatalogInitialized[grade]){const existing=state.books[grade],names=new Set(existing.map(b=>normalizedSubject(b.name)));for(const book of defaultBooks(grade)){const name=normalizedSubject(book.name);if(!names.has(name)){existing.push(book);names.add(name);changed=true}}state.subjectCatalogInitialized[grade]=true;changed=true}}return changed}
 
  let setup=null,setupVersion=0,setupBusy=false,setupTimer=null,setupDirty=false,stage=0,grade=5,expanded='',schoolPeriod='',baseState=null,progressVersions={},
- progressEntries={},saveTimers={},progressDirty=new Set(),progressBusy=new Set(),filterTeacher='all',warnings=[],refreshHandle=null,initializing=false,setupConflict=false,assignmentTeacherIndex=0,assignmentEditorId='',assignmentEditorDraft=null,addingSubjectGrade=null,assignmentCollapsedGrades=new Set(),expandedLessonProgress='',lessonNameDraft=null,openingMonthPromise=null,queuedFirstInputs=new Map(),queuedInputFocus=null,detailsOpen=new Set(),progressSearch='',progressPendingOnly=false,rememberTeacher=false,loadedSchoolSemis=null;
+ progressEntries={},saveTimers={},progressDirty=new Set(),progressBusy=new Set(),filterTeacher='all',warnings=[],refreshHandle=null,initializing=false,setupConflict=false,assignmentTeacherIndex=0,assignmentEditorId='',assignmentEditorDraft=null,addingSubjectGrade=null,assignmentCollapsedGrades=new Set(),expandedLessonProgress='',lessonNameDraft=null,openingMonthPromise=null,queuedFirstInputs=new Map(),queuedInputFocus=null,detailsOpen=new Set(),progressSearch='',progressPendingOnly=false,rememberTeacher=false,loadedSchoolSemis=null,periodStatus='draft',periodWorkflow=null,collapsedCards=new Set();
  const $s=id=>document.getElementById(id);
  const clone=x=>structuredClone(x),safe=x=>esc(x),roman={1:'I',2:'II',3:'III',4:'IV',5:'V',6:'VI',7:'VII',8:'VIII'};
  async function api(action,body={}){if(!auth?.token)throw Error('Please sign in');const r=await fetch(V2,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...body}),cache:'no-store'});const a=await r.json().catch(()=>({}));if(!r.ok||a.error)throw Error(a.error||'Cloud request failed');return a}
@@ -71,7 +71,7 @@ const Studio=(()=>{
  progressDirty.clear();progressBusy.clear();filterTeacher='all';rememberTeacher=false;detailsOpen.clear();
  assignmentTeacherIndex=0;assignmentEditorId='';assignmentEditorDraft=null;addingSubjectGrade=null;
  assignmentCollapsedGrades.clear();expandedLessonProgress='';lessonNameDraft=null;progressSearch='';progressPendingOnly=false;
- queuedFirstInputs.clear();queuedInputFocus=null;openingMonthPromise=null;
+ queuedFirstInputs.clear();queuedInputFocus=null;openingMonthPromise=null;periodStatus='draft';periodWorkflow=null;collapsedCards.clear();
  }
  async function activate(){if(!auth||auth.admin||!account||initializing)return;
  if(loadedSchoolSemis!==account.semis){clearSchoolSession();loadedSchoolSemis=account.semis}
@@ -279,7 +279,10 @@ const Studio=(()=>{
  const empty=$s('studioFilteredEmpty');if(empty)empty.hidden=visible!==0;
 }
 function renderProgress(){
- const c=counts(),selected=filterTeacher==='all'?null:selectedTeacher(),list=assigned().filter(b=>!selected||b.teacherId===selected.id);
+ const c=counts(),selected=filterTeacher==='all'?null:selectedTeacher(),list=assigned().filter(b=>!selected||b.teacherId===selected.id).sort((a,b)=>{
+ const ca=progressVersions[a.id]>0&&fullyEntered(a)&&!progressDirty.has(a.id),cb=progressVersions[b.id]>0&&fullyEntered(b)&&!progressDirty.has(b.id);
+ return Number(ca)-Number(cb)||b.grade-a.grade||String(a.name).localeCompare(String(b.name))
+ });
  let html='<div class="studioCompactHead"><h3>Monthly Academic Progress</h3><button type="button" class="ghostMini" data-studio-stage="1">Edit Teachers</button><span class="studioTinySync">'+(schoolPeriod?'Month '+safe(schoolPeriod):'Select reporting month')+'</span></div>';
  html+='<div class="studioPeriodMini"><label>Reporting Month <input type="month" id="studioMonthInput" value="'+safe(schoolPeriod||new Date().toISOString().slice(0,7))+'"></label><button type="button" data-studio-openmonth class="ghostMini">Use Month</button><button type="button" data-studio-refresh class="ghostMini" title="Refresh other teachers’ saved entries">↻ Sync</button><select id="studioTeacherFilter" class="visuallyHidden" aria-label="Teacher Profile"><option value="all">All Teachers</option>'+setup.teachers.map(t=>'<option value="'+safe(t.id)+'" '+(filterTeacher===t.id?'selected':'')+'>'+safe(t.name)+'</option>').join('')+'</select><label class="studioRememberMini"><input id="studioRememberTeacher" type="checkbox" '+(rememberTeacher?'checked':'')+' '+(filterTeacher==='all'?'disabled':'')+'> This device</label></div>';
  html+='<div class="studioTeacherTabs" role="tablist" aria-label="Teachers">'+['<button type="button" data-teacher-tab="all" class="'+(filterTeacher==='all'?'selected':'')+'">All Teachers</button>',...setup.teachers.map(t=>{const bs=assigned().filter(b=>b.teacherId===t.id),done=bs.filter(b=>progressVersions[b.id]>0&&fullyEntered(b)&&!progressDirty.has(b.id)).length;return '<button type="button" data-teacher-tab="'+safe(t.id)+'" class="'+(filterTeacher===t.id?'selected':'')+'">'+safe(t.name||'Teacher')+' <small data-teacher-count="'+safe(t.id)+'">'+done+'/'+bs.length+'</small></button>'})].join('')+'</div>';
@@ -306,6 +309,37 @@ function renderProgress(){
  }
  return html
 }
+
+ async function workflowAction(status){
+  if(!schoolPeriod)return notify('Choose a reporting month first.',true);
+  if(status==='final'&&counts().left.length)return notify('Complete '+counts().left.length+' pending subject(s) before marking Final.',true);
+  if(status==='draft'&&!confirm('Reopen '+schoolPeriod+' for editing? Previously exported files stay in History.'))return;
+  if(status==='submitted'&&!confirm('Submit final Monthly Report '+schoolPeriod+'? Export Excel will unlock next.'))return;
+  try{
+   if(status!=='draft')await settle();
+   const r=await api('set-workflow',{period:schoolPeriod,status});
+   periodWorkflow=r.workflow||{status};periodStatus=periodWorkflow.status;
+   if(status==='draft'){collapsedCards.clear();notify('✓ Draft reopened. You can edit and save again. Previous Excel exports remain in History.')}
+   else if(status==='final')notify('✓ Report is Final. Review your entries, then Submit when ready.');
+   else notify('✓ Monthly report submitted. Excel Export is now available.');
+   render()
+  }catch(e){notify('Report status not changed: '+e.message,true);alert(e.message)}
+ }
+ function applyCardCollapse(card,collapsed){
+  if(!card)return;const body=card.querySelector('.masterCardBody'),button=card.querySelector('[data-progress-expand]');
+  card.classList.toggle('isCollapsed',Boolean(collapsed));
+  if(body)body.hidden=Boolean(collapsed);
+  if(button){button.setAttribute('aria-expanded',String(!collapsed));button.textContent=collapsed?'Expand ▾':'Minimize ▴'}
+ }
+ function collapseSavedCard(bookId){
+  if(!schoolPeriod||stage!==5)return;
+  const card=[...document.querySelectorAll('#studioBody [data-progress-card]')].find(x=>x.dataset.progressCard===bookId);
+  const b=assigned().find(x=>x.id===bookId);
+  if(!card||!b||!(progressVersions[bookId]>0&&fullyEntered(b)&&!progressDirty.has(bookId)))return;
+  collapsedCards.add(bookId);applyCardCollapse(card,true);
+  const holder=$s('studioSubjectCards');if(holder&&card.parentElement===holder)holder.append(card);
+  card.classList.remove('justSaved');void card.offsetWidth;card.classList.add('justSaved')
+ }
 function summaryForCheck(){if(!selectedGrades().length)return 'Please select at least one class offered by your school.';if(!setup.teachers.every(t=>t.name.trim()&&t.pid.trim()&&t.designation.trim()))return 'Please complete teacher name, PID and designation.';if(stage>=1&&!setup.teachers.every(t=>t.classes?.length))return 'Select at least one teaching class for every teacher.';if(stage>=2&&!assigned().length&&!selectedGrades().some(g=>g>=6))return 'Assign at least one subject to a teacher.';return null}
  async function next(){if(stage===0&&!selectedGrades().length)return notify('Add at least one school class before continuing.',true);if(stage===1&&!setup.teachers.every(t=>t.name.trim()&&t.pid.trim()&&t.designation.trim()))return notify('Complete Name, PID and Designation for each teacher before continuing.',true);if(stage===2&&!setup.teachers.every(t=>t.classes?.length))return notify('Choose at least one teaching class for each teacher.',true);if(stage===3){if(!await saveAssignmentEditor())return;if(!assigned().length&&!selectedGrades().some(g=>g>=6))return notify('Tick at least one subject for the school before continuing.',true);if(assignmentTeacherIndex<setup.teachers.length-1){await moveAssignmentTeacher(assignmentTeacherIndex+1);return}}
  try{await settleSetup()}catch(e){return notify(e.message,true)}setupStage(stage===3?5:stage+1)}
@@ -319,7 +353,7 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  for(const books of Object.values(initial.books))for(const b of books){b.previous=0;b.current=0;b.notebook=0;b.cleanliness='';b.feedback='';b.suggestion=''}
  const r=await request('open-period',{period:p,initial_state:initial});
  period=p;version=r.version;pendingState=null;schoolPeriod=p;baseState=r.state;progressVersions={};progressEntries={};progressDirty.clear();
- const entries=await api('load-period',{period:p});for(const x of entries.entries){progressEntries[x.book_id]=x;progressVersions[x.book_id]=x.version}
+ const [entries,workflow]=await Promise.all([api('load-period',{period:p}),api('load-workflow',{period:p})]);periodWorkflow=workflow.workflow||{status:'draft'};periodStatus=periodWorkflow.status;collapsedCards.clear();for(const x of entries.entries){progressEntries[x.book_id]=x;progressVersions[x.book_id]=x.version}
  // If a new month has no entries, carry forward the last earlier month from subject records.
  let earlier=periods.filter(x=>x.period<p).sort((a,b)=>b.period.localeCompare(a.period))[0];
  if(earlier){const old=await api('load-period',{period:earlier.period});for(const x of old.entries){if(!progressEntries[x.book_id]){const previous=Math.max(0,Number(x.details.previous)||0)+Math.max(0,Number(x.details.current)||0);const book=bookList().find(b=>b.id===x.book_id);if(book){const bs=(baseState.books?.[book.grade]||[]).find(z=>z.id===book.id);if(bs){bs.previous=Math.min(book.chapters.length,previous);bs.current=0;const oldSelection=x.details.lessonSelections;if(oldSelection&&Array.isArray(oldSelection.previous)&&Array.isArray(oldSelection.current)){bs.lessonSelections={previous:[...new Set([...oldSelection.previous,...oldSelection.current])].filter(i=>Number.isInteger(i)&&i>=0&&i<book.chapters.length).sort((a,b)=>a-b),current:[]};if(bs.lessonSelections.previous.length!==bs.previous)delete bs.lessonSelections}}}}}}
@@ -362,6 +396,7 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
   return openingMonthPromise;
  }
  function updateEntry(bookId,k,v){
+ if(periodStatus!=='draft')return notify('This report is '+periodStatus+'. Tap Edit / Reopen Draft before changing fields.',true);
  if(!schoolPeriod)return notify('Open your reporting month first.',true);
  const book=assigned().find(x=>x.id===bookId);if(!book)return;
  let x=progressEntries[bookId];if(!x){x={book_id:bookId,details:progressBy(book),version:0};progressEntries[bookId]=x}
@@ -390,7 +425,7 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  }
  clearTimeout(saveTimers[bookId]);saveTimers[bookId]=setTimeout(()=>saveSubject(bookId),1100);
  }
- async function saveSubject(bookId){if(!progressDirty.has(bookId)||progressBusy.has(bookId))return true;const book=assigned().find(x=>x.id===bookId);if(!book)return false;const entry=progressEntries[bookId];if(!entry)return false;
+ async function saveSubject(bookId){if(periodStatus!=='draft')return false;if(!progressDirty.has(bookId)||progressBusy.has(bookId))return true;const book=assigned().find(x=>x.id===bookId);if(!book)return false;const entry=progressEntries[bookId];if(!entry)return false;
  clearTimeout(saveTimers[bookId]);progressBusy.add(bookId);const snapshot=clone(entry.details),ver=progressVersions[bookId]||0,mark=$s('status-'+bookId);
  if(mark)mark.textContent='Saving…';
  try{const r=await api('save-subject',{period:schoolPeriod,book_id:bookId,details:snapshot,version:ver});progressVersions[bookId]=r.version;if(JSON.stringify(entry.details)===JSON.stringify(snapshot))progressDirty.delete(bookId);if(mark){mark.textContent='✓ Draft saved'}refreshProgressSummary();if(progressPendingOnly)progressVisibleFilter();return true}
@@ -407,7 +442,7 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  b.active=Boolean(b.active&&b.teacherId&&selectedGrades().includes(g));
  }return t
  }
- async function review(){if(!schoolPeriod)return notify('Open your reporting month first.',true);if(!assigned().length)return notify('Add and assign at least one subject and its total chapters / lessons before exporting.',true);if(assigned().some(b=>!b.chapters?.length))return notify('Total chapters / lessons are required for each assigned subject.',true);if(counts().left.length)return notify('Complete every master Proforma field for all '+counts().left.length+' pending subject(s) before reviewing.',true);
+ async function review(){if(periodStatus!=='submitted')return notify('Submit the final Monthly Report before exporting.',true);if(!schoolPeriod)return notify('Open your reporting month first.',true);if(!assigned().length)return notify('Add and assign at least one subject and its total chapters / lessons before exporting.',true);if(assigned().some(b=>!b.chapters?.length))return notify('Total chapters / lessons are required for each assigned subject.',true);if(counts().left.length)return notify('Complete every master Proforma field for all '+counts().left.length+' pending subject(s) before reviewing.',true);
  try{await settle();await loadEntries();const data=compiled();
  // Save a versioned snapshot to support reopening the reviewed report next month.
  let result;
