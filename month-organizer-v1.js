@@ -20,7 +20,7 @@ const MonthOrganizer=(()=>{
  const files=row=>Array.isArray(row.exports)?row.exports:[];
  function render(){
   const sidebar=document.getElementById('monthSideContent');if(!sidebar)return;
-  if(!auth||auth.admin){sidebar.innerHTML='<p>Sign into your school to see reports.</p>';deck.replaceChildren();return}
+  if(!auth||auth.admin||auth.role==='staff'){sidebar.innerHTML='<p>Sign into your school to see reports.</p>';deck.replaceChildren();return}
   if(lastError&&!rows.length){sidebar.textContent='Could not sync month history. '+lastError;return}
   const current=typeof Studio!=='undefined'?Studio.activePeriod?.():null;
   sidebar.innerHTML=rows.length?'<div class="monthSideList">'+rows.map(r=>'<article class="monthSideCard '+state(r)+(r.period===current?' selected':'')+'"><button type="button" class="monthSideOpen" data-month-open="'+escHTML(r.period)+'"><span class="monthSideTitle">'+escHTML(title(r))+'</span><span class="monthStatus '+state(r)+'">'+badge(r)+'</span></button><span class="monthSideSub">'+Number(r.subjects||0)+' subject record'+(Number(r.subjects||0)===1?'':'s')+' · '+files(r).length+' Excel</span>'+files(r).map(f=>'<div class="monthSideFile"><button type="button" data-month-download="'+escHTML(f.id)+'" title="Download '+escHTML(f.filename)+'">⬇ '+escHTML(f.filename)+'</button><button type="button" data-month-insights="'+escHTML(f.id)+'" title="Report details">↗</button></div>').join('')+(state(r)==='submitted'&&!files(r).length?'<small class="monthAwaiting">Submitted · Excel export is pending</small>':'')+'</article>').join('')+'</div>':'<p class="monthEmpty">No reports yet. Start your first monthly progress report.</p>';
@@ -31,7 +31,7 @@ const MonthOrganizer=(()=>{
   if(oldTable)oldTable.hidden=true;
  }
  async function refresh(){
-  if(!auth||auth.admin){rows=[];render();return}
+  if(!auth||auth.admin||auth.role==='staff'){rows=[];render();return}
   if(fetching)return fetching;
   fetching=(async()=>{try{
    if(typeof Studio==='undefined'||!Studio.api)throw Error('School workspace is still preparing');
@@ -62,7 +62,7 @@ const MonthOrganizer=(()=>{
  });
  // Keep the sidebar accurate after submission, export or dashboard refresh.
  const prevRefresh=refreshSchool;refreshSchool=async function(...args){const out=await prevRefresh(...args);await refresh();return out};
- const prevHistory=loadHistory;loadHistory=async function(...args){const out=await prevHistory(...args);if(auth&&!auth.admin)refresh().catch(()=>{});return out};
- if(auth&&!auth.admin)setTimeout(refresh,600);
+ const prevHistory=loadHistory;loadHistory=async function(...args){const out=await prevHistory(...args);if(auth&&!auth.admin&&auth.role!=='staff')refresh().catch(()=>{});return out};
+ if(auth&&!auth.admin&&auth.role!=='staff')setTimeout(refresh,600);
  return{refresh,render,rows:()=>rows,monthAfter}
 })();
