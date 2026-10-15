@@ -19,6 +19,7 @@ jobs:
           node --check studio-core-v2.js
           node --check admin-schools-v2.js
           node --check home-navigation-v3.js
+          node --check progress-guidance-v4.js
       - name: Install browser DOM test dependencies
         run: npm install --no-save --no-package-lock jsdom@24.1.3
       - name: Test classwise teacher subject allocations
@@ -52,7 +53,7 @@ jobs:
           assert 'id="newMonthYear"' in h
           assert 'id="saveDialog"' in h
           assert 'id="saveFloat"' in h
-          for file in ('portal-ux.css','portal-ux.js','editor-ux.css','editor-ux.js','premium-home-v2.css','premium-home-v2.js','studio-v2.css','studio-core-v2.js','admin-schools-v2.css','admin-schools-v2.js','whatsapp-recovery-v2.css','whatsapp-recovery-v2.js','home-navigation-v3.js','home-navigation-v3.css'):
+          for file in ('portal-ux.css','portal-ux.js','editor-ux.css','editor-ux.js','premium-home-v2.css','premium-home-v2.js','studio-v2.css','studio-core-v2.js','report-premium-v4.css','progress-guidance-v4.js','admin-schools-v2.css','admin-schools-v2.js','whatsapp-recovery-v2.css','whatsapp-recovery-v2.js','home-navigation-v3.js','home-navigation-v3.css'):
             assert Path(file).is_file()
           assert 'portal-ux.js' in h
           assert 'editor-ux.js' in e
