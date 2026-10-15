@@ -14,7 +14,7 @@ async function main(){
  const school={selectedClasses:[5],subjectCatalogInitialized:{1:true,2:true,3:true,4:true,5:true,6:true,7:true,8:true},
   teachers:[{id:'t1',name:'Teacher One',pid:'111',designation:'PST',classes:[5]},{id:'t2',name:'Teacher Two',pid:'222',designation:'PST',classes:[5]}],
   books:{5:[{id:'5-english',name:'English',chapters:['A','B','C','D','E'],active:true,teacherId:'t1'},{id:'5-maths',name:'Mathematics',chapters:['One','Two','Three'],active:true,teacherId:'t2'}]}};
- const saved={},versions={},dom=new JSDOM('<html><body><section id="schooldash"><div id="schoolTabs"></div><div id="school-overview"></div><div id="school-editor"></div></section></body></html>',{url:'https://portal.test/',runScripts:'outside-only',pretendToBeVisual:true});
+ const saved={},versions={},dom=new JSDOM('<html><body><section id="schooldash"><div id="schoolTabs"></div><div id="school-overview"></div><div id="school-editor"></div><iframe id="editor"></iframe></section></body></html>',{url:'https://portal.test/',runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window,d=w.document;w.structuredClone=global.structuredClone;w.scrollTo=()=>{};w.confirm=()=>true;w.alert=msg=>{throw Error('Unexpected alert: '+msg)};
  w.fetch=async(url,options={})=>{
   const data=JSON.parse(options.body||'{}');let result;
@@ -31,7 +31,7 @@ async function main(){
   "const auth={token:'fixture',admin:false},account={semis:'123456789',school_name:'Fixture School',hm_name:'HM'},template={books:{}};",
   "let period=null,version=0,pendingState=null,periods=[],saving=false,saveTimer=null;",
   "async function postLogin(){}", "function dashTab(){}","function refreshSaveDock(){}",
-  "async function request(action,body={}){if(action==='open-period')return{version:1,state:body.initial_state};if(action==='save-draft')return{version:2};return {}}",
+  "async function request(action,body={}){if(action==='open-period')return{version:1,state:body.initial_state};if(action==='save-draft'){window.capturedReviewState=body.state;return{version:2}};return {}}",
   "async function refreshSchool(){}",
   "function esc(x){return String(x??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('\\\"','&quot;')}"
  ].join('\n');
@@ -68,6 +68,13 @@ async function main(){
  assert.equal(one('[data-quick-pending]').textContent,'0');
  assert.equal(saved['5-maths'].previous,0,'Explicitly entered zero persists');
  assert.equal(saved['5-maths'].notebook,0,'Explicit zero percent persists');
+ await studio.review();
+ const review=w.capturedReviewState;assert.ok(review&&review.books[5].length===2,'Complete review snapshot generated for Excel');
+ assert.equal(review.books[5][0].notebook,80,'Notebook maintenance percentage is carried into original Excel state');
+ assert.equal(review.books[5][0].cleanliness,'Good','Classroom management rating preserved for export');
+ assert.equal(review.books[5][0].feedback,'Fair','Formative student feedback preserved for export');
+ assert.equal(review.books[5][0].suggestion,'Improve lesson planning and preparation','Selected improvement suggestion preserved');
+ assert.equal(review.books[5][1].notebook,0,'Selected 0% is preserved in review state');
  select(card('5-maths')+' [data-pkey="previous"]','');
  await studio.settle();
  assert.equal(saved['5-maths'].previous,null,'Blank selection remains NULL, not fabricated zero');
