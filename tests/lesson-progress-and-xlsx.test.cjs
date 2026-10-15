@@ -1,6 +1,14 @@
 /* Master Proforma exact-field, mandatory completion, blank zeros & native Excel regression. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),{JSDOM}=require('jsdom');
 async function main(){
+ const monthly=fs.readFileSync('month-organizer-v1.js','utf8');
+ assert.ok(monthly.includes("Studio.api('list-months')"),'Sidebar pulls submitted and exported months from school-scoped backend');
+ assert.ok(monthly.includes("data-month-download"),'Each archived month has a direct Excel download control');
+ assert.ok(monthly.includes("data-month-open"),'Previous months remain individually accessible');
+ assert.ok(monthly.includes("data-month-new"),'Completed reports offer Start New Month');
+ const studioSource=fs.readFileSync('studio-core-v2.js','utf8');
+ assert.ok(studioSource.includes("api('initialize-month',{period:p})"),'Rollover is persisted in month-specific backend entries');
+ assert.ok(studioSource.includes('startFollowingMonth'),'Quick next-month handoff is implemented');
  const guideSource=fs.readFileSync('progress-guidance-v4.js','utf8');
  assert.doesNotMatch(guideSource,/\.observe\(document\.body\s*,\s*\{[^}]*attributes\s*:\s*true/,'Guide must not observe document.body attributes (infinite self-triggering mutation loop)');
  assert.match(guideSource,/observer\.observe\(studioBody,\{childList:true\}\)/,'Guide observes only school content replacement, not its own class mutations');
@@ -43,6 +51,7 @@ async function main(){
    result={workflow:{status:reportStatus}}
   }
   else if(data.action==='load-period')result={entries:Object.keys(saved).map(id=>({book_id:id,details:saved[id],version:versions[id]}))};
+  else if(data.action==='initialize-month')result={source_period:null,initialized:0,entries:Object.keys(saved).map(id=>({book_id:id,details:saved[id],version:versions[id]}))};
   else if(data.action==='save-setup')result={version:data.version+1};
   else if(data.action==='save-subject'){
    assert.ok(Object.hasOwn(data.details,'previous'),'Explicit pending counts persist');
