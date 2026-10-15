@@ -76,6 +76,36 @@ async function saveBook(id){
 }
 async function submitMonth(){const c=counters();if(!c.total||c.done!==c.total||dirty||month?.status!=='draft')return shown('Complete and Save all subject fields before submitting.');if(!confirm('Submit '+c.total+' completed subjects for '+period+' to the HM?'))return;try{await api('staff-month-submit',{teacher_id:person.id,period});month.submitted=true;shown('✓ Monthly report submitted to HM.');render()}catch(err){shown('Submission failed: '+err.message)}}
 
-// EVENTS
-return{activate,pick,create,save,go,api,profile:()=>person,month:()=>month}
+root.addEventListener('click',async event=>{
+ const b=event.target.closest('button');if(!b)return;
+ if(b.dataset.staffPick)return pick(b.dataset.staffPick);
+ if(b.hasAttribute('data-staff-new'))return create();
+ if(b.dataset.staffStage)return go(b.dataset.staffStage);
+ if(b.dataset.staffNext)return go(b.dataset.staffNext);
+ if(b.hasAttribute('data-staff-save'))return save();
+ if(b.hasAttribute('data-staff-add'))return addSubject();
+ if(b.dataset.staffRemove)return removeSubject(b.dataset.staffRemove);
+ if(b.hasAttribute('data-staff-openmonth'))return openMonth($('#staffPeriod')?.value||period);
+ if(b.dataset.staffSavebook)return saveBook(b.dataset.staffSavebook);
+ if(b.hasAttribute('data-staff-submit'))return submitMonth();
+ if(b.hasAttribute('data-teacher-home'))return go('pick');
+ if(b.hasAttribute('data-teacher-back'))return go(trail.pop()||'pick')
+});
+root.addEventListener('input',event=>{
+ const t=event.target;if(!person)return;
+ if(t.dataset.staffField){person[t.dataset.staffField]=t.value;edited()}
+ if(t.dataset.staffSubname){const b=person.subjects.find(x=>x.id===t.dataset.staffSubname);if(b){b.name=t.value;edited()}}
+ if(t.dataset.staffTotal){const b=person.subjects.find(x=>x.id===t.dataset.staffTotal),n=Number(t.value);if(b&&Number.isInteger(n)&&n>=1&&n<=250){while(b.chapters.length<n)b.chapters.push('');b.chapters.length=n;edited()}}
+ if(t.dataset.staffTitles){const b=person.subjects.find(x=>x.id===t.dataset.staffTitles);if(b){const lines=t.value.split(/\r?\n/);b.chapters=b.chapters.map((x,i)=>(lines[i]||'').trim());edited()}}
+ if(t.dataset.staffProgress!==undefined&&month){const card=t.closest('[data-staff-card]'),b=month.subjects.find(x=>x.id===card?.dataset.staffCard);if(b){b.dirty=true;b.details={...b.details,[t.dataset.staffProgress]:t.value};month.submitted=false;card.classList.remove('complete');card.classList.add('pending');card.querySelector('[data-staff-saved]').textContent='● Unsaved Changes';card.querySelector('[data-staff-state]').textContent='○ Changed'}remaining(card);updateSubmit()}
+});
+root.addEventListener('change',event=>{
+ const t=event.target;
+ if(t.dataset.staffClass){const g=Number(t.dataset.staffClass);if(t.checked&&!person.classes.includes(g))person.classes.push(g);else if(!t.checked){if(person.subjects.some(x=>x.grade===g)&&!confirm('Remove Class '+r[g]+' and all its subjects?')){t.checked=true;return}person.classes=person.classes.filter(n=>n!==g);person.subjects=person.subjects.filter(x=>x.grade!==g)}person.classes.sort((a,b)=>b-a);edited();render()}
+ if(t.id==='staffGrade')populateCatalog();
+ if(t.id==='staffCatalog'&&t.value&&t.value!=='custom'){const name=$('#staffNewTitle');if(name)name.value=t.value}
+ if(t.dataset.staffProgress!==undefined)t.dispatchEvent(new window.Event('input',{bubbles:true}))
+});
+
+return{activate,pick,create,save,go,api,openMonth,saveBook,submitMonth,remaining,counters,profile:()=>person,month:()=>month}
 })();
