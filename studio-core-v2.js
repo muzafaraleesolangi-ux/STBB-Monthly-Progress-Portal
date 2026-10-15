@@ -210,6 +210,12 @@ const Studio=(()=>{
     return false;
   }
  }
+ function refreshProgressSummary(){
+ const c=counts();
+ const done=$s('studioBody')?.querySelector('[data-quick-done]'),pending=$s('studioBody')?.querySelector('[data-quick-pending]');
+ if(done)done.textContent=c.done;
+ if(pending)pending.textContent=c.left.length;
+}
  function progressVisibleFilter(){
  const term=progressSearch.trim().toLowerCase();
  let visible=0;
@@ -225,7 +231,7 @@ function renderProgress(){const c=counts(),selected=filterTeacher==='all'?null:s
  let html='<div class="studioHead"><div><h3>6. Monthly Progress · Quick Fill</h3><p>Choose your teacher, enter Previous and This Month for each subject, and move to the next. Remaining is automatic. Open optional assessments only when needed.</p></div><button class="btn ghost" data-studio-refresh>↻ Refresh Other Teachers’ Work</button></div>';
  html+='<div class="reportPeriodPanel"><div><label>Reporting Month</label><input type="month" id="studioMonthInput" value="'+safe(schoolPeriod||new Date().toISOString().slice(0,7))+'"></div><button class="btn primary" data-studio-openmonth>Open / Continue Month</button><div><label>Teacher Profile</label><select id="studioTeacherFilter"><option value="all">All Teachers · HM Review</option>'+setup.teachers.map(t=>'<option value="'+safe(t.id)+'" '+(filterTeacher===t.id?'selected':'')+'>'+safe(t.name)+'</option>').join('')+'</select></div></div>';
  if(!schoolPeriod)html+='<div class="studioAlert">Enter the Previous or This Month number directly. Your selected reporting month will open automatically when you type, and your progress will save online.</div>';
- html+='<div class="studioMetrics"><div><b>'+c.total+'</b><small>Assigned Subjects</small></div><div><b>'+c.done+'</b><small>Saved This Month</small></div><div><b>'+c.left.length+'</b><small>Pending Entries</small></div></div>';
+ html+='<div class="studioMetrics"><div><b data-quick-total>'+c.total+'</b><small>Assigned Subjects</small></div><div><b data-quick-done>'+c.done+'</b><small>Saved This Month</small></div><div><b data-quick-pending>'+c.left.length+'</b><small>Pending Entries</small></div></div>';
  html+='<div class="studioQuickTools"><label class="studioQuickSearch"><span>Find subject / class / teacher</span><input type="search" id="studioProgressSearch" value="'+safe(progressSearch)+'" placeholder="e.g. Mathematics, Class V, Teacher name…" autocomplete="off"></label><div class="quickToolActions"><button type="button" class="ghostMini '+(!progressPendingOnly?'quickActive':'')+'" data-progress-show-all>All Subjects</button><button type="button" class="ghostMini '+(progressPendingOnly?'quickActive':'')+'" data-progress-pending>Pending Only</button><button type="button" class="btn primary" data-progress-saveall>💾 Save All Changes</button></div></div><p class="studioResultsStatus" id="studioVisibleCount" aria-live="polite">'+list.length+' matching subjects</p><p class="studioMissing" id="studioFilteredEmpty" hidden>No subjects match this filter. Try All Subjects or clear search.</p>';
  if(c.left.length)html+='<details class="pendingBox"><summary>⚠ '+c.left.length+' subjects still awaiting a saved entry</summary>'+c.left.map(b=>'<span>Class '+roman[b.grade]+' · '+safe(b.name)+' — '+safe(tname(b.teacherId))+'</span>').join('')+'</details>';
  if(!list.length)html+='<div class="studioMissing">No subjects assigned to this teacher yet. Complete Subjects step first.</div>';
@@ -311,6 +317,7 @@ function renderProgress(){const c=counts(),selected=filterTeacher==='all'?null:s
  }
  x.details[k]=v;x.details.updatedBy=filterTeacher==='all'?'HM / School Review':tname(filterTeacher);progressDirty.add(bookId);
  const el=$s('status-'+bookId);if(el){el.textContent='● Unsaved changes';el.className='progressState pending'}
+ const cardPending=[...document.querySelectorAll('[data-progress-card]')].find(x=>x.dataset.progressCard===bookId);if(cardPending)cardPending.classList.remove('isSaved');
  redrawProgressMetrics(bookId);
  if(k==='previous'||k==='current'){
    const card=[...document.querySelectorAll('[data-progress-card]')].find(el=>el.dataset.progressCard===bookId);
@@ -322,7 +329,7 @@ function renderProgress(){const c=counts(),selected=filterTeacher==='all'?null:s
  async function saveSubject(bookId){if(!progressDirty.has(bookId)||progressBusy.has(bookId))return true;const book=assigned().find(x=>x.id===bookId);if(!book)return false;const entry=progressEntries[bookId];if(!entry)return false;
  clearTimeout(saveTimers[bookId]);progressBusy.add(bookId);const snapshot=clone(entry.details),ver=progressVersions[bookId]||0,mark=$s('status-'+bookId);
  if(mark)mark.textContent='Saving…';
- try{const r=await api('save-subject',{period:schoolPeriod,book_id:bookId,details:snapshot,version:ver});progressVersions[bookId]=r.version;if(JSON.stringify(entry.details)===JSON.stringify(snapshot))progressDirty.delete(bookId);if(mark){mark.textContent='✓ Saved';mark.className='progressState saved'}const card=[...document.querySelectorAll('[data-progress-card]')].find(el=>el.dataset.progressCard===bookId);if(card&&!progressDirty.has(bookId))card.classList.add('isSaved');if(progressPendingOnly)progressVisibleFilter();return true}
+ try{const r=await api('save-subject',{period:schoolPeriod,book_id:bookId,details:snapshot,version:ver});progressVersions[bookId]=r.version;if(JSON.stringify(entry.details)===JSON.stringify(snapshot))progressDirty.delete(bookId);if(mark){mark.textContent='✓ Saved';mark.className='progressState saved'}const card=[...document.querySelectorAll('[data-progress-card]')].find(el=>el.dataset.progressCard===bookId);if(card&&!progressDirty.has(bookId))card.classList.add('isSaved');refreshProgressSummary();if(progressPendingOnly)progressVisibleFilter();return true}
  catch(e){notify('⚠ '+book.name+': '+e.message,true);if(mark){mark.textContent='⚠ Save conflict';mark.className='progressState pending'}return false}
  finally{progressBusy.delete(bookId);if(progressDirty.has(bookId)&&JSON.stringify(entry.details)!==JSON.stringify(snapshot))saveTimers[bookId]=setTimeout(()=>saveSubject(bookId),1300)}
  }
