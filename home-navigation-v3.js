@@ -44,7 +44,7 @@
  function navigate(target,fromBack=false){
   restoring=fromBack;
   try{
-   if(target==='teacher:home'){show('teacherdash');if(typeof SharedStaff!=='undefined')SharedStaff.go('pick')}
+   if(target==='teacher:home'){show('schooldash');dashTab('teachers',schoolButton('teachers'));if(typeof SharedStaff!=='undefined')SharedStaff.go('pick')}
    else if(target==='admin:home'||target.startsWith('admin:')){show('admindash');adminTab(target.slice(6),adminButton(target.slice(6)))}
    else if(target==='school:studio'){show('schooldash');if(typeof Studio!=='undefined')Studio.showPanel()}
    else if(target.startsWith('school:')){show('schooldash');dashTab(target.slice(7),schoolButton(target.slice(7)))}
@@ -89,7 +89,7 @@
   if(shortcut){const t=shortcut.dataset.adminShortcut;adminTab(t,adminButton(t))}
  });
  const previousShow=show;
- show=function(id){if(['teacher','staff'].includes(auth?.role)&&['schooldash','admindash'].includes(id))id='teacherdash';const res=previousShow(id);if(!auth&&id==='landing'){stack=[];route='public:landing';return res}
+ show=function(id){if(['teacher','staff'].includes(auth?.role)&&id==='admindash')id='schooldash';const res=previousShow(id);if(!auth&&id==='landing'){stack=[];route='public:landing';return res}
   if(auth?.admin&&id==='admindash'&&!restoring){if(!route?.startsWith('admin:')){setTimeout(()=>{if(auth?.admin)adminTab('home',adminButton('home'))},0)}}
   if(auth&&!['schooldash','admindash','teacherdash'].includes(id))record('public:'+id);
   return res
