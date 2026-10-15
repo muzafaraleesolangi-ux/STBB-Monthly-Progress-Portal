@@ -1,35 +1,38 @@
 'use strict';
-/* Contextual click/focus explanations; no data fields or collection added. */
+/* Small contextual hints: appearance on focus, automatic fade-out, no modal or mandatory steps. */
 (()=>{
-  const guide=document.createElement('aside');guide.className='premiumGuidePopover';guide.hidden=true;guide.setAttribute('aria-live','polite');
-  guide.innerHTML='<div class="premiumGuideInner"><span class="premiumGuideStep">SMART ENTRY GUIDE</span><div class="premiumGuideTitle"></div><p class="premiumGuideText"></p><div class="premiumGuideControls"><button type="button" class="dismiss">Close</button><button type="button" class="next">Next Field →</button></div></div>';
-  document.body.appendChild(guide);
-  let last=null;
-  const help=el=>{
-    if(el.matches('[data-progress-total]'))return ['Total Chapters / Lessons','Enter the total NUMBER from your textbook. Lesson names are optional. Remaining updates automatically.'];
-    if(el.matches('[data-progress-bid][data-pkey="previous"]'))return ['Previous Month','Enter the total chapters or lessons completed BEFORE the selected reporting month.'];
-    if(el.matches('[data-progress-bid][data-pkey="current"]'))return ['This Month','Enter only the new chapters or lessons completed DURING this month. Do not repeat previous entries.'];
-    if(el.matches('[data-tid][data-field="name"]'))return ['Teacher Name','Use the official teacher name. Then continue to PID and designation.'];
-    if(el.matches('[data-tid][data-field="pid"]'))return ['Teacher PID','Enter the official PID number exactly as recorded.'];
-    if(el.matches('[data-tid][data-field="designation"]'))return ['Teacher Designation','Enter the teacher designation (for example PST, JEST, HST).'];
-    if(el.matches('#studioNewSubjectTotal'))return ['Subject Chapter Total','Chapter or lesson count is required; individual titles are not.'];
-    if(el.matches('#studioNewSubjectName'))return ['Teacher Subject','Type only a subject actually taught by this teacher in the selected class.'];
-    if(el.matches('#studioNewSubjectClass'))return ['Teaching Class','Select one of this teacher’s assigned school classes.'];
-    if(el.matches('[data-class-tid]'))return ['Multiple Classes','Tick every class this teacher teaches. More than one class is allowed.'];
-    if(el.matches('[data-assign-tid]'))return ['Unique Subject Assignment','Tick subjects this teacher teaches. A subject assigned to another teacher is displayed but locked.'];
-    return null;
-  };
-  function close(){guide.hidden=true;last=null}
-  function focusNext(){
-    if(!last)return close();
-    const scope=last.closest('[data-progress-card]')||last.closest('.studioCard')||last.closest('#studioPanel');
-    const fields=[...document.querySelectorAll('#studioPanel input, #studioPanel select')].filter(el=>!el.disabled&&el.getClientRects().length&&help(el));
-    let idx=fields.indexOf(last),next=fields[idx+1];
-    if(next){close();next.focus();next.scrollIntoView({behavior:'smooth',block:'center'})}else close();
-  }
-  guide.querySelector('.dismiss').addEventListener('click',close);
-  guide.querySelector('.next').addEventListener('click',focusNext);
-  document.addEventListener('focusin',e=>{if(!e.target.closest('#studioPanel'))return;const tips=help(e.target);if(!tips)return;last=e.target;guide.querySelector('.premiumGuideTitle').textContent=tips[0];guide.querySelector('.premiumGuideText').textContent=tips[1];guide.hidden=false;});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
-  document.addEventListener('click',e=>{if(!guide.hidden&&!e.target.closest('.premiumGuidePopover')&&!e.target.closest('#studioPanel'))close()});
+ const guide=document.createElement('aside');guide.className='premiumGuidePopover';guide.hidden=true;guide.setAttribute('aria-live','polite');
+ guide.innerHTML='<div class="premiumGuideInner"><span class="premiumGuideStep">QUICK GUIDE</span><div class="premiumGuideTitle"></div><p class="premiumGuideText"></p></div>';
+ const launch=document.createElement('button');launch.type='button';launch.className='miniGuideLauncher';launch.hidden=true;launch.textContent='?';launch.title='Show entry tip';launch.setAttribute('aria-label','Show entry guide');
+ document.body.append(guide,launch);
+ let timer=null,fade=null,last=null;
+ function info(el){
+  if(el.matches('[data-progress-total]'))return ['Total No. of Chapters','Select how many chapters or lessons the subject contains.'];
+  if(el.matches('[data-progress-bid][data-pkey="previous"]'))return ['Chapters covered up to previous month','Select 0 if none were completed. Blank means not filled.'];
+  if(el.matches('[data-progress-bid][data-pkey="current"]'))return ['Chapters covered during the instant month','Choose the newly covered lessons. Remaining is automatic.'];
+  if(el.matches('[data-progress-bid][data-pkey="notebook"]'))return ['Preparation & Maintenance','Select the observed notebook/textbook maintenance percentage.'];
+  if(el.matches('[data-progress-bid][data-pkey="cleanliness"]'))return ['Cleanliness & Class Room management','Select the classroom condition rating.'];
+  if(el.matches('[data-progress-bid][data-pkey="feedback"]'))return ['Feedback from the students during formative tests','Select a rating supported by actual formative observations.'];
+  if(el.matches('[data-progress-suggestionselect]'))return ['Suggestions for further improvement','Pick an appropriate suggestion or choose custom.'];
+  if(el.matches('[data-progress-bid][data-pkey="suggestion"]'))return ['Custom suggestion','Write a short, specific improvement recommendation.'];
+  if(el.matches('[data-tid][data-field="name"]'))return ['Teacher Name','Enter the full official teacher name.'];
+  if(el.matches('[data-tid][data-field="pid"]'))return ['Teacher PID','Enter the teacher’s official PID number.'];
+  if(el.matches('[data-tid][data-field="designation"]'))return ['Designation','Select or enter the official teaching designation.'];
+  if(el.matches('#studioNewSubjectTotal,#assignmentNewTotal'))return ['Total Chapters','Chapter count is required; lesson titles are optional.'];
+  if(el.matches('#studioNewSubjectClass,[data-class-tid]'))return ['Teaching Class','A teacher can teach several classes.'];
+  if(el.matches('[data-assign-tid]'))return ['Subject Assignment','Each class-subject can have one assigned teacher.'];
+  return null
+ }
+ function close(){clearTimeout(timer);clearTimeout(fade);guide.hidden=true;guide.classList.remove('isFading')}
+ function reveal(el){
+  const h=info(el);if(!h)return;last=el;close();guide.querySelector('.premiumGuideTitle').textContent=h[0];guide.querySelector('.premiumGuideText').textContent=h[1];guide.hidden=false;
+  timer=setTimeout(()=>{guide.classList.add('isFading');fade=setTimeout(close,350)},2450);
+ }
+ launch.addEventListener('click',()=>{if(last)reveal(last)});
+ document.addEventListener('focusin',e=>{if(!e.target.closest('#studioPanel'))return;reveal(e.target)});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+ const updateLauncher=()=>{launch.hidden=!(document.getElementById('studioPanel')?.offsetParent&&document.querySelector('#studioPanel [data-progress-card]'));if(launch.hidden)close()};
+ new MutationObserver(updateLauncher).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','style','data-stage']});
+ document.addEventListener('click',e=>{if(e.target.matches('[data-studio-stage],[data-teacher-tab]'))setTimeout(updateLauncher,30)});
+ updateLauncher();
 })();
