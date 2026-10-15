@@ -3,8 +3,8 @@ const SharedStaff=(()=>{
 const root=document.getElementById('teacherdash');
 if(!root)return{activate:async()=>{}};
 const API='https://oypqcizrlhdouygvazyb.supabase.co/functions/v1/mpr-workspace-v2',r=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'],ratings=['Excellent','Very Good','Good','Fair','Needs Improvement'],escapeText=v=>esc(v??''),$=q=>root.querySelector(q);
-let school=null,teachers=[],person=null,step='pick',month=null,period=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),dirty=false,busy=false,noticeText='',saveTimer=null,trail=[],editRevision=0,savingPromise=null;
-const api=async(action,data={})=>{if(auth?.role!=='staff')throw Error('School staff login required');const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...data}),cache:'no-store'}),value=await res.json();if(!res.ok||value.error)throw Error(value.error||'Network failure');return value};
+let initialized=false,school=null,teachers=[],person=null,step='pick',month=null,period=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),dirty=false,busy=false,noticeText='',saveTimer=null,trail=[],editRevision=0,savingPromise=null;
+const api=async(action,data={})=>{if(!auth||auth.admin||auth.role==='teacher')throw Error('Sign in with your school SEMIS and password first');const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...data}),cache:'no-store'}),value=await res.json();if(!res.ok||value.error)throw Error(value.error||'Network failure');return value};
 const nid=prefix=>prefix+crypto.randomUUID().replace(/-/g,'');
 const cname=g=>'Class '+r[g];
 const shown=msg=>{noticeText=msg;const el=$('#teacherNotice');if(el){el.textContent=msg;el.classList.toggle('isError',/failed|invalid|could not|exceed|error|⚠/i.test(msg))}if(/^✓|^⚠|save failed|submission failed/i.test(msg)&&typeof StaffUI!=='undefined')StaffUI.toast(msg,/failed|⚠/i.test(msg))};
@@ -21,7 +21,16 @@ function footer(next){return '<div class="teacherFoot"><small id="staffDraftFlag
 function details(){return '<section class="teacherTopCard"><span>STEP 2 · TEACHER DETAILS</span><h2>My Details</h2><p>One name tab per teacher. Enter your full name, PID and designation.</p></section><div class="teacherFormGrid">'+[['name','Full Teacher Name'],['pid','PID Number'],['designation','Designation / BPS']].map(([key,label])=>'<label>'+label+'<input data-staff-field="'+key+'" maxlength="120" value="'+escapeText(person[key]||'')+'" placeholder="'+label+'"></label>').join('')+'</div>'+footer('classes')}
 function classes(){return '<section class="teacherTopCard"><span>STEP 3 · CLASSES I–XII</span><h2>Which Classes Do You Teach?</h2><p>Choose as many classes as you need — Primary, Middle, Matric and Intermediate.</p></section><div class="teacherGradeGrid">'+classOpts().map(g=>'<label class="teacherGradeChoice '+(person.classes.includes(g)?'picked':'')+'"><input type="checkbox" data-staff-class="'+g+'" '+(person.classes.includes(g)?'checked':'')+'><strong>'+cname(g)+'</strong><small>'+(g<=5?'Primary':g<=8?'Middle':g<=10?'Matric':'Inter')+'</small></label>').join('')+'</div>'+footer('subjects')}
 function render(){renderShell();$('#teacherView').innerHTML=!person||step==='pick'?picker():step==='details'?details():step==='classes'?classes():step==='subjects'?subjects():monthly();if(step==='subjects')populateCatalog();if(step==='month')refreshCalculations();shown(noticeText)}
-async function activate(){root.classList.remove('hidden');person=null;month=null;step='pick';try{const data=await api('staff-load');school=data.school;teachers=data.teachers||[];render()}catch(err){shown(err.message)}}
+async function activate(){root.classList.remove('hidden');person=null;month=null;step='pick';try{const data=await api('staff-load');school=data.school;teachers=data.teachers||[];initialized=true;render()}catch(err){shown(err.message)}}
+async function enter(refresh=false){
+ if(!auth||auth.admin)return;
+ if(!initialized)return activate();
+ if(refresh){
+  if(dirty&&!await save())return;
+  try{const data=await api('staff-load');teachers=data.teachers||[];school=data.school||school;shown('✓ Teacher tabs refreshed')}catch(err){shown('Refresh failed: '+err.message)}
+ }
+ render();
+}
 async function pick(id){if(dirty&&!await save())return;try{person=(await api('staff-select',{teacher_id:id})).profile;person.classes=(person.classes||[]).map(Number);person.staffRev=Number(person.staffRev||0);month=null;dirty=false;step='details';render()}catch(err){shown(err.message)}}
 function create(){person={id:nid('staff_'),name:'',pid:'',designation:'',classes:[],subjects:[],staffRev:0};dirty=true;editRevision++;step='details';month=null;render()}
 function edited(){dirty=true;editRevision++;const flag=$('#staffDraftFlag');if(flag)flag.textContent='● Unsaved changes';clearTimeout(saveTimer);saveTimer=setTimeout(()=>{if(!busy&&dirty&&person?.name&&person?.pid&&person?.designation)save(true)},1700)}
@@ -131,5 +140,5 @@ root.addEventListener('change',async event=>{
  if(t.dataset.staffProgress!==undefined)t.dispatchEvent(new window.Event('input',{bubbles:true}))
 });
 
-return{activate,pick,create,save,go,api,openMonth,saveBook,submitMonth,remaining,counters,profile:()=>person,month:()=>month}
+return{activate,enter,pick,create,save,go,api,openMonth,saveBook,submitMonth,remaining,counters,profile:()=>person,month:()=>month}
 })();
