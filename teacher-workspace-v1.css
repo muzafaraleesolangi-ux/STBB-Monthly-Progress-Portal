@@ -115,3 +115,14 @@
 @media(max-width:850px){.teacherDashGrid{grid-template-columns:1fr}#teacherSide{position:relative;top:auto;max-height:none}.teacherSteps{display:flex;overflow:auto}.teacherSteps button{white-space:nowrap}.teacherSideNote{margin-top:9px}}
 @media(max-width:600px){.teacherAuthForm,.teacherNewFields,.hmSchoolFields{grid-template-columns:1fr}.hmCodeSetup{grid-template-columns:1fr}.teacherAuthHero{padding:20px}.teacherDashHeader{padding:15px}.teacherDashHeader h1{font-size:19px}.teacherBookGrid{grid-template-columns:1fr}.teacherGradeGrid{grid-template-columns:repeat(3,minmax(0,1fr))}.teacherGradeChoice{padding:8px;min-height:65px}}
 @media(prefers-reduced-motion:reduce){.teacherGradeChoice,.teacherMonthlyCard{transition:none!important}}
+
+/* HM's separate teacher directory mirrors the live roster. */
+#schooldash.monthOrganized>#school-teachers{grid-column:1;grid-row:4;min-width:0;max-width:100%}
+.hmDirectoryIntro{background:linear-gradient(125deg,#effaf3,#fff);border:1px solid #d5eadd;border-radius:13px;padding:15px;margin-bottom:12px}
+.hmDirectoryIntro span{font-size:10px;font-weight:850;letter-spacing:.12em;color:#169273}
+.hmDirectoryIntro h2{font-size:17px;color:#195e4c;margin:5px 0}
+.hmDirectoryIntro p{font-size:11px;color:#678373;line-height:1.6;margin:0}
+.hmDirectorActions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.hmDirectorActions button{border:1px solid #c5e7d3;border-radius:9px;background:#edfaf2;color:#0a886a;padding:9px;font-weight:850;font-size:11px}
+.hmDirectorActions span{background:#e1f7ea;padding:8px 10px;border-radius:99px;font-size:10px;font-weight:900;color:#1b8665}
+@media(max-width:970px){#schooldash.monthOrganized>#school-teachers{order:2;width:100%}}
