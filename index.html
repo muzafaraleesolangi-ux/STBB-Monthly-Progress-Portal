@@ -65,23 +65,40 @@ let r=await request('open-period',{period:p,initial_state:init});version=r.versi
 async function flushDraft(){if(saveTimer){clearTimeout(saveTimer);saveTimer=null}if(!pendingState||!period||!auth)return;if(saving)return;let state=structuredClone(pendingState),ver=version;pendingState=null;saving=true;status('Saving school draft…',false,auth.admin?'adminSaveStatus':'saveStatus');try{let r=auth.admin?await request('admin-save',{semis:adminEdit.semis,period:adminEdit.period,state,version:ver}):await request('save-draft',{period,state,version:ver});version=r.version;status('✓ Cloud saved · version '+version,false,auth.admin?'adminSaveStatus':'saveStatus')}catch(err){if(err.message.includes('Another teacher')||err.message.includes('changed elsewhere')){localStorage.setItem('mpr_conflict_backup',JSON.stringify({state,at:new Date().toISOString()}));status('⚠ Changes elsewhere: your unsaved work was backed up locally. Reload the latest report.',true,auth.admin?'adminSaveStatus':'saveStatus');alert('Another teacher saved a newer draft. Your current edits were backed up locally; reload the month before continuing.')}else{pendingState=state;status('⚠ Save failed: '+err.message,true,auth.admin?'adminSaveStatus':'saveStatus')}}finally{saving=false;if(pendingState&&!saveTimer)saveTimer=setTimeout(flushDraft,1600)}}
 window.addEventListener('message',async e=>{if(e.origin!==location.origin)return;let frame=auth?.admin?$('adminEditor'):$('editor');if(e.source!==frame.contentWindow)return;let d=e.data||{};if(d.type==='mpr-editor-ready'){template=d.state;editorReady=true;if(pendingState)frame.contentWindow.postMessage({type:'mpr-hydrate',state:pendingState},location.origin);return}if(d.type==='mpr-save'){if(!auth||(!period&&!adminEdit))return;pendingState=d.state;status('Editing · cloud save queued',false,auth.admin?'adminSaveStatus':'saveStatus');clearTimeout(saveTimer);saveTimer=setTimeout(flushDraft,1450);return}if(d.type==='mpr-export'&&!auth.admin){
   const frameReply=(ok,error='')=>{try{frame.contentWindow.postMessage({type:'mpr-export-ack',ok,error},location.origin)}catch{}};
+  const studioMonth=(typeof Studio!=='undefined'&&Studio.activePeriod?.())||'';
+  const targetMonth=studioMonth||period||d.period;
+  let archived=false;
   try{
-   if(!period)throw Error('Open the reporting month before exporting');
-   await flushDraft();
-   const report=await request('export',{period,filename:d.filename,xlsx_base64:d.xlsx_base64,state:d.state});
-   if(!report.ok)throw Error('Could not confirm Excel cloud storage');
-   const binary=atob(d.xlsx_base64),bytes=new Uint8Array(binary.length);
-   for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
-   const link=document.createElement('a'),url=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-   link.href=url;link.download=d.filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),12000);
-   status('✓ Excel saved to Export History and downloaded');frameReply(true);
+   if(!/^20\d\d-(0[1-9]|1[0-2])$/.test(targetMonth||''))throw Error('Select a reporting month in Monthly Studio before exporting.');
+   if(d.period&&d.period!==targetMonth)throw Error('Excel month does not match the selected reporting month. Reopen this month.');
+   if(!d.xlsx_base64||!d.filename||!d.state)throw Error('Excel data was not generated correctly.');
+   period=targetMonth;
+   status('Archiving '+targetMonth+' Excel to cloud History…');
+   const report=await request('export',{period:targetMonth,filename:d.filename,xlsx_base64:d.xlsx_base64,state:d.state});
+   if(!report.ok)throw Error('Cloud did not confirm Excel storage.');
+   archived=true;
+   status('✓ Excel archived. Preparing the file download…');
    await Promise.allSettled([loadHistory(),refreshSchool()]);
-   if(typeof Studio!=='undefined'&&!auth?.admin){await Studio.markExported();Studio.showPanel()}
-  }catch(err){status('⚠ Export not saved to History: '+err.message,true);frameReply(false,err.message)}
- }});
+   if(typeof Studio!=='undefined'&&!auth.admin&&Studio.activePeriod?.()===targetMonth){
+    await Studio.markExported();Studio.showPanel();
+   }
+   try{
+    const delivery=MPRDownloads.saveExcel(d.xlsx_base64,d.filename);
+    status('✓ '+delivery.message);
+    frameReply(true);
+   }catch(downloadError){
+    status('✓ Excel saved in History. Open History and tap Download: '+downloadError.message,true);
+    frameReply(true);
+   }
+  }catch(err){
+   status((archived?'✓ Excel already archived. Download from History: ':'⚠ Export failed: ')+err.message,!archived);
+   frameReply(archived,String(err.message||'Please retry'));
+  }
+ }
+});
 async function loadHistory(){try{history=(await request('history')).exports||[];let html=history.length?'<div class="exportHistorySummary"><strong>'+history.length+' Excel file'+(history.length===1?'':'s')+' archived</strong><small>Download or view each saved export.</small></div><div class="tablewrap"><table class="table"><tr><th>Date</th><th>Month</th><th>Excel File</th><th>Action</th></tr>'+history.map(x=>'<tr><td>'+esc(new Date(x.created_at).toLocaleString())+'</td><td>'+esc(x.period)+'</td><td>'+esc(x.filename)+'</td><td><button class="smallbtn" onclick="downloadHistory(\''+esc(x.id)+'\')">Download ⬇</button> <button type="button" class="smallbtn" data-export-details="'+esc(x.id)+'">Details & Analytics ↗</button> <button class="smallbtn" onclick="reEditMonth(\''+esc(x.period)+'\')">Re-edit Month ✎</button></td></tr>').join('')+'</table></div>':'<div class="note">No reports exported yet. Once you Submit and Export the monthly report, the Excel file appears here.</div>';$('historyTable').innerHTML=html}catch(e){$('historyTable').textContent=e.message}}
 async function reEditMonth(reportMonth){if(!auth||auth.admin)return;const open=typeof Studio!=='undefined'&&Studio.openPeriod;if(!open)return alert('Editor is initializing; open Guided School Studio.');if(!confirm('Open '+reportMonth+' for editing? Your previously exported Excel file will remain safely in History.'))return;await Studio.openPeriod(reportMonth);Studio.showPanel();}
-async function downloadHistory(id){try{let data=await request('download-export',{id});let bin=atob(data.xlsx_base64),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);let url=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));let a=document.createElement('a');a.href=url;a.download=data.filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),15000)}catch(e){alert(e.message)}}
+async function downloadHistory(id){try{status('Fetching original Excel file from History…');const data=await request('download-export',{id});const delivery=MPRDownloads.saveExcel(data.xlsx_base64,data.filename);status('✓ '+delivery.message)}catch(e){status('⚠ Download failed: '+e.message,true);alert('Excel Download failed: '+e.message)}}
 async function loadAdmin(){try{adminData=await request('admin-overview');let d=adminData,pending=d.resets.filter(r=>r.status==='pending').length;$('adminMetrics').innerHTML=oneMetric('VISITS',d.visits)+oneMetric('UNIQUE SESSIONS',d.unique_sessions)+oneMetric('SCHOOLS',d.schools.length)+oneMetric('EXPORTS',d.exports.length);$('resetCount').textContent=pending;$('pendingBadge').classList.toggle('hidden',!pending);if(pending)$('pendingBadge').textContent=pending+' password request'+(pending>1?'s':'')+' awaiting approval';renderAdminTables()}catch(e){alert('Admin records unavailable: '+e.message)}}
 function renderAdminTables(){if(!adminData)return;let d=adminData,q=$('adminSearch').value.trim().toLowerCase();function relevant(semis,other=''){return(semis+' '+other).toLowerCase().includes(q)}let schools=d.schools.filter(x=>relevant(x.semis,x.school_name+' '+x.hm_name));$('admin-schools').innerHTML='<h2>Registered Schools ('+schools.length+')</h2><div class="tablewrap"><table class="table"><tr><th>SEMIS</th><th>School</th><th>Head Teacher</th><th>Drafts</th><th>Exports</th></tr>'+schools.map(x=>'<tr><td class="mono">'+esc(x.semis)+'</td><td><b>'+esc(x.school_name)+'</b><br><span class="tiny">'+esc(new Date(x.created_at).toLocaleDateString())+'</span></td><td>'+esc(x.hm_name)+'</td><td>'+d.drafts.filter(z=>z.semis===x.semis).length+'</td><td>'+d.exports.filter(z=>z.semis===x.semis).length+'</td></tr>').join('')+'</table></div>';
 let dr=d.drafts.filter(x=>relevant(x.semis));$('admin-drafts').innerHTML='<h2>Saved Work ('+dr.length+')</h2><div class="tablewrap"><table class="table"><tr><th>School</th><th>Month</th><th>Last Saved</th><th>Review / Edit</th></tr>'+dr.map(x=>'<tr><td>'+esc(x.semis)+'</td><td>'+esc(x.period)+'</td><td>'+esc(new Date(x.updated_at).toLocaleString())+'</td><td><button class="smallbtn" onclick="adminOpenDraft(\''+esc(x.semis)+'\',\''+esc(x.period)+'\')">Open Draft ↗</button></td></tr>').join('')+'</table></div>';
@@ -96,4 +113,4 @@ catch(e){if(e.httpStatus===401||e.httpStatus===403){auth=null;account=null;local
 if(auth.admin){show('admindash');setTimeout(()=>init(),8000)}else{try{account=account||JSON.parse(localStorage.getItem('mpr_account_cache')||'null')}catch{}if(account){show('schooldash');$('dashName').textContent=account.school_name;$('dashSemis').textContent='Connection unavailable · Account kept signed in';setTimeout(()=>init(),8000)}else{show('signin');setNotice('signinMsg','Connection unavailable. Your saved sign-in is preserved; retry when online.')}}return}}
 show('landing')};init();
 setInterval(()=>{if(auth?.admin&&activeView==='admindash')loadAdmin().catch(()=>{})},60000);
-</script><script src="portal-ux.js?v=8"></script><script src="premium-home-v2.js?v=4"></script><script src="whatsapp-recovery-v2.js?v=3"></script><script src="studio-core-v2.js?v=36"></script><script src="home-navigation-v3.js?v=7"></script><script src="admin-schools-v2.js?v=4"></script><script src="progress-guidance-v4.js?v=6"></script><script src="welcome-hints-v1.js?v=1"></script><script src="export-analytics-v1.js?v=1"></script><script src="month-organizer-v1.js?v=3"></script><script src="school-staff-v1.js?v=5"></script><script src="staff-ux-v2.js?v=3"></script><script src="hm-teacher-admin-v1.js?v=6"></script></body></html>
+</script><script src="portal-ux.js?v=8"></script><script src="premium-home-v2.js?v=4"></script><script src="whatsapp-recovery-v2.js?v=3"></script><script src="studio-core-v2.js?v=36"></script><script src="home-navigation-v3.js?v=7"></script><script src="admin-schools-v2.js?v=4"></script><script src="progress-guidance-v4.js?v=6"></script><script src="welcome-hints-v1.js?v=1"></script><script src="export-analytics-v1.js?v=1"></script><script src="month-organizer-v1.js?v=3"></script><script src="excel-download-v2.js?v=1"></script><script src="school-staff-v1.js?v=5"></script><script src="staff-ux-v2.js?v=3"></script><script src="hm-teacher-admin-v1.js?v=6"></script></body></html>
