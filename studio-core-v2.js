@@ -28,13 +28,34 @@ const Studio=(()=>{
  function selectedTeacher(){return teacher(filterTeacher)||null}
  function firstStep(){return stage===0}
  async function waitTemplate(){let i=0;while(!template&&i++<55)await new Promise(ok=>setTimeout(ok,100));return template||{teachers:[{id:'t1',name:account?.hm_name||'',pid:'',designation:'PST (BPS-14)'}],books:{}}}
- function seed(t){const bs=clone(t.books||{});for(const g of numbers){if(!Array.isArray(bs[g])||!bs[g].length)bs[g]=defaultBooks(g);for(const b of bs[g]){b.active=false;b.teacherId='';b.previous=0;b.current=0;b.notebook=0;b.cleanliness='';b.feedback='';b.suggestion=''}}return{selectedClasses:[],subjectCatalogInitialized:Object.fromEntries(numbers.map(g=>[g,true])),teachers:[{id:'t1',name:'',pid:'',designation:'',classes:[]}],books:bs}}
+ function seed(t){const bs=clone(t.books||{});for(const g of numbers){if(!Array.isArray(bs[g])||!bs[g].length)bs[g]=defaultBooks(g);for(const b of bs[g]){b.active=false;b.teacherId='';b.previous=0;b.current=0;b.notebook=null;b.cleanliness='';b.feedback='';b.suggestion=''}}return{selectedClasses:[],subjectCatalogInitialized:Object.fromEntries(numbers.map(g=>[g,true])),teachers:[{id:'t1',name:'',pid:'',designation:'',classes:[]}],books:bs}}
  function ensure(){if(!auth||auth.admin||!account)throw Error('School sign-in required');if(!setup)throw Error('Finish loading your school setup')}
  function markSetup(){setupDirty=true;if(setupConflict){notify('School setup changed on another device. Refresh this page to review the latest school setup before further saving.',true);return}notify('Changes detected · saving school setup…');clearTimeout(setupTimer);setupTimer=setTimeout(saveSetup,900)}
  async function saveSetup(){setupTimer=null;if(setupBusy||!setupDirty||!auth||auth.admin||setupConflict)return;setupBusy=true;setupDirty=false;const snapshot=clone(setup),atVersion=setupVersion;try{const result=await api('save-setup',{setup:snapshot,version:atVersion});setupVersion=result.version;notify('✓ School setup saved to cloud · version '+setupVersion)}catch(e){setupDirty=true;notify('⚠ '+e.message,true);if(/changed|Concurrent|Reload/i.test(e.message)){setupConflict=true;clearTimeout(setupTimer);alert('School setup was updated elsewhere. Please finish reviewing and reload the latest school setup before saving over it.');return}}finally{setupBusy=false;if(setupDirty&&!setupTimer&&!setupConflict)setupTimer=setTimeout(()=>{setupTimer=null;saveSetup()},1600)}}
  async function settleSetup(){if(setupConflict)throw Error('School setup changed on another device. Please refresh before continuing.');clearTimeout(setupTimer);setupTimer=null;if(setupBusy){let wait=0;while(setupBusy&&wait++<60)await new Promise(ok=>setTimeout(ok,100))}if(setupDirty)await saveSetup();if(setupDirty)throw Error('School setup needs saving. Please resolve the warning.')}
  function setupStage(n){if(!setup)return;stage=Math.max(0,Math.min(5,n));if(stage===4&&!selectedGrades().includes(grade))grade=selectedGrades()[0]||8;render();}
- function counts(){const bs=assigned(),completed=bs.filter(b=>progressVersions[b.id]>0),left=bs.filter(b=>!(progressVersions[b.id]>0));return{total:bs.length,done:completed.length,left}}
+ const MASTER_RATINGS=['Excellent','Very Good','Good','Fair','Needs Improvement'];
+ const MASTER_SUGGESTIONS=['No further improvement suggested','Improve lesson planning and preparation','Check and maintain notebooks regularly','Encourage greater student participation','Strengthen formative tests and feedback','Provide revision and practice for difficult lessons','Improve classroom cleanliness and management'];
+ const enteredNumber=v=>v!==null&&v!==undefined&&v!==''&&Number.isInteger(Number(v))&&Number(v)>=0;
+ function filledFields(book){
+  const d=progressEntries[book.id]?.details||{},n=book.chapters?.length||0;
+  return {
+   total:n>0&&n<=250,
+   previous:enteredNumber(d.previous)&&Number(d.previous)<=n,
+   current:enteredNumber(d.current)&&Number(d.current)<=n&&(enteredNumber(d.previous)?Number(d.previous):0)+Number(d.current)<=n,
+   notebook:enteredNumber(d.notebook)&&Number(d.notebook)<=100,
+   cleanliness:MASTER_RATINGS.includes(d.cleanliness),
+   feedback:MASTER_RATINGS.includes(d.feedback),
+   suggestion:String(d.suggestion||'').trim().length>0
+  }
+ }
+ function fullyEntered(book){return Object.values(filledFields(book)).every(Boolean)}
+ function counts(){const bs=assigned(),completed=bs.filter(b=>progressVersions[b.id]>0&&fullyEntered(b)&&!progressDirty.has(b.id)&&!progressBusy.has(b.id)),left=bs.filter(b=>!completed.includes(b));return{total:bs.length,done:completed.length,left}}
+ function choiceOptions(max,value,zero=true){let html='<option value="">Select…</option>';for(let i=zero?0:1;i<=max;i++)html+='<option value="'+i+'" '+(value!==null&&value!==undefined&&value!==''&&Number(value)===i?'selected':'')+'>'+i+'</option>';return html}
+ function ratingOptions(current){return '<option value="">Select…</option>'+MASTER_RATINGS.map(x=>'<option value="'+safe(x)+'" '+(current===x?'selected':'')+'>'+safe(x)+'</option>').join('')}
+ function notebookOptions(value){return '<option value="">Select…</option>'+Array.from({length:21},(_,i)=>i*5).map(n=>'<option value="'+n+'" '+(value!==null&&value!==undefined&&value!==''&&Number(value)===n?'selected':'')+'>'+n+'%</option>').join('')}
+ function suggestionOptions(value){return '<option value="">Select…</option>'+MASTER_SUGGESTIONS.map(x=>'<option value="'+safe(x)+'" '+(x===value?'selected':'')+'>'+safe(x)+'</option>').join('')+'<option value="__custom" '+(value&&!MASTER_SUGGESTIONS.includes(value)?'selected':'')+'>Write a custom suggestion…</option>'}
+ 
  function shell(){
  const dashboard=$s('schooldash'),tabs=$s('schoolTabs');if(!dashboard||$s('studioPanel'))return;
  const b=document.createElement('button');b.textContent='✦ Guided School Studio';b.id='studioTab';b.type='button';b.onclick=()=>showPanel();tabs.prepend(b);
@@ -133,7 +154,7 @@ const Studio=(()=>{
  function progressBy(b){
  const x=progressEntries[b.id]?.details;if(x)return clone(x);
  const from=(baseState?.books?.[b.grade]||[]).find(z=>z.id===b.id);
- return{previous:Number(from?.previous)||0,current:Number(from?.current)||0,notebook:Number(from?.notebook)||0,cleanliness:from?.cleanliness||'',feedback:from?.feedback||'',suggestion:from?.suggestion||'',updatedBy:'',...(from?.lessonSelections?{lessonSelections:clone(from.lessonSelections)}:{})}
+ return{previous:Number(from?.previous)>0?Number(from.previous):null,current:null,notebook:null,cleanliness:'',feedback:'',suggestion:'',updatedBy:''}
  }
  function chapterSelections(b,d){
   const n=b.chapters.length,previous=Math.min(n,Math.max(0,Number(d.previous)||0)),current=Math.min(n-previous,Math.max(0,Number(d.current)||0));
@@ -361,11 +382,11 @@ function renderProgress(){const c=counts(),selected=filterTeacher==='all'?null:s
  t.schoolName=account.school_name;t.semis=account.semis;t.hmName=account.hm_name;t.hmDesignation=account.hm_gender==='female'?'HEAD MISTRESS':'HEAD MASTER';t.teachers=setup.teachers.map(x=>({id:x.id,name:x.name,pid:x.pid,designation:x.designation}));
  t.books=Object.fromEntries(selectedGrades().map(n=>[n,clone(setup.books[n]||[])]));
  for(const g of selectedGrades())for(const b of t.books[g]||[]){
- const source=progressBy({...b,grade:g});for(const k of ['previous','current'])b[k]=Number(source[k])||0;b.notebook=null;b.cleanliness='';b.feedback='';b.suggestion='';if(source.lessonSelections)b.lessonSelections=clone(source.lessonSelections);
+ const source=progressBy({...b,grade:g});for(const k of ['previous','current'])b[k]=Number(source[k])||0;b.notebook=enteredNumber(source.notebook)?Number(source.notebook):null;b.cleanliness=source.cleanliness||'';b.feedback=source.feedback||'';b.suggestion=source.suggestion||'';if(source.lessonSelections)b.lessonSelections=clone(source.lessonSelections);
  b.active=Boolean(b.active&&b.teacherId&&selectedGrades().includes(g));
  }return t
  }
- async function review(){if(!schoolPeriod)return notify('Open your reporting month first.',true);if(!assigned().length)return notify('Add and assign at least one subject and its total chapters / lessons before exporting.',true);if(assigned().some(b=>!b.chapters?.length))return notify('Total chapters / lessons are required for each assigned subject.',true);
+ async function review(){if(!schoolPeriod)return notify('Open your reporting month first.',true);if(!assigned().length)return notify('Add and assign at least one subject and its total chapters / lessons before exporting.',true);if(assigned().some(b=>!b.chapters?.length))return notify('Total chapters / lessons are required for each assigned subject.',true);if(counts().left.length)return notify('Complete every master Proforma field for all '+counts().left.length+' pending subject(s) before reviewing.',true);
  try{await settle();await loadEntries();const data=compiled();
  // Save a versioned snapshot to support reopening the reviewed report next month.
  let result;
