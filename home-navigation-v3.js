@@ -35,7 +35,7 @@
  const prevLoadAdmin=loadAdmin;loadAdmin=async function(...args){const res=await prevLoadAdmin(...args);renderAdminHome();return res};
  // Track meaningful dashboard routes with no browser reload or session loss.
  let route=null,stack=[],restoring=false;
- function currentArea(){return auth?(auth.admin?'admin':auth.role==='teacher'?'teacher':'school'):'public'}
+ function currentArea(){return auth?(auth.admin?'admin':['teacher','staff'].includes(auth.role)?'teacher':'school'):'public'}
  function record(next){if(restoring||route===next)return;if(route&&stack.length<40)stack.push(route);else if(route){stack.shift();stack.push(route)}route=next}
  function schoolButton(tab){return [...(schoolTabs?.querySelectorAll('button')||[])].find(b=>b.getAttribute('onclick')?.includes("dashTab('"+tab+"'"))}
  function adminButton(tab){return [...(adminTabs?.querySelectorAll('button')||[])].find(b=>b.id==='adminHomeTab'&&tab==='home'||b.getAttribute('onclick')?.includes("adminTab('"+tab+"'"))}
@@ -44,7 +44,7 @@
  function navigate(target,fromBack=false){
   restoring=fromBack;
   try{
-   if(target==='teacher:home'){show('teacherdash');if(typeof TeacherWorkspace!=='undefined')TeacherWorkspace.view('profile')}
+   if(target==='teacher:home'){show('teacherdash');if(typeof SharedStaff!=='undefined')SharedStaff.go('pick')}
    else if(target==='admin:home'||target.startsWith('admin:')){show('admindash');adminTab(target.slice(6),adminButton(target.slice(6)))}
    else if(target==='school:studio'){show('schooldash');if(typeof Studio!=='undefined')Studio.showPanel()}
    else if(target.startsWith('school:')){show('schooldash');dashTab(target.slice(7),schoolButton(target.slice(7)))}
@@ -89,7 +89,7 @@
   if(shortcut){const t=shortcut.dataset.adminShortcut;adminTab(t,adminButton(t))}
  });
  const previousShow=show;
- show=function(id){if(auth?.role==='teacher'&&['schooldash','admindash'].includes(id))id='teacherdash';const res=previousShow(id);if(!auth&&id==='landing'){stack=[];route='public:landing';return res}
+ show=function(id){if(['teacher','staff'].includes(auth?.role)&&['schooldash','admindash'].includes(id))id='teacherdash';const res=previousShow(id);if(!auth&&id==='landing'){stack=[];route='public:landing';return res}
   if(auth?.admin&&id==='admindash'&&!restoring){if(!route?.startsWith('admin:')){setTimeout(()=>{if(auth?.admin)adminTab('home',adminButton('home'))},0)}}
   if(auth&&!['schooldash','admindash','teacherdash'].includes(id))record('public:'+id);
   return res
@@ -112,5 +112,5 @@
  document.addEventListener('click',e=>{if(e.target.closest('button:not(#portalSoundToggle),a[href],summary'))chime()},{capture:true});
  document.addEventListener('keydown',e=>{if(e.key==='Alt'&&e.repeat)return;if(e.altKey&&e.key==='ArrowLeft'){e.preventDefault();goBack()}});
  // Existing browser session: preserve signed-in dashboard routing.
- if(auth?.admin)route='admin:home';else if(auth?.role==='teacher')route='teacher:home';else if(auth)route='school:overview';else route='public:landing';
+ if(auth?.admin)route='admin:home';else if(['teacher','staff'].includes(auth?.role))route='teacher:home';else if(auth)route='school:overview';else route='public:landing';
 })();
