@@ -110,3 +110,8 @@
 .miniGuideLauncher[hidden]{display:none!important}
 @media(max-width:600px){.masterEntryGrid{grid-template-columns:minmax(0,1fr)}.masterSuggestion{grid-column:span 1}.fastProgressCard{padding:10px!important}.studioPeriodMini input[type="month"]{max-width:160px}.studioCompactHead h3{font-size:17px}.masterField>span{font-size:12px}.studioPendingStrip span{font-size:11px;padding:7px}.masterField select{min-height:44px}.studioTinySync{display:none}.saveFloat{left:12px!important;bottom:10px!important}.saveFloat button{padding:11px 15px!important}}
 @media(prefers-reduced-motion:reduce){.premiumGuidePopover{animation:none!important}}
+
+/* A single visible Save Draft control; review appears only when all entries are cloud-saved. */
+#studioPanel[data-stage="5"] .studioFooter>:not(#studioReviewAction){display:none!important}
+#studioPanel[data-stage="5"] .studioFooter:has(#studioReviewAction[hidden]){display:none!important}
+#studioPanel[data-stage="5"] .studioFooter:not(:has(#studioReviewAction[hidden])){justify-content:flex-end!important}
