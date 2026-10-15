@@ -75,7 +75,7 @@ const TeacherWorkspace=(()=>{
   root.classList.remove('hidden');
   root.querySelector('#teacherView').innerHTML='<div class="teacherLoading">Loading your private teacher workspace…</div>';
   try{const r=await api('teacher-load');school=r.school;profile=r.profile;profile.subjects=(profile.subjects||[]).map(x=>({...x,chapters:[...(x.chapters||[])]}));profile.classes=(profile.classes||[]).map(Number);
-   tab=profile.classes.length&&profile.subjects.length?'progress':'profile';render();
+   tab='profile';render();
    if(tab==='progress')await openMonth(workingMonth)
   }catch(err){root.querySelector('#teacherView').textContent=err.message}
  }
