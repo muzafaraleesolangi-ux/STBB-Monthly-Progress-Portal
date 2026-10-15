@@ -6,6 +6,11 @@ const AdminSchools=(()=>{
  async function api(action,payload={}){if(!auth?.admin)throw Error('Admin login required');const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...payload}),cache:'no-store'});const v=await r.json().catch(()=>({}));if(!r.ok||v.error)throw Error(v.error||'Request failed');return v}
  let modal=document.createElement('div');modal.id='adminSchoolModal';modal.className='adminSchoolModal hidden';modal.innerHTML='<div class="adminModalShade" data-close-school-modal></div><div class="adminModalCard"><button class="adminClose" type="button" data-close-school-modal aria-label="Close">✕</button><div id="adminSchoolModalBody"></div></div>';document.body.appendChild(modal);
  const body=document.getElementById('adminSchoolModalBody');
+ const modalNav=document.createElement('nav');modalNav.className='modalContextNav';
+ modalNav.innerHTML='<button type="button" data-close-school-modal>← Back</button><button type="button" data-admin-modal-home>⌂ Admin Home</button>';
+ modal.querySelector('.adminModalCard')?.prepend(modalNav);
+ modalNav.querySelector('[data-admin-modal-home]').addEventListener('click',()=>{modal.classList.add('hidden');body.replaceChildren();if(typeof portalNavigateHome==='function')portalNavigateHome()});
+
  function open(content){body.innerHTML=content;modal.classList.remove('hidden');body.querySelector('input,button')?.focus()}
  function close(){modal.classList.add('hidden');body.replaceChildren()}
  function message(text,success=false){const b=body.querySelector('.adminModalMessage');if(b){b.textContent=text;b.className='adminModalMessage '+(success?'success':'error')}else alert(text)}
