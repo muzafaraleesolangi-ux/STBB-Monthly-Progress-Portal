@@ -41,7 +41,41 @@ function addSubject(){const grade=Number($('#staffGrade')?.value),name=($('#staf
 }
 function removeSubject(id){if(!confirm('Remove this subject from your tab?'))return;person.subjects=person.subjects.filter(x=>x.id!==id);edited();render()}
 
-// MONTHLY
+const good=v=>v!==null&&v!==undefined&&v!==''&&Number.isInteger(Number(v))&&Number(v)>=0;
+const complete=b=>{const d=b.details||{};return !b.dirty&&b.version>0&&good(d.previous)&&good(d.current)&&Number(d.previous)+Number(d.current)<=b.total&&good(d.notebook)&&Number(d.notebook)<=100&&ratings.includes(d.cleanliness)&&ratings.includes(d.feedback)&&String(d.suggestion||'').trim().length>0};
+const counters=()=>{const rows=month?.subjects||[];return{total:rows.length,done:rows.filter(complete).length}};
+function nums(total,value){let out='<option value="">— Select —</option>';for(let i=0;i<=total;i++)out+='<option value="'+i+'" '+(value!==null&&value!==undefined&&value!==''&&Number(value)===i?'selected':'')+'>'+i+'</option>';return out}
+function gradeOptions(v){return '<option value="">— Select —</option>'+ratings.map(x=>'<option '+(x===v?'selected':'')+'>'+x+'</option>').join('')}
+function monthly(){
+ const c=counters(),lock=month?.status!=='draft';
+ let html='<section class="teacherTopCard teacherFinalIntro"><span>FINAL STEP · MONTHLY REPORT</span><h2>'+escapeText(person.name)+' · Monthly Progress</h2><p>Complete all subject fields. Remaining chapters update immediately while you enter numbers. Final Submit and Excel Export belong to HM.</p><div class="teacherStageProgress"><span data-staff-counter>'+c.done+' / '+c.total+' Subjects Complete</span><div><i data-staff-totalbar style="width:'+(c.total?c.done/c.total*100:0)+'%"></i></div></div></section><div class="teacherMonthSwitch"><label>Month<input id="staffPeriod" type="month" value="'+escapeText(period)+'"></label><button type="button" data-staff-openmonth>↻ Open Month</button><span class="teacherProfileStatus '+(month?.submitted?'isSubmitted':'')+'">'+(month?.submitted?'✓ Submitted':'Draft')+'</span></div>';
+ if(!month)return html+'<div class="teacherLoading">Select your reporting month.</div>';
+ for(const b of month.subjects){const d=b.details||{},done=complete(b);html+='<article class="teacherMonthlyCard '+(done?'complete':'pending')+'" data-staff-card="'+escapeText(b.id)+'" data-staff-chapters="'+b.total+'"><header><div><small>'+cname(b.grade)+'</small><h3>'+escapeText(b.name)+'</h3></div><span data-staff-state>'+(done?'✓ Complete':'○ Pending')+'</span></header><div class="teacherMonthlyFields" '+(lock?'inert':'')+'><label>Total Chapters<strong>'+b.total+'</strong></label><label>Previous Months<select data-staff-progress="previous">'+nums(b.total,d.previous)+'</select></label><label>This Month<select data-staff-progress="current">'+nums(b.total,d.current)+'</select></label><label>Remaining Chapters<strong class="teacherRemainingNumber" data-staff-remaining>0</strong></label><label>Notebooks & Textbooks (%)<select data-staff-progress="notebook">'+nums(100,d.notebook)+'</select></label><label>Classroom Management<select data-staff-progress="cleanliness">'+gradeOptions(d.cleanliness)+'</select></label><label>Student Feedback<select data-staff-progress="feedback">'+gradeOptions(d.feedback)+'</select></label><label class="full">Improvement Suggestion<textarea data-staff-progress="suggestion" maxlength="900" rows="2">'+escapeText(d.suggestion||'')+'</textarea></label></div><div class="staffMath"><strong data-staff-equation></strong><div class="teacherChapterTrack"><i data-staff-line></i></div></div><div class="teacherMonthFooter"><small data-staff-saved>'+(done?'✓ Cloud Saved':'Fill and save all fields')+'</small><button type="button" data-staff-savebook="'+escapeText(b.id)+'" '+(lock?'disabled':'')+'>💾 Save Subject Draft</button></div></article>'}
+ return html+(month.subjects.length?'':'<div class="teacherEmpty">No subjects yet. Add subjects in your teacher tab first.</div>')+'<section class="teacherFinalSubmit"><div><span>FINAL TEACHER STEP</span><h3>'+(month.submitted?'✓ Submitted to HM':'Submit Completed Progress to HM')+'</h3><p data-staff-hint>'+(c.done===c.total&&c.total?'Ready for HM':'Save '+(c.total-c.done)+' pending subjects first')+'</p></div><button type="button" data-staff-submit '+(lock||month.submitted||!c.total||c.done!==c.total?'disabled':'')+'>'+(month.submitted?'✓ Submitted':'✓ Submit to HM →')+'</button></section>'
+}
+function remaining(card){
+ if(!card)return;const total=Number(card.dataset.staffChapters),p=card.querySelector('[data-staff-progress="previous"]'),c=card.querySelector('[data-staff-progress="current"]'),a=Number(p.value||0),b=Number(c.value||0),left=total-a-b,ok=left>=0;
+ card.querySelector('[data-staff-remaining]').textContent=ok?String(left):'Invalid';
+ card.querySelector('[data-staff-equation]').textContent=ok?total+' − ('+a+' previous + '+b+' this month) = '+left+' remaining':'⚠ Previous + Current exceeds '+total;
+ card.querySelector('[data-staff-line]').style.width=(ok&&total?Math.min(100,(a+b)/total*100):0)+'%';
+ card.classList.toggle('invalidChapterCount',!ok);
+ for(const opt of p.options)if(opt.value!=='')opt.disabled=Number(opt.value)>total-b;
+ for(const opt of c.options)if(opt.value!=='')opt.disabled=Number(opt.value)>total-a;
+ const button=card.querySelector('[data-staff-savebook]');if(button)button.disabled=!ok||month?.status!=='draft'
+}
+function refreshCalculations(){for(const card of root.querySelectorAll('[data-staff-card]'))remaining(card);updateSubmit()}
+function updateSubmit(){const n=counters();const button=$('[data-staff-submit]');if(button)button.disabled=!n.total||n.total!==n.done||month?.submitted||month?.status!=='draft'||dirty||busy;const counter=$('[data-staff-counter]');if(counter)counter.textContent=n.done+' / '+n.total+' Subjects Complete';const line=$('[data-staff-totalbar]');if(line)line.style.width=(n.total?n.done/n.total*100:0)+'%';const hint=$('[data-staff-hint]');if(hint)hint.textContent=n.done===n.total?'✓ All subjects saved — ready to submit to HM':'Complete and Save '+(n.total-n.done)+' remaining subjects'}
+async function openMonth(m){if(!/^20\d\d-(0[1-9]|1[0-2])$/.test(m))return shown('Choose a valid month.');if(dirty&&!await save())return;period=m;step='month';try{month=await api('staff-month-load',{period,teacher_id:person.id});render()}catch(err){shown('Month not loaded: '+err.message)}}
+async function saveBook(id){
+ const b=month?.subjects.find(x=>x.id===id),card=[...root.querySelectorAll('[data-staff-card]')].find(x=>x.dataset.staffCard===id);if(!b||!card)return;
+ const d={};for(const input of card.querySelectorAll('[data-staff-progress]'))d[input.dataset.staffProgress]=input.value;
+ for(const k of ['previous','current','notebook'])d[k]=d[k]===''?null:Number(d[k]);
+ if((d.previous||0)+(d.current||0)>b.total)return shown('Chapter counts exceed total chapters.');
+ const button=card.querySelector('[data-staff-savebook]');button.disabled=true;
+ try{const result=await api('staff-month-save',{period,teacher_id:person.id,book_id:id,details:d,version:b.version});b.version=result.version;b.details=d;b.dirty=false;month.submitted=false;const done=complete(b);card.classList.toggle('complete',done);card.classList.toggle('pending',!done);card.querySelector('[data-staff-state]').textContent=done?'✓ Complete':'○ Pending';card.querySelector('[data-staff-saved]').textContent=done?'✓ All fields saved':'✓ Partial draft saved';shown('✓ '+b.name+' saved');updateSubmit()}catch(err){shown('Save failed: '+err.message)}finally{remaining(card)}
+}
+async function submitMonth(){const c=counters();if(!c.total||c.done!==c.total||dirty||month?.status!=='draft')return shown('Complete and Save all subject fields before submitting.');if(!confirm('Submit '+c.total+' completed subjects for '+period+' to the HM?'))return;try{await api('staff-month-submit',{teacher_id:person.id,period});month.submitted=true;shown('✓ Monthly report submitted to HM.');render()}catch(err){shown('Submission failed: '+err.message)}}
+
 // EVENTS
 return{activate,pick,create,save,go,api,profile:()=>person,month:()=>month}
 })();
