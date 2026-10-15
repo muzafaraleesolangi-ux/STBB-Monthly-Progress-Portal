@@ -66,10 +66,7 @@ async function main(){
  assert.ok(d.querySelector('[data-studio-refresh]'),'Returning school resumes in the monthly progress step');
  assert.ok(d.querySelector('[data-progress-card="5-english"]'),'Assigned subject available without repeating setup');
  assert.equal(d.querySelector('.progressFields'),null,'Extra assessments are collapsed for fast entry');
- d.querySelector('[data-progress-details="5-english"]').click();
- assert.ok(d.querySelector('.progressFields'),'Optional assessments can be expanded');
- d.querySelector('[data-progress-details="5-english"]').click();
- assert.equal(d.querySelector('.progressFields'),null,'Extra assessments can be collapsed');
+ assert.equal(d.querySelector('[data-progress-details="5-english"]'),null,'Notebook/Test/Assessment controls are fully removed');
  const searchBox=d.querySelector('#studioProgressSearch');
  searchBox.value='No Such Subject';searchBox.dispatchEvent(new w.Event('input',{bubbles:true}));
  assert.equal(d.querySelector('[data-progress-card="5-english"]').hidden,true,'Subject search hides irrelevant cards');
