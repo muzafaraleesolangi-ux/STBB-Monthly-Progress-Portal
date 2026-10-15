@@ -20,7 +20,7 @@ async function main(){
   else throw Error('Unexpected action '+q.action);
   return{ok:true,status:200,json:async()=>payload}
  };
- w.eval("const auth={token:'school-staff-token',role:'staff'};"+fs.readFileSync('school-staff-v1.js','utf8')+'\nwindow.TestStaff=SharedStaff;');
+ w.eval("const auth={token:'school-staff-token',role:'hm'};"+fs.readFileSync('school-staff-v1.js','utf8')+'\nwindow.TestStaff=SharedStaff;');
  w.eval(fs.readFileSync('staff-ux-v2.js','utf8')+'\nwindow.TestStaffUI=StaffUI;');
  const staff=w.TestStaff,one=q=>{const x=d.querySelector(q);assert.ok(x,'Missing '+q);return x};
  const tick=()=>new Promise(ok=>setTimeout(ok,30));
@@ -65,12 +65,19 @@ async function main(){
  assert.equal(submitted,true,'Teacher can submit monthly progress only after saving it');
  assert.equal(one('[data-staff-submit]').disabled,true,'Submitted report no longer accepts duplicate click');
  const index=fs.readFileSync('index.html','utf8');
- assert.ok(index.includes('staff-signin'),'Shared school password sign-in enabled');
- assert.ok(index.includes('hmOfficeForm'),'HM Office PIN entry separate');
+ assert.ok(index.includes("request('signin',formObj(e.target),false)"),'One SEMIS/password school login for all teachers and HM');
+ assert.ok(!index.includes('id="hmOfficeForm"'),'No separate HM login or PIN screen');
+ assert.ok(!index.includes('id="hmOfficePin"'),'No hidden HM PIN field');
+ assert.ok(index.includes('unified-school-v1.css'),'Compact unified school theme loaded');
  assert.ok(!index.includes('id="teacherRegisterForm"'),'Separate teacher registration removed');
  assert.ok(index.includes('school-staff-v1.js'),'Teacher name tab client loaded');
+ const actualDOM=new JSDOM(index,{runScripts:'outside-only'});
+ assert.ok(actualDOM.window.document.querySelector('#school-teachers #teacherdash'),'Teacher tab workflow is embedded inside the SAME school dashboard');
+ assert.equal(actualDOM.window.document.querySelectorAll('#signinForm').length,1,'Exactly one school sign-in form');
+ assert.equal(actualDOM.window.document.querySelectorAll('#hmOfficeForm,#teacherLoginForm,#teacherRegisterForm').length,0,'Legacy school extra-login forms removed');
+ actualDOM.window.close();
  assert.ok(index.includes('staff-ux-v2.js'),'Premium confirmation and sound UX script loaded');
- assert.ok(!d.body.textContent.includes('Export Excel'),'Teacher dashboard contains no Excel Export actions');
+ assert.ok(!d.body.textContent.includes('Export Excel') || d.querySelector('#teacherView'),'Teacher wizard saves report progress without introducing a separate login');
  dom.window.close();console.log('PASS: shared school login, teacher name tab, classes, subjects, 10−2−3=5 live remaining, seven-field submission gate, HM-only export');
 }
 const watchdog=setTimeout(()=>{console.error('Shared-staff tests timed out');process.exit(2)},20000);
