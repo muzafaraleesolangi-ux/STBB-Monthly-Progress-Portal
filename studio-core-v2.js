@@ -2,7 +2,7 @@
 /* STBB Collaborative Studio v2 — school setup + subject-level optimistic concurrency */
 const Studio=(()=>{
  const V2='https://oypqcizrlhdouygvazyb.supabase.co/functions/v1/mpr-workspace-v2';
- const numbers=[8,7,6,5,4,3,2,1],monthLabels=['January','February','March','April','May','June','July','August','September','October','November','December'];
+ const numbers=[12,11,10,9,8,7,6,5,4,3,2,1],monthLabels=['January','February','March','April','May','June','July','August','September','October','November','December'];
  // Actual Class I–V subject/chapter master from MPR_Online_Editor.html; independent of iframe load timing.
  const SUBJECT_MASTER={
  5:[['Sindhi Reader',29,[]],['Asan Urdu',25,['حمد','خاتم النبیین ﷺ کی سیرت طیبہ','نعت','حضرت فاطمہ الزہرا رضی اللہ عنہا','کھیتوں کا لباس','محنت کی عظمت','یوم آزادی','ہمارا پرچم','کہانی ایک جھیل کی','عید الاضحیٰ','بس کا سفر','حفظان صحت','پہیلیاں اور لطائف','ہم سب پاکستانی ہیں','کالی گھٹا','سندھ کی ثقافت','ہے زندگی کا مقصد اوروں کے کام آنا','استاد محترم کو میرا سلام کہنا','اچھے رویے','بھائی بھلکڑ','حمل جھیل کی سیر','ہماری گائے','روزمرہ سائنس','راشد منہاس شہید','دعا']],['English',5,['Helping Others','Responsibility','Importance of Female Education','Truthfulness','My Country']],['Mathematics',9,['Numbers and Arithmetic Operations','HCF and LCM','Fractions','Decimals and Percentages','Distance, Time and Temperature','Unitary Method','Geometry','Perimeter and Area','Information Handling']],['General Science',10,['جاندارن جي درجه بندي','خوردبيني جاندار','ٻج، انهن جي بناوت ۽ ڦٽڻ','ماحول جي آلودگي','مادو ۽ ان جي حالتن جي تبديلي','زور ۽ مشينون','روشني ۽ ان جون خاصيتون','بجلي ۽ مقناطيسيت','مٽي','اسان جو شمسي نظام']],['Social Studies',13,['ڌرتيءَ جو گولو ۽ نقشن جي مهارت','پاڪستان ۽ دنيا جا طبعي ڀاڱا','آبهوا','اسان تاريخ جو اڀياس ڇو ٿا ڪريون؟','آزاديءَ لاءِ جدوجهد','پاڪستان ۽ دنيا جي تاريخ جون اهم شخصيتون ۽ واقعا','ثقافت يا ڪلچر','مال اسباب، شيون ۽ خدمتون','ناتو ۽ انسان جي زندگيءَ جو ڪار وهنوار','ڄاڻ ۽ معلومات جا ذريعا','انساني قدر ۽ سماجي زندگي','پاڪستان جو حڪومتي سرشتو','گڏيل ڪوششون ۽ نيون دريافتون']],['Islamiat',5,['القرآن الڪريم','عقيدا ۽ عبادتون','سيرتِ طيبه','اخلاق ۽ آداب','هدايت جا علمبردار ۽ اسلام جون مشهور شخصيتون']]],
@@ -73,7 +73,7 @@ const Studio=(()=>{
  assignmentCollapsedGrades.clear();expandedLessonProgress='';lessonNameDraft=null;progressSearch='';progressPendingOnly=false;
  queuedFirstInputs.clear();queuedInputFocus=null;openingMonthPromise=null;periodStatus='draft';periodWorkflow=null;collapsedCards.clear();expandedProgressCards.clear();
  }
- async function activate(){if(!auth||auth.admin||!account||initializing)return;
+ async function activate(){if(!auth||auth.admin||auth.role==='teacher'||!account||initializing)return;
  if(loadedSchoolSemis!==account.semis){clearSchoolSession();loadedSchoolSemis=account.semis}
  initializing=true;try{
  shell();let r=await api('load-setup');setupVersion=r.version;setup=r.setup;
@@ -382,7 +382,12 @@ function renderProgress(){
 function summaryForCheck(){if(!selectedGrades().length)return 'Please select at least one class offered by your school.';if(!setup.teachers.every(t=>t.name.trim()&&t.pid.trim()&&t.designation.trim()))return 'Please complete teacher name, PID and designation.';if(stage>=1&&!setup.teachers.every(t=>t.classes?.length))return 'Select at least one teaching class for every teacher.';if(stage>=2&&!assigned().length&&!selectedGrades().some(g=>g>=6))return 'Assign at least one subject to a teacher.';return null}
  async function next(){if(stage===0&&!selectedGrades().length)return notify('Add at least one school class before continuing.',true);if(stage===1&&!setup.teachers.every(t=>t.name.trim()&&t.pid.trim()&&t.designation.trim()))return notify('Complete Name, PID and Designation for each teacher before continuing.',true);if(stage===2&&!setup.teachers.every(t=>t.classes?.length))return notify('Choose at least one teaching class for each teacher.',true);if(stage===3){if(!await saveAssignmentEditor())return;if(!assigned().length&&!selectedGrades().some(g=>g>=6))return notify('Tick at least one subject for the school before continuing.',true);if(assignmentTeacherIndex<setup.teachers.length-1){await moveAssignmentTeacher(assignmentTeacherIndex+1);return}}
  try{await settleSetup()}catch(e){return notify(e.message,true)}setupStage(stage===3?5:stage+1)}
- async function openPeriod(p){ensure();if(!selectedGrades().length)return notify('Select the school classes first, then assign teachers and subjects.',true);if(!/^20\d\d-(0[1-9]|1[0-2])$/.test(p||''))return notify('Choose a valid reporting month.',true);
+ async function openPeriod(p){ensure();
+ // Refresh teachers/classes/subjects claimed from other devices before HM opens the reporting month.
+ if(!setupDirty&&!setupBusy&&!setupConflict){
+  try{const latest=await api('load-setup');if(latest.setup&&latest.version!==setupVersion){setup=latest.setup;setupVersion=latest.version;repairSubjects(setup);notify('✓ Updated teacher profiles and assignments synced to HM dashboard.')}}catch(e){notify('Could not sync latest teacher profiles: '+e.message,true);return}
+ }
+ if(!selectedGrades().length)return notify('Teachers have not selected any classes yet. Open School Home and ask staff to finish their profiles.',true);if(!/^20\d\d-(0[1-9]|1[0-2])$/.test(p||''))return notify('Choose a valid reporting month.',true);
  try{
  await settleSetup();
  if(progressDirty.size){await Promise.all([...progressDirty].map(id=>saveSubject(id)));if(progressDirty.size)throw Error('Unsaved subject progress. Save it before switching months.')}
@@ -528,7 +533,7 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
   if(!await saveAssignmentEditor())return;
   try{await settleSetup()}catch(e){notify('Save failed: '+e.message,true);return}
   assignmentTeacherIndex=index;clearAssignmentEditor();render();
-  notify('✓ Saved. Now assigning subjects for '+(setup.teachers[index].name||'Teacher '+(index+1))+'. Subjects given to other teachers are shown as locked.');
+  notify('✓ Saved. Now assigning subjects for '+(setup.teachers[index].name||'Teacher '+(index+1))+'. Assigned subjects remain hidden for other teachers.');
  }
  async function handleClick(e){const target=e.target.closest('[data-teacher-tab],[data-progress-addclass],[data-progress-addsubject],[data-progress-manage],[data-progress-claimsubject],[data-progress-rename],[data-progress-remove],[data-progress-month],[data-class-all],[data-class-clear],[data-studio-quick-progress],[data-studio-quick-assign],[data-progress-details],[data-progress-show-all],[data-progress-pending],[data-progress-saveall],[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-restoregrade],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-lesson-write-open],[data-lesson-cancelwrite],[data-lesson-addone],[data-lesson-applypaste],[data-lesson-remove-last],[data-lesson-savewrite],[data-studio-lessons],[data-lesson-close],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub],[data-workflow-final],[data-workflow-reopen],[data-workflow-submit],[data-workflow-history],[data-workflow-newmonth],[data-progress-expand]');if(!target)return;
  if(target.hasAttribute('data-workflow-final'))return workflowAction('final');
@@ -673,9 +678,9 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  refreshHandle=setInterval(()=>{if(!document.hidden&&schoolPeriod&&auth&&!auth.admin&&stage===5&&!progressDirty.size)loadEntries()},18000);
  }
  bind();
- const originalPostLogin=postLogin;postLogin=async function(result){await originalPostLogin(result);if(!auth.admin)await activate();return result};
+ const originalPostLogin=postLogin;postLogin=async function(result){await originalPostLogin(result);if(!auth.admin&&auth.role!=='teacher'){await activate();dashTab('overview',document.querySelector('#schoolTabs button'));}return result};
  const otherDashTab=dashTab;dashTab=function(tab,button){if($s('studioPanel'))$s('studioPanel').classList.add('hidden');return otherDashTab(tab,button)};
  // Restore the studio if the school session existed before a page refresh.
- setTimeout(()=>{if(auth&&!auth.admin&&account)activate()},1700);
+ setTimeout(()=>{if(auth&&!auth.admin&&auth.role!=='teacher'&&account)activate().then(()=>dashTab('overview',document.querySelector('#schoolTabs button')))},1700);
  return{activate,openPeriod,startFollowingMonth,followingMonth,activePeriod:()=>schoolPeriod,review,showPanel,saveSetup,settle,setStatus:workflowAction,status:()=>periodStatus,refresh:loadEntries,markExported:async()=>{if(!schoolPeriod)return;try{const r=await api('load-workflow',{period:schoolPeriod});periodWorkflow=r.workflow;periodStatus=periodWorkflow.status;render()}catch(e){notify('Excel saved; refresh status to view the archive: '+e.message,true)}},unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
 })();
