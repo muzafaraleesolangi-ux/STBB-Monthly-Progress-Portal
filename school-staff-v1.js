@@ -26,7 +26,7 @@ async function pick(id){if(dirty&&!await save())return;try{person=(await api('st
 function create(){person={id:nid('staff_'),name:'',pid:'',designation:'',classes:[],subjects:[]};dirty=true;step='details';month=null;render()}
 function edited(){dirty=true;const flag=$('#staffDraftFlag');if(flag)flag.textContent='● Unsaved changes';clearTimeout(saveTimer);saveTimer=setTimeout(()=>{if(!busy&&dirty&&person?.name&&person?.pid&&person?.designation)save(true)},1700)}
 async function save(silent=false){if(!person||busy)return false;clearTimeout(saveTimer);if(!person.name?.trim()||!person.pid?.trim()||!person.designation?.trim()){shown('Enter Name, PID and Designation first.');return false}busy=true;try{await api('staff-save',{profile:person});const row=await api('staff-load');teachers=row.teachers||teachers;dirty=false;if(month)month.submitted=false;shown('✓ School Draft Saved');if(!silent)render();return true}catch(err){shown('Save failed: '+err.message);return false}finally{busy=false}}
-async function go(next){if(person&&dirty&&!await save())return;trail.push(step);step=next;render();if(next==='month')await openMonth(period)}
+async function go(next,fromBack=false){if(person&&dirty&&!await save())return;if(!fromBack&&step!==next)trail.push(step);step=next;render();if(next==='month')await openMonth(period)}
 const defaults={1:['Sindhi Reader','English','Mathematics','General Knowledge'],2:['Sindhi Reader','English','Mathematics','General Knowledge'],3:['Sindhi Reader','Asan Urdu','English','Mathematics','General Knowledge','Islamiat'],4:['Sindhi Reader','Asan Urdu','English','Mathematics','Science','Social Studies','Islamiat'],5:['Sindhi Reader','Asan Urdu','English','Mathematics','Science','Social Studies','Islamiat'],6:['Sindhi','Urdu','English','Mathematics','Science','Social Studies','Islamiat'],7:['Sindhi','Urdu','English','Mathematics','Science','Social Studies','Islamiat'],8:['Sindhi','Urdu','English','Mathematics','Science','Social Studies','Islamiat'],9:['English','Mathematics','Physics','Chemistry','Biology','Computer Science','Urdu','Islamiat'],10:['English','Mathematics','Physics','Chemistry','Biology','Computer Science','Urdu','Pakistan Studies'],11:['English','Urdu','Mathematics','Physics','Chemistry','Biology','Computer Science','Commerce','Economics'],12:['English','Urdu','Mathematics','Physics','Chemistry','Biology','Computer Science','Commerce','Economics']};
 function subjects(){
  if(!person.classes.length)return '<div class="teacherEmpty">Select at least one class before adding subjects.</div>'+footer('classes');
@@ -89,7 +89,7 @@ root.addEventListener('click',async event=>{
  if(b.dataset.staffSavebook)return saveBook(b.dataset.staffSavebook);
  if(b.hasAttribute('data-staff-submit'))return submitMonth();
  if(b.hasAttribute('data-teacher-home'))return go('pick');
- if(b.hasAttribute('data-teacher-back'))return go(trail.pop()||'pick')
+ if(b.hasAttribute('data-teacher-back'))return go(trail.pop()||'pick',true)
 });
 root.addEventListener('input',event=>{
  const t=event.target;if(!person)return;
