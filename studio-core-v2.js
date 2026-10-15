@@ -285,7 +285,7 @@ function renderWorkflow(){
  if(periodStatus==='draft')buttons='<button type="button" class="flowAction neutral" data-studio-save>Save Draft</button><button type="button" class="flowAction premium" id="studioFinalAction" data-workflow-final '+(!(schoolPeriod&&c.total&&c.left.length===0)?'disabled':'')+'>✓ Mark Final</button>';
  if(periodStatus==='final')buttons='<button type="button" class="flowAction neutral" data-workflow-reopen>✎ Edit Draft</button><button type="button" class="flowAction premium" data-workflow-submit>Submit Report →</button>';
  if(periodStatus==='submitted')buttons='<button type="button" class="flowAction neutral" data-workflow-reopen>✎ Reopen Draft</button><button type="button" class="flowAction premium" data-studio-review>⬇ Export Excel</button>';
- if(periodStatus==='exported')buttons='<button type="button" class="flowAction neutral" data-workflow-reopen>✎ Reopen & Edit</button><button type="button" class="flowAction premium" data-workflow-history>View Export History ↗</button>';
+ if(periodStatus==='exported')buttons='<button type="button" class="flowAction neutral" data-workflow-reopen>✎ Reopen & Edit</button><button type="button" class="flowAction premium" data-workflow-history>View Export History ↗</button><button type="button" class="flowAction startNextMonth" data-workflow-newmonth>＋ Start New Month →</button>';
  const desc={draft:'Save as you work. Complete every subject to enable Final.',final:'Fields locked for review. Submit to enable Excel export.',submitted:'Submission complete. Export to store Excel in History.',exported:'Export saved in History. Month details are minimized.'}[periodStatus];
  return '<section class="premiumFlow '+safe(periodStatus)+'"><div class="flowSteps">'+stepsHTML+'</div><div class="flowActions">'+buttons+'</div><small class="flowMessage">'+desc+'</small></section>';
 }
@@ -317,7 +317,7 @@ function renderProgress(){
  html+='<div class="studioQuickTools"><label class="studioQuickSearch"><span>Find subject</span><input type="search" id="studioProgressSearch" value="'+safe(progressSearch)+'" placeholder="Search class, subject or teacher…" autocomplete="off"></label><div class="quickToolActions"><button type="button" class="ghostMini '+(!progressPendingOnly?'quickActive':'')+'" data-progress-show-all>All</button><button type="button" class="ghostMini '+(progressPendingOnly?'quickActive':'')+'" data-progress-pending>Pending Only</button></div></div><span class="studioResultsStatus" id="studioVisibleCount">'+list.length+' subjects</span><p class="studioMissing" id="studioFilteredEmpty" hidden>No matching subjects.</p>';
  if(c.left.length)html+='<details class="pendingBox" id="studioPendingList"><summary>'+c.left.length+' subject(s) still pending — see which</summary>'+c.left.map(b=>'<span>Class '+roman[b.grade]+' · '+safe(b.name)+' — '+safe(tname(b.teacherId))+'</span>').join('')+'</details>';
  if(!list.length)html+='<div class="studioMissing">No subjects yet. Select a teacher tab and add or assign subjects.</div>';
- if(periodStatus==='exported')html+='<details class="monthArchiveTray"><summary>✓ '+c.done+' subject(s) archived · View monthly details</summary>';
+ if(periodStatus==='submitted'||periodStatus==='exported')html+='<details class="monthArchiveTray"><summary>✓ '+c.done+' subject(s) complete · '+safe(schoolPeriod)+' · Expand subjects</summary>';
  html+='<div class="studioSubjectCards" id="studioSubjectCards">';
  for(const b of list){
   const d=progressBy(b),fig=progressFigures(b,d),complete=Boolean(progressVersions[b.id]&&fullyEntered(b)&&!progressDirty.has(b.id)),fields=filledFields(b),n=Object.values(fields).filter(Boolean).length,closed=Boolean(complete&&!expandedProgressCards.has(b.id));
@@ -334,10 +334,21 @@ function renderProgress(){
   html+='<div class="masterRowFooter"><div class="masterFieldProgress"><span data-progress-percent>'+n+'/7 fields filled</span><div class="barBg"><i data-progress-bar style="width:'+(n/7*100)+'%"></i></div></div><button type="button" data-studio-savesub="'+safe(b.id)+'" class="ghostMini">Save Subject</button><button type="button" data-progress-manage="'+safe(b.id)+'" class="ghostMini" title="Rename or remove this subject" aria-expanded="false">⋯</button><span class="masterEditTools" data-progress-edittools="'+safe(b.id)+'" hidden><button type="button" class="ghostMini" data-progress-rename="'+safe(b.id)+'">Rename</button><button type="button" class="ghostMini danger" data-progress-remove="'+safe(b.id)+'">Remove</button></span></div></div></article>';
  }
  html+='</div>';
- if(periodStatus==='exported')html+='</details>';
+ if(periodStatus==='submitted'||periodStatus==='exported')html+='</details>';
  return html
 }
 
+ function followingMonth(periodCode){
+  const [y,m]=String(periodCode).split('-').map(Number);
+  if(!y||!m)return new Date().toISOString().slice(0,7);
+  return m===12?String(y+1)+'-01':String(y)+'-'+String(m+1).padStart(2,'0')
+ }
+ async function startFollowingMonth(){
+  if(!schoolPeriod)return notify('Please select a reporting month.',true);
+  if(!['submitted','exported'].includes(periodStatus))return notify('Submit this month before starting the next reporting month.',true);
+  try{await settle();const next=followingMonth(schoolPeriod);await openPeriod(next);notify('✓ '+next+' ready. Teachers and subjects retained; previous chapters brought forward. Fill current-month progress and assessments.')}
+  catch(e){notify('Cannot start next month: '+e.message,true)}
+ }
  async function workflowAction(status){
   if(!schoolPeriod)return notify('Choose a reporting month first.',true);
   if(status==='final'&&counts().left.length)return notify('Complete '+counts().left.length+' pending subject(s) before marking Final.',true);
@@ -350,7 +361,7 @@ function renderProgress(){
    if(status==='draft'){collapsedCards.clear();notify('✓ Draft reopened. You can edit and save again. Previous Excel exports remain in History.')}
    else if(status==='final')notify('✓ Report is Final. Review your entries, then Submit when ready.');
    else notify('✓ Monthly report submitted. Excel Export is now available.');
-   render()
+   render();if(typeof refreshSchool==='function')refreshSchool().catch(e=>console.warn('Month sidebar refresh:',e))
   }catch(e){notify('Report status not changed: '+e.message,true);alert(e.message)}
  }
  function applyCardCollapse(card,collapsed){
@@ -381,11 +392,18 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  for(const books of Object.values(initial.books))for(const b of books){b.previous=0;b.current=0;b.notebook=0;b.cleanliness='';b.feedback='';b.suggestion=''}
  const r=await request('open-period',{period:p,initial_state:initial});
  period=p;version=r.version;pendingState=null;schoolPeriod=p;baseState=r.state;progressVersions={};progressEntries={};progressDirty.clear();
- const [entries,workflow]=await Promise.all([api('load-period',{period:p}),api('load-workflow',{period:p})]);periodWorkflow=workflow.workflow||{status:'draft'};periodStatus=periodWorkflow.status;collapsedCards.clear();for(const x of entries.entries){progressEntries[x.book_id]=x;progressVersions[x.book_id]=x.version}
- // If a new month has no entries, carry forward the last earlier month from subject records.
- let earlier=periods.filter(x=>x.period<p).sort((a,b)=>b.period.localeCompare(a.period))[0];
- if(earlier){const old=await api('load-period',{period:earlier.period});for(const x of old.entries){if(!progressEntries[x.book_id]){const previous=Math.max(0,Number(x.details.previous)||0)+Math.max(0,Number(x.details.current)||0);const book=bookList().find(b=>b.id===x.book_id);if(book){const bs=(baseState.books?.[book.grade]||[]).find(z=>z.id===book.id);if(bs){bs.previous=Math.min(book.chapters.length,previous);bs.current=0;const oldSelection=x.details.lessonSelections;if(oldSelection&&Array.isArray(oldSelection.previous)&&Array.isArray(oldSelection.current)){bs.lessonSelections={previous:[...new Set([...oldSelection.previous,...oldSelection.current])].filter(i=>Number.isInteger(i)&&i>=0&&i<book.chapters.length).sort((a,b)=>a-b),current:[]};if(bs.lessonSelections.previous.length!==bs.previous)delete bs.lessonSelections}}}}}}
- notify('✓ '+p+' opened. Each subject can now be saved independently. Choose a teacher and enter progress.');stage=5;render();await refreshSchool();
+ const [entries,workflow]=await Promise.all([api('load-period',{period:p}),api('load-workflow',{period:p})]);
+ periodWorkflow=workflow.workflow||{status:'draft'};periodStatus=periodWorkflow.status;
+ collapsedCards.clear();expandedProgressCards.clear();
+ let loadedEntries=entries.entries||[],carriedFrom=null;
+ if(periodStatus==='draft'){
+  // The backend persists chapter rollover exactly once. Reopening never rewrites existing entries.
+  const rollover=await api('initialize-month',{period:p});
+  loadedEntries=rollover.entries||loadedEntries;carriedFrom=rollover.source_period;
+ }
+ for(const entry of loadedEntries){progressEntries[entry.book_id]=entry;progressVersions[entry.book_id]=entry.version}
+ const note=carriedFrom?' · Chapters carried forward from '+monthLabels[Number(carriedFrom.slice(5,7))-1]+' '+carriedFrom.slice(0,4):'';
+ notify('✓ '+p+' opened'+note+'. Teachers, classes and subject assignments are preserved; only chapter counts are carried forward.');stage=5;render();await refreshSchool();
  }catch(e){notify(e.message,true)}
  }
  async function loadEntries(){if(!schoolPeriod)return;try{const readingMonth=schoolPeriod,list=await api('load-period',{period:readingMonth});if(readingMonth!==schoolPeriod)return;for(const x of list.entries){if(!progressDirty.has(x.book_id)&&!progressBusy.has(x.book_id)){progressEntries[x.book_id]=x;progressVersions[x.book_id]=x.version}}refreshProgressSummary();const active=document.activeElement,editing=active?.closest?.('#studioBody')&&/^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName);if(stage===5&&!editing&&!progressDirty.size&&!progressBusy.size&&$s('studioPanel')&&!$s('studioPanel').classList.contains('hidden'))render()}catch(e){notify('Refresh failed: '+e.message,true)}}
@@ -512,10 +530,11 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
   assignmentTeacherIndex=index;clearAssignmentEditor();render();
   notify('✓ Saved. Now assigning subjects for '+(setup.teachers[index].name||'Teacher '+(index+1))+'. Subjects given to other teachers are shown as locked.');
  }
- async function handleClick(e){const target=e.target.closest('[data-teacher-tab],[data-progress-addclass],[data-progress-addsubject],[data-progress-manage],[data-progress-claimsubject],[data-progress-rename],[data-progress-remove],[data-progress-month],[data-class-all],[data-class-clear],[data-studio-quick-progress],[data-studio-quick-assign],[data-progress-details],[data-progress-show-all],[data-progress-pending],[data-progress-saveall],[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-restoregrade],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-lesson-write-open],[data-lesson-cancelwrite],[data-lesson-addone],[data-lesson-applypaste],[data-lesson-remove-last],[data-lesson-savewrite],[data-studio-lessons],[data-lesson-close],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub],[data-workflow-final],[data-workflow-reopen],[data-workflow-submit],[data-workflow-history],[data-progress-expand]');if(!target)return;
+ async function handleClick(e){const target=e.target.closest('[data-teacher-tab],[data-progress-addclass],[data-progress-addsubject],[data-progress-manage],[data-progress-claimsubject],[data-progress-rename],[data-progress-remove],[data-progress-month],[data-class-all],[data-class-clear],[data-studio-quick-progress],[data-studio-quick-assign],[data-progress-details],[data-progress-show-all],[data-progress-pending],[data-progress-saveall],[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-restoregrade],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-lesson-write-open],[data-lesson-cancelwrite],[data-lesson-addone],[data-lesson-applypaste],[data-lesson-remove-last],[data-lesson-savewrite],[data-studio-lessons],[data-lesson-close],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub],[data-workflow-final],[data-workflow-reopen],[data-workflow-submit],[data-workflow-history],[data-workflow-newmonth],[data-progress-expand]');if(!target)return;
  if(target.hasAttribute('data-workflow-final'))return workflowAction('final');
  if(target.hasAttribute('data-workflow-reopen'))return workflowAction('draft');
  if(target.hasAttribute('data-workflow-submit'))return workflowAction('submitted');
+ if(target.hasAttribute('data-workflow-newmonth'))return startFollowingMonth();
  if(target.hasAttribute('data-workflow-history')){const tab=[...document.querySelectorAll('#schoolTabs button')].find(x=>x.textContent.includes('History'));if(tab)dashTab('history',tab);else{dashTab('history',document.querySelectorAll('#schoolTabs button')[2])}await loadHistory();return}
  if(target.hasAttribute('data-progress-expand')){
   const id=target.dataset.progressExpand,card=target.closest('[data-progress-card]'),collapsed=!card.classList.contains('isCollapsed');
@@ -658,5 +677,5 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  const otherDashTab=dashTab;dashTab=function(tab,button){if($s('studioPanel'))$s('studioPanel').classList.add('hidden');return otherDashTab(tab,button)};
  // Restore the studio if the school session existed before a page refresh.
  setTimeout(()=>{if(auth&&!auth.admin&&account)activate()},1700);
- return{activate,openPeriod,review,showPanel,saveSetup,settle,setStatus:workflowAction,status:()=>periodStatus,refresh:loadEntries,markExported:async()=>{if(!schoolPeriod)return;try{const r=await api('load-workflow',{period:schoolPeriod});periodWorkflow=r.workflow;periodStatus=periodWorkflow.status;render()}catch(e){notify('Excel saved; refresh status to view the archive: '+e.message,true)}},unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
+ return{activate,openPeriod,startFollowingMonth,followingMonth,activePeriod:()=>schoolPeriod,review,showPanel,saveSetup,settle,setStatus:workflowAction,status:()=>periodStatus,refresh:loadEntries,markExported:async()=>{if(!schoolPeriod)return;try{const r=await api('load-workflow',{period:schoolPeriod});periodWorkflow=r.workflow;periodStatus=periodWorkflow.status;render()}catch(e){notify('Excel saved; refresh status to view the archive: '+e.message,true)}},unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
 })();
