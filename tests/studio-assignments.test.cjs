@@ -62,7 +62,7 @@ async function main(){
  await studio.settle();
  click('[data-assignment-teacher="1"]');
  await new Promise(ok=>setTimeout(ok,40));
- absent('[data-assign-bid="5-english"]');
+ assert.equal(one('[data-assign-bid="5-english"]').disabled,true,'Another teacher\'s subject remains visible but locked');
  one('[data-assign-bid="5-maths"]');one('[data-assign-bid="4-english"]');
  click('[data-assign-bid="4-english"]');
  assert.equal(book('4-english').teacherId,'t2','Same subject name in a different class can have different teacher');
@@ -73,7 +73,7 @@ async function main(){
  assert.equal(book('5-science').teacherId,'t2');
  click('[data-assignment-togglegrade="5"]');
  await new Promise(ok=>setTimeout(ok,20));
- absent('[data-assign-bid="5-maths"]');
+ assert.equal(one('[data-assign-bid="5-maths"]').disabled,true,'Other teacher\'s assigned subject remains visible but locked');
  click('[data-assignment-togglegrade="5"]');
  await new Promise(ok=>setTimeout(ok,20));
  one('[data-assign-bid="5-maths"]');
