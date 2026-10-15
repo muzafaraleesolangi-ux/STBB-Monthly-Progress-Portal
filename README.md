@@ -15,6 +15,18 @@ WhatsApp Help & Support: [0300 0357397](https://wa.me/923000357397)
 - Forgot Password: admin verifies HM, approves request, and manually sends a private one-time reset link through the WhatsApp button; HM re-registers access using Create New Account via that approved private WhatsApp link, preserving their previous teachers, drafts and exports. There is no manual recovery-code entry.
 - School account and admin data stored via Supabase backend; no admin password embedded in public HTML.
 
+## Fast Reporting Guide — HM & Teachers (October 2026)
+
+1. **First-time HM setup:** Select school classes, add teachers, select teaching classes. Use **All Offered Classes** to avoid repeating class ticks. Assign each teacher’s subjects from the preloaded classwise checklist. A class can have several teachers, but each class–subject can belong to only one teacher.
+2. **Returning school:** If teachers, classes and subjects are already set up, the Guided School Studio opens **Monthly Progress · Quick Fill** directly. The top banner also provides shortcuts to **Monthly Quick Fill** and **Teacher Subjects**.
+3. **Choose reporting month:** Pick a new month or use one of the **recent saved-month** shortcuts. The latest existing month is not overwritten automatically.
+4. **On each teacher’s mobile:** Choose their name from **Teacher Profile**. They may optionally select **Remember my teacher profile on this device**; this saves only a local teacher preference, not a separate account or password.
+5. **Enter progress quickly:** Search for a class/subject/teacher or choose **Pending Only**. Type just two chapter numbers (**Previous** and **This Month**) directly in the large cells. **Remaining** recalculates automatically. Press Enter to move to the next cell.
+6. **Only if needed:** Open **Notebook, Test & Notes (Optional)** for notebook maintenance, cleanliness, tests and suggestions. New reports do not invent ratings: assessment fields start with **Not entered** until reviewed.
+7. **Save and export:** Subject progress saves to the school cloud separately, or press **Save All Changes**. Use **Review & Export Excel** after verifying pending subjects. Background refresh will not replace an actively edited input.
+
+**Privacy and concurrency:** Different schools’ working sessions remain isolated in the browser. Assignments and subject progress use server-side version checks; if a teacher edits the same subject concurrently, a conflict must be resolved rather than silently overwriting saved data. Do not share a school login outside authorized staff.
+
 ## Deployment
 Publish `index.html` and `MPR_Online_Editor.html` from repository root using GitHub Pages.
 Open **Settings → Pages → Build and deployment** and choose **Deploy from a branch** → **main** → **/(root)** → **Save** if GitHub Pages has not already been enabled.
