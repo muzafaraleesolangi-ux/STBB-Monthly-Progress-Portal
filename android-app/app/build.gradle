@@ -1,0 +1,31 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'pk.edu.stbbprogress'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'pk.edu.stbbprogress'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.0'
+        manifestPlaceholders = [appLabel: 'STBB Monthly Progress']
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            applicationIdSuffix ''
+            versionNameSuffix ''
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
