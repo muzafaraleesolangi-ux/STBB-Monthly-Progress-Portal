@@ -367,8 +367,8 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  let x=progressEntries[bookId];if(!x){x={book_id:bookId,details:progressBy(book),version:0};progressEntries[bookId]=x}
  if(['previous','current','notebook'].includes(k)){
   v=v===''||v===null?null:Math.max(0,Number(v)||0);if(v!==null&&(k==='previous'||k==='current'))v=Math.floor(v);
-  if(k==='previous')v=Math.min(book.chapters.length-(Number(x.details.current)||0),v);
-  if(k==='current')v=Math.min(book.chapters.length-(Number(x.details.previous)||0),v);
+  if(k==='previous'&&v!==null)v=Math.min(book.chapters.length-(Number(x.details.current)||0),v);
+  if(k==='current'&&v!==null)v=Math.min(book.chapters.length-(Number(x.details.previous)||0),v);
   if(k==='notebook'&&v!==null)v=Math.min(100,v);
   if((k==='previous'||k==='current')&&x.details.lessonSelections){delete x.details.lessonSelections;notify('Chapter counts updated. Remaining recalculated automatically.')}
  }
