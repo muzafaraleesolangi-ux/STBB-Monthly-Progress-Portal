@@ -37,7 +37,7 @@ async function main(){
  const school={selectedClasses:[5],subjectCatalogInitialized:{1:true,2:true,3:true,4:true,5:true,6:true,7:true,8:true},
   teachers:[{id:'t1',name:'Teacher One',pid:'111',designation:'PST',classes:[5]},{id:'t2',name:'Teacher Two',pid:'222',designation:'PST',classes:[5]}],
   books:{5:[{id:'5-english',name:'English',chapters:['A','B','C','D','E'],active:true,teacherId:'t1'},{id:'5-maths',name:'Mathematics',chapters:['One','Two','Three'],active:true,teacherId:'t2'}]}};
- const saved={},versions={};let reportStatus='draft';const dom=new JSDOM('<html><body><section id="schooldash"><div id="schoolTabs"></div><div id="school-overview"></div><div id="school-editor"></div><iframe id="editor"></iframe></section></body></html>',{url:'https://portal.test/',runScripts:'outside-only',pretendToBeVisual:true});
+ const saved={},versions={};let reportStatus='draft',priorMonthRecords=null;const dom=new JSDOM('<html><body><section id="schooldash"><div id="schoolTabs"></div><div id="school-overview"></div><div id="school-editor"></div><iframe id="editor"></iframe></section></body></html>',{url:'https://portal.test/',runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window,d=w.document;w.structuredClone=global.structuredClone;w.scrollTo=()=>{};w.confirm=()=>true;w.alert=msg=>{throw Error('Unexpected alert: '+msg)};
  w.fetch=async(url,options={})=>{
   const data=JSON.parse(options.body||'{}');let result;
@@ -51,7 +51,15 @@ async function main(){
    result={workflow:{status:reportStatus}}
   }
   else if(data.action==='load-period')result={entries:Object.keys(saved).map(id=>({book_id:id,details:saved[id],version:versions[id]}))};
-  else if(data.action==='initialize-month')result={source_period:null,initialized:0,entries:Object.keys(saved).map(id=>({book_id:id,details:saved[id],version:versions[id]}))};
+  else if(data.action==='initialize-month'){
+   if(data.period==='2026-11'&&priorMonthRecords){
+    for(const [id,old] of Object.entries(priorMonthRecords)){
+     if(saved[id])continue;
+     saved[id]={previous:(Number(old.previous)||0)+(Number(old.current)||0),current:null,notebook:null,cleanliness:'',feedback:'',suggestion:'',updatedBy:'Auto carry-forward · 2026-10'};versions[id]=1
+    }
+   }
+   result={source_period:data.period==='2026-11'?'2026-10':null,initialized:data.period==='2026-11'?2:0,entries:Object.keys(saved).map(id=>({book_id:id,details:saved[id],version:versions[id]}))}
+  }
   else if(data.action==='save-setup')result={version:data.version+1};
   else if(data.action==='save-subject'){
    assert.ok(Object.hasOwn(data.details,'previous'),'Explicit pending counts persist');
@@ -129,8 +137,23 @@ async function main(){
  assert.equal(one('#studioReviewAction').hidden,true,'Editing a reopened draft locks Excel export');
  assert.equal(one('[data-quick-pending]').textContent,'1','Incomplete report shown pending after edit');
  assert.equal(d.querySelector('[data-progress-details]'),null,'No unrelated assessment section is displayed');
+ // A new November report must inherit October's cumulative chapter counts, and NOTHING else.
+ priorMonthRecords=structuredClone(saved);
+ for(const id of Object.keys(saved)){delete saved[id];delete versions[id]}
+ await studio.openPeriod('2026-11');
+ assert.equal(studio.activePeriod(),'2026-11','Following calendar month is selected');
+ assert.equal(studio.followingMonth('2026-12'),'2027-01','Next month correctly crosses year boundaries');
+ assert.equal(one(card('5-english')+' [data-pkey="previous"]').value,'2','October covered chapters become November previous count');
+ assert.equal(one(card('5-english')+' [data-pkey="current"]').value,'','New month current chapters start empty');
+ assert.equal(one(card('5-english')+' [data-pkey="notebook"]').value,'','New month assessment resets to blank');
+ assert.equal(one(card('5-english')+' [data-pkey="cleanliness"]').value,'','Classroom rating does not copy into new month');
+ assert.equal(one(card('5-english')+' [data-pkey="feedback"]').value,'','Formative feedback does not copy into new month');
+ assert.equal(one(card('5-english')+' [data-progress-suggestionselect]').value,'','Previous month suggestion does not copy');
+ assert.equal(studio.getSetup().teachers.length,2,'Teachers are retained automatically');
+ assert.equal(studio.getSetup().books[5].filter(b=>b.active).length,2,'Class and subject assignments are unchanged');
+ assert.equal(one('[data-quick-pending]').textContent,'2','Carry-forward counts do not falsely complete a new report');
  dom.window.close();tmp.close();
- console.log('PASS: master columns, collapsed premium cards, pending sorting, blank vs zero, Final → Submit → Export authorization and Reopen Draft')
+ console.log('PASS: master columns, collapsed premium cards, pending sorting, blank vs zero, Final → Submit → Export authorization and Reopen Draft; new month carries only chapter counts, retains teacher assignments and resets assessments')
 }
 const watchdog=setTimeout(()=>{console.error('DOM test timed out');process.exit(2)},20000);
 main().then(()=>{clearTimeout(watchdog);process.exit(0)}).catch(e=>{clearTimeout(watchdog);console.error(e);process.exit(1)});
