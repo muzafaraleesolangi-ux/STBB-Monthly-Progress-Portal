@@ -73,7 +73,7 @@ const Studio=(()=>{
  assignmentCollapsedGrades.clear();expandedLessonProgress='';lessonNameDraft=null;progressSearch='';progressPendingOnly=false;
  queuedFirstInputs.clear();queuedInputFocus=null;openingMonthPromise=null;periodStatus='draft';periodWorkflow=null;collapsedCards.clear();expandedProgressCards.clear();
  }
- async function activate(){if(!auth||auth.admin||auth.role==='teacher'||!account||initializing)return;
+ async function activate(){if(!auth||auth.admin||['teacher','staff'].includes(auth.role)||!account||initializing)return;
  if(loadedSchoolSemis!==account.semis){clearSchoolSession();loadedSchoolSemis=account.semis}
  initializing=true;try{
  shell();let r=await api('load-setup');setupVersion=r.version;setup=r.setup;
@@ -678,9 +678,9 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  refreshHandle=setInterval(()=>{if(!document.hidden&&schoolPeriod&&auth&&!auth.admin&&stage===5&&!progressDirty.size)loadEntries()},18000);
  }
  bind();
- const originalPostLogin=postLogin;postLogin=async function(result){await originalPostLogin(result);if(!auth.admin&&auth.role!=='teacher'){await activate();dashTab('overview',document.querySelector('#schoolTabs button'));}return result};
+ const originalPostLogin=postLogin;postLogin=async function(result){await originalPostLogin(result);if(!auth.admin&&!['teacher','staff'].includes(auth.role)){await activate();dashTab('overview',document.querySelector('#schoolTabs button'));}return result};
  const otherDashTab=dashTab;dashTab=function(tab,button){if($s('studioPanel'))$s('studioPanel').classList.add('hidden');return otherDashTab(tab,button)};
  // Restore the studio if the school session existed before a page refresh.
- setTimeout(()=>{if(auth&&!auth.admin&&auth.role!=='teacher'&&account)activate().then(()=>dashTab('overview',document.querySelector('#schoolTabs button')))},1700);
+ setTimeout(()=>{if(auth&&!auth.admin&&!['teacher','staff'].includes(auth.role)&&account)activate().then(()=>dashTab('overview',document.querySelector('#schoolTabs button')))},1700);
  return{activate,openPeriod,startFollowingMonth,followingMonth,activePeriod:()=>schoolPeriod,review,showPanel,saveSetup,settle,setStatus:workflowAction,status:()=>periodStatus,refresh:loadEntries,markExported:async()=>{if(!schoolPeriod)return;try{const r=await api('load-workflow',{period:schoolPeriod});periodWorkflow=r.workflow;periodStatus=periodWorkflow.status;render()}catch(e){notify('Excel saved; refresh status to view the archive: '+e.message,true)}},unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
 })();
