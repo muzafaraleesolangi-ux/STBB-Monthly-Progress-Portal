@@ -289,6 +289,16 @@ function renderWorkflow(){
  const desc={draft:'Save as you work. Complete every subject to enable Final.',final:'Fields locked for review. Submit to enable Excel export.',submitted:'Submission complete. Export to store Excel in History.',exported:'Export saved in History. Month details are minimized.'}[periodStatus];
  return '<section class="premiumFlow '+safe(periodStatus)+'"><div class="flowSteps">'+stepsHTML+'</div><div class="flowActions">'+buttons+'</div><small class="flowMessage">'+desc+'</small></section>';
 }
+function renderSubmittedInsights(){
+ const all=assigned(),total=all.reduce((n,b)=>n+b.chapters.length,0),previous=all.reduce((n,b)=>n+Number(progressBy(b).previous||0),0),current=all.reduce((n,b)=>n+Number(progressBy(b).current||0),0);
+ const grades=[...new Set(all.map(b=>b.grade))].sort((a,b)=>b-a);
+ const metric=(name,value)=>'<span><small>'+safe(name)+'</small><b>'+safe(value)+'</b></span>';
+ let out='<details class="submittedInsights" '+(periodStatus==='submitted'?'open':'')+'><summary>✦ Complete School & Teaching Analytics · '+safe(schoolPeriod)+'</summary><div class="insightMeta"><b>'+safe(account?.school_name||'School')+'</b><small>SEMIS '+safe(account?.semis||'')+' · '+(account?.hm_gender==='female'?'Head Mistress':'Head Master')+': '+safe(account?.hm_name||'')+'</small></div>';
+ out+='<div class="submittedKpis">'+metric('Teachers',setup.teachers.length)+metric('Classes',grades.length)+metric('Subjects',all.length)+metric('Total Chapters',total)+metric('Previous Months',previous)+metric('This Month',current)+metric('Remaining',Math.max(0,total-previous-current))+'</div>';
+ out+='<div class="submittedTeachers">'+setup.teachers.map(t=>'<div><strong>'+safe(t.name)+'</strong><small>PID '+safe(t.pid)+' · '+safe(t.designation)+'</small><small>'+all.filter(b=>b.teacherId===t.id).length+' subjects · '+(t.classes||[]).map(g=>'Class '+roman[g]).join(', ')+'</small></div>').join('')+'</div>';
+ for(const g of grades){const books=all.filter(b=>b.grade===g);out+='<details class="submittedClass"><summary>Class '+roman[g]+' <small>'+books.length+' Subjects</small></summary>'+books.map(b=>{const p=progressBy(b),n=b.chapters.length,remain=Math.max(0,n-Number(p.previous||0)-Number(p.current||0));return '<div class="submittedSubject"><div><b>'+safe(b.name)+'</b><small>'+safe(tname(b.teacherId))+'</small></div><p><span>Total '+n+'</span><span>Previous '+(p.previous??0)+'</span><span>Current '+(p.current??0)+'</span><span>Remaining '+remain+'</span></p><small>Notebook '+safe(p.notebook??'—')+'% · Management '+safe(p.cleanliness||'—')+' · Feedback '+safe(p.feedback||'—')+'</small><small>Suggestion: '+safe(p.suggestion||'—')+'</small></div>'}).join('')+'</details>'}
+ out+='</details>';return out
+}
 function renderProgress(){
  const c=counts(),selected=filterTeacher==='all'?null:selectedTeacher(),list=assigned().filter(b=>!selected||b.teacherId===selected.id).sort((a,b)=>{
  const ca=progressVersions[a.id]>0&&fullyEntered(a)&&!progressDirty.has(a.id),cb=progressVersions[b.id]>0&&fullyEntered(b)&&!progressDirty.has(b.id);
@@ -302,6 +312,7 @@ function renderProgress(){
  if(available.length)html+='<div class="studioExistingSelect"><label>Existing subject<select id="studioExistingSubject"><option value="">Select subject</option>'+available.map(x=>'<option value="'+x.grade+'::'+safe(x.book.id)+'">Class '+roman[x.grade]+' · '+safe(x.book.name)+'</option>').join('')+'</select></label><button type="button" class="btn primary" data-progress-claimsubject>Assign Subject</button></div>';
  html+='</details>'}}
  html+=renderWorkflow();
+ if(periodStatus==='submitted'||periodStatus==='exported')html+=renderSubmittedInsights();
  html+='<div class="studioPendingStrip"><span><b data-quick-done>'+c.done+'</b> Complete</span><span><b data-quick-pending>'+c.left.length+'</b> Pending</span><span class="studioCountAlt"><b data-quick-total>'+c.total+'</b> Subjects</span></div>';
  html+='<div class="studioQuickTools"><label class="studioQuickSearch"><span>Find subject</span><input type="search" id="studioProgressSearch" value="'+safe(progressSearch)+'" placeholder="Search class, subject or teacher…" autocomplete="off"></label><div class="quickToolActions"><button type="button" class="ghostMini '+(!progressPendingOnly?'quickActive':'')+'" data-progress-show-all>All</button><button type="button" class="ghostMini '+(progressPendingOnly?'quickActive':'')+'" data-progress-pending>Pending Only</button></div></div><span class="studioResultsStatus" id="studioVisibleCount">'+list.length+' subjects</span><p class="studioMissing" id="studioFilteredEmpty" hidden>No matching subjects.</p>';
  if(c.left.length)html+='<details class="pendingBox" id="studioPendingList"><summary>'+c.left.length+' subject(s) still pending — see which</summary>'+c.left.map(b=>'<span>Class '+roman[b.grade]+' · '+safe(b.name)+' — '+safe(tname(b.teacherId))+'</span>').join('')+'</details>';
