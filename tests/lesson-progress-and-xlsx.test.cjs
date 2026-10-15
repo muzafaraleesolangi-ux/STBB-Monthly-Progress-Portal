@@ -1,6 +1,9 @@
 /* Master Proforma exact-field, mandatory completion, blank zeros & native Excel regression. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),{JSDOM}=require('jsdom');
 async function main(){
+ const guideSource=fs.readFileSync('progress-guidance-v4.js','utf8');
+ assert.doesNotMatch(guideSource,/\.observe\(document\.body\s*,\s*\{[^}]*attributes\s*:\s*true/,'Guide must not observe document.body attributes (infinite self-triggering mutation loop)');
+ assert.match(guideSource,/observer\.observe\(studioBody,\{childList:true\}\)/,'Guide observes only school content replacement, not its own class mutations');
  const source=fs.readFileSync('MPR_Online_Editor.html','utf8');
  const start=source.indexOf('const XLSX_PARTS = '),end=source.indexOf(';\n',start);
  assert.ok(start>0&&end>start,'Embedded master workbook package available');
