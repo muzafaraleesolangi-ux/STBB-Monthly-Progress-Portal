@@ -3,7 +3,7 @@ const SharedStaff=(()=>{
 const root=document.getElementById('teacherdash');
 if(!root)return{activate:async()=>{}};
 const API='https://oypqcizrlhdouygvazyb.supabase.co/functions/v1/mpr-workspace-v2',r=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'],ratings=['Excellent','Very Good','Good','Fair','Needs Improvement'],escapeText=v=>esc(v??''),$=q=>root.querySelector(q);
-let school=null,teachers=[],person=null,step='pick',month=null,period=new Date().toISOString().slice(0,7),dirty=false,busy=false,noticeText='',saveTimer=null,trail=[];
+let school=null,teachers=[],person=null,step='pick',month=null,period=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),dirty=false,busy=false,noticeText='',saveTimer=null,trail=[];
 const api=async(action,data={})=>{if(auth?.role!=='staff')throw Error('School staff login required');const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...data}),cache:'no-store'}),value=await res.json();if(!res.ok||value.error)throw Error(value.error||'Network failure');return value};
 const nid=prefix=>prefix+crypto.randomUUID().replace(/-/g,'');
 const cname=g=>'Class '+r[g];
