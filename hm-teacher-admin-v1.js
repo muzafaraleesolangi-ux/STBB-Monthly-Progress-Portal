@@ -1,9 +1,9 @@
 'use strict';
 /* Compact school details / team overview within the single school dashboard. */
 const HMTeacherAdmin=(()=>{
- const parent=document.getElementById('school-overview');if(!parent)return{refresh:async()=>{}};
+ const parent=document.getElementById('school-teachers');if(!parent)return{refresh:async()=>{}};
  const block=document.createElement('section');block.id='hmTeacherAdmin';block.className='hmTeacherAdmin unifiedSchoolCard';
- block.innerHTML='<div class="hmAdminHeading"><div><span>SCHOOL SETTINGS</span><h2>School Information</h2><p>One school account for the whole teaching team. Save school details here; each teacher works in the Teachers & Subjects tab.</p></div><span class="hmAdminIcon">🏫</span></div><div id="hmSchoolForm"></div><div id="hmTeacherRoster"></div>';
+ block.innerHTML='<div class="hmAdminHeading"><div><span>SCHOOL SETTINGS</span><h2>School Details</h2><p>Save school details. Every teacher uses a name tab below.</p></div><span class="hmAdminIcon">🏫</span></div><div id="hmSchoolForm"></div><div id="hmTeacherRoster"></div>';
  parent.prepend(block);
  const $=q=>block.querySelector(q);
  function form(){
