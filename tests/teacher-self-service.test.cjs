@@ -43,7 +43,7 @@ async function main(){
  assert.equal(one('[data-staff-submit]').disabled,true,'HM submission locked until progress complete');
  const current=one('[data-staff-progress="current"]');current.value='3';current.dispatchEvent(new w.Event('change',{bubbles:true}));
  assert.equal(one('[data-staff-remaining]').textContent,'5','10 - 2 previous - 3 current = 5 remaining LIVE');
- assert.match(one('[data-staff-equation]').textContent,/10 .* 2 previous .* 3 this month.*5 remaining/);
+ assert.equal(one('[data-staff-equation]').textContent,'10 − (2 previous + 3 this month) = 5 remaining');
  assert.equal(one('[data-staff-submit]').disabled,true,'Editing does not prematurely enable submission');
  for(const [key,val] of [['notebook','80'],['cleanliness','Good'],['feedback','Excellent'],['suggestion','Improve revision']]){
   const el=one('[data-staff-progress="'+key+'"]');el.value=val;el.dispatchEvent(new w.Event('input',{bubbles:true}))
