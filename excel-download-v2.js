@@ -1,6 +1,6 @@
 'use strict';
 /* Single export delivery path shared by new Studio, legacy Editor, History and Android.
-   Cloud save happens BEFORE this helper is called by the submitting workflow. */
+   Cloud save happens BEFORE download. Original workbook is always retained in History. */
 window.MPRDownloads=(()=>{
  const MIME='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
  const MAX_B64=4400000;
@@ -32,13 +32,6 @@ window.MPRDownloads=(()=>{
  }
  function saveExcel(base64,name){
   const safeName=filename(name);
-  // Native bridge does not hold portal credentials. It accepts only validated XLSX
-  // data for Android's ACTION_CREATE_DOCUMENT picker.
-  if(window.STBBAndroid&&typeof window.STBBAndroid.saveExcel==='function'){
-   if(typeof base64!=='string'||!base64.startsWith('UEs')||base64.length>MAX_B64)throw Error('Excel data is invalid');
-   window.STBBAndroid.saveExcel(base64,safeName);
-   return {mode:'android',message:'Excel archived. Choose a folder in Android Save dialog.'};
-  }
   const data=bytes(base64),blob=new Blob([data],{type:MIME});
   const {link}=showLink(blob,safeName);
   link.click();
