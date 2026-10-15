@@ -363,7 +363,7 @@ public final class MainActivity extends Activity {
             "if(auth.admin)return 'ADMIN';" +
             "if(typeof show!=='function'||typeof dashTab!=='function')return 'WAIT';" +
             "var a=Array.from(document.querySelectorAll('#schoolTabs button'));" +
-            "var b=a.find(function(x){return(x.getAttribute('onclick')||'').indexOf(\\\"dashTab('"+tab+"'\\\")>=0;});" +
+            "var b=a.find(function(x){var h=x.getAttribute('onclick')||'';return h.indexOf('dashTab(')>=0&&h.indexOf('"+tab+"')>=0;});" +
             "if(!b)return 'WAIT';show('schooldash');dashTab('"+tab+"',b);" +
             (index == 2 ? "setTimeout(function(){var m=document.getElementById('newMonthName');if(m)m.scrollIntoView({block:'center',behavior:'smooth'});},120);" : "") +
             "return 'OK';}catch(e){return 'ERROR';}})()";
