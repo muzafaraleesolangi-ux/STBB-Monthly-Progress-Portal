@@ -1,0 +1,87 @@
+/* Premium micro-typography, entry hints, admin navigation, export analytics. */
+#landing .hero-actions{position:relative;display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+#landing .welcomeCTA{position:relative;isolation:isolate;overflow:visible}
+.welcomeHint{position:absolute;left:50%;top:calc(100% + 13px);width:max-content;max-width:min(210px,80vw);transform:translate(-50%,-8px) scale(.94);opacity:0;pointer-events:none;z-index:50;display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid #7edcb8;background:linear-gradient(145deg,#ffffff,#effcf5);color:#185f4e;border-radius:12px;padding:10px 13px;box-shadow:0 10px 28px #032f2b44;font-weight:500;transition:opacity .45s ease,transform .45s ease;white-space:normal}
+.welcomeHint strong{font-size:11px;font-weight:850;letter-spacing:.1px}.welcomeHint small{font-size:10px;color:#467b6b;font-weight:600}
+.welcomeHint:before{content:"";position:absolute;left:calc(50% - 6px);top:-7px;width:12px;height:12px;transform:rotate(45deg);background:#fff;border-top:1px solid #7edcb8;border-left:1px solid #7edcb8}
+.welcomeHint.show{opacity:1;transform:translate(-50%,0) scale(1);animation:hintFloat 3.4s ease-in-out infinite alternate}
+.welcomeHint.fadeOut{opacity:0;transform:translate(-50%,-8px) scale(.96);animation:none}
+@keyframes hintFloat{from{filter:drop-shadow(0 0 0 transparent)}to{filter:drop-shadow(0 4px 8px #0cc49d45)}}
+.dashboardNavigation.premiumNav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dashboardNavigation.premiumNav button{font-weight:750;font-size:11px;border:1px solid #c4e1d5;border-radius:11px;background:linear-gradient(160deg,#fff,#f0fbf5);color:#176859;min-height:36px;padding:8px 12px;box-shadow:0 4px 15px #0e574b13;transition:transform .2s,box-shadow .2s}
+.dashboardNavigation.premiumNav button:hover{transform:translateY(-2px);box-shadow:0 8px 17px #0c75512b}
+.portalSoundToggle{border-radius:9px;background:#eef8f2;color:#247363;border:1px solid #d1e5da;font-size:10px;font-weight:850;padding:7px 10px}
+.adminHomeOverview{background:#fff;border:1px solid #dbece5;border-radius:18px;padding:22px}
+.adminHomeLead{background:linear-gradient(120deg,#064f57,#0d947b);border-radius:16px;padding:25px;color:#fff}
+.adminHomeLead span{font-size:10px;letter-spacing:.15em;font-weight:850;color:#bcf7df}
+.adminHomeLead h2{font-size:24px;margin:7px 0 5px;color:#fff}
+.adminHomeLead p{font-size:12px;color:#e0fff6;margin:0}
+.adminHomeNumbers,.insightGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:17px 0}
+.adminHomeNumbers>div,.insightMetric{border:1px solid #d9eae2;border-radius:14px;padding:15px;background:linear-gradient(145deg,#fff,#f6fcf8)}
+.adminHomeNumbers small,.insightMetric small{display:block;color:#618079;font-size:11px;font-weight:750}
+.adminHomeNumbers strong,.insightMetric strong{display:block;color:#0b806b;font-size:26px;margin-top:5px}
+.adminHomeActions{display:flex;flex-wrap:wrap;gap:8px}
+.adminHomeActions button{flex:1;min-width:140px;padding:14px;border-radius:13px;border:1px solid #cde8d9;background:#eef9f2;color:#176c58;font-size:12px;font-weight:800;text-align:left;transition:transform .2s}
+.adminHomeActions button:hover{transform:translateY(-2px)}
+.adminHomeOverview h3{font-size:15px;margin-top:20px}
+.recentExportCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.recentExportCards>div{padding:13px;background:#f8fcfa;border:1px solid #d5e9e0;border-radius:12px;display:grid;gap:7px}
+.recentExportCards b{font-size:12px;overflow-wrap:anywhere}
+.recentExportCards small{font-size:10px;color:#617f76}
+.recentExportCards button{justify-self:start;border-radius:9px;padding:7px 11px;background:#e1f6eb;color:#0c896e;font-size:11px;font-weight:800}
+.exportHistorySummary{display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:11px 16px;margin-bottom:14px;border-radius:13px;border:1px solid #b8e3d0;background:#f1fff8}
+.exportHistorySummary strong{font-size:13px;color:#08775b}.exportHistorySummary small{font-size:11px;color:#50816c}
+.exportInsightModal{position:fixed;z-index:1800;inset:0;display:flex;align-items:center;justify-content:center;padding:13px}
+.exportInsightModal.hidden{display:none!important}
+.insightShade{position:absolute;inset:0;background:#091e24be;backdrop-filter:blur(7px)}
+.insightFrame{position:relative;background:#fff;border-radius:21px;border:1px solid #c9e9df;max-width:min(1100px,100%);max-height:calc(100vh - 26px);display:flex;flex-direction:column;overflow:hidden;width:100%;box-shadow:0 25px 90px #001d2090;animation:insightEnter .3s cubic-bezier(.2,.9,.2,1) both}
+.insightTop{background:linear-gradient(110deg,#074f54,#099b79);padding:17px 21px;color:#fff;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.insightTop small{font-size:10px;letter-spacing:.13em;color:#abf5dc}
+.insightTop h2{font-size:18px;color:#fff;margin:5px 0 0}
+.insightTop>div:last-child{display:flex;gap:7px}
+.insightTop button{border-radius:10px;background:#ffffff20;color:#fff;border:1px solid #ffffff55;padding:8px 12px}
+.insightBody{overflow:auto;padding:18px}
+.insightSchool{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.insightSchool>div:first-child small{color:#208c70;font-size:10px;letter-spacing:.09em;font-weight:800}
+.insightSchool h3{font-size:20px;margin:7px 0;color:#104d49}
+.insightSchool p{font-size:12px;color:#678078}
+.insightFile{display:grid;gap:6px;max-width:360px;background:#ecfaf4;border:1px solid #b9e7ce;padding:14px;border-radius:13px}
+.insightFile span{font-weight:850;font-size:10px;color:#068667}
+.insightFile b{overflow-wrap:anywhere;font-size:12px;color:#20534b}
+.insightFile small{font-size:10px;color:#607d70}
+.insightFile button{justify-self:start;padding:9px 12px;font-size:11px}
+.insightGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.insightSectionTitle{font-size:14px;color:#225e52;margin:20px 0 9px}
+.insightTeacherGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px}
+.insightTeacherGrid article{display:grid;gap:5px;background:#f6fbf8;border:1px solid #d7ede1;border-radius:12px;padding:12px}
+.insightTeacherGrid b{font-size:12px;color:#196454}.insightTeacherGrid small{font-size:10px;color:#587a71}
+.insightGrade{border:1px solid #cce7d9;border-radius:15px;margin-top:12px;overflow:hidden}
+.insightGrade>header{background:linear-gradient(100deg,#e3faf0,#f5fcf8);padding:11px 13px;display:flex;justify-content:space-between}
+.insightGrade>header b{font-size:12px;color:#0c8668}.insightGrade>header small{font-size:10px;color:#5c8677}
+.insightSubjects{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;padding:12px}
+.insightSubjects article{border:1px solid #d1eade;border-left:3px solid #10b687;padding:12px;border-radius:12px;background:#fff}
+.insightSubHead{display:flex;justify-content:space-between;gap:8px;align-items:start}
+.insightSubHead strong{display:block;font-size:12px;color:#165b4a}.insightSubHead small{font-size:10px;color:#5c8472}.insightSubHead>span{font-size:10px;border-radius:99px;background:#e0f8ec;color:#0a9470;padding:5px 7px}
+.insightBar{height:5px;background:#e6f2ed;border-radius:6px;margin:9px 0;overflow:hidden}.insightBar i{display:block;height:100%;background:linear-gradient(90deg,#05a988,#23cca1)}
+.insightStatRow{display:flex;flex-wrap:wrap;gap:7px}.insightStatRow span{font-size:10px;background:#eff9f3;color:#53776c;padding:5px 8px;border-radius:8px}
+.insightDetails{border-top:1px solid #ebf1ed;margin-top:9px;padding-top:6px}.insightDetails p{font-size:10px;line-height:1.5;color:#557268;margin:5px 0}.insightDetails b{color:#236151}
+.insightLoading{padding:30px;text-align:center;font-size:12px}
+.premiumAssignCard{border:1px solid #c7dfd5!important;border-left:3px solid #b4d0c5!important;border-radius:12px!important;background:#fafdfb!important;padding:9px!important;box-shadow:0 4px 13px #224b3810;transition:transform .2s,background .2s,box-shadow .2s}
+.premiumAssignCard.picked{border-color:#83d5ac!important;border-left:4px solid #06a77c!important;background:linear-gradient(110deg,#e6fff1,#f8fffb)!important;box-shadow:0 7px 20px #00a87b16!important;animation:pickRise .34s ease-out both}
+.premiumAssignCard:hover{transform:translateY(-2px);box-shadow:0 8px 21px #14594a23}
+.premiumAssignCard.picked .assignmentSelect strong:before{content:"✓ ";color:#07996f;font-weight:900}
+.assignmentGradeCard{border:1px solid #cbe4d8!important;border-radius:17px!important;box-shadow:0 10px 26px #0e574613!important}
+.assignmentGradeHead{background:linear-gradient(110deg,#f0fbf6,#f9fefb);border-radius:13px}
+.assignmentSubjectRow strong{font-size:12px!important}.assignmentSubjectRow small{font-size:10px!important;line-height:1.35!important}
+.teacherRailCard{border-radius:14px!important;transition:transform .2s,box-shadow .2s!important}
+.teacherRailCard.current{box-shadow:0 6px 19px #049d7c25!important;border:1px solid #0db28e!important}
+.studioCard h3{letter-spacing:-.2px}
+.fastProgressCard .progressCardHeader h3{font-size:15px!important}
+.fastProgressCard .masterField>span{font-size:11px!important}
+.fastProgressCard .masterField select{font-size:12px!important;min-height:40px!important}
+.fastProgressCard .progressState{font-size:10px!important}
+@keyframes pickRise{from{opacity:.6;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes insightEnter{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:680px){.adminHomeNumbers{grid-template-columns:repeat(2,minmax(0,1fr))}.insightGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.insightTop h2{font-size:14px}.insightBody{padding:12px}.insightSchool h3{font-size:17px}.insightSubjects{grid-template-columns:1fr}.portalSoundToggle{padding:6px}}
+@media(max-width:420px){.dashboardNavigation.premiumNav{width:100%;justify-content:flex-end}.insightTop{padding:12px}.insightFrame{max-height:calc(100vh - 12px)}.exportInsightModal{padding:6px}.welcomeHint{max-width:180px}}
+@media(prefers-reduced-motion:reduce){.welcomeHint,.insightFrame,.premiumAssignCard.picked{animation:none!important;transition:none!important}}
