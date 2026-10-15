@@ -48,6 +48,13 @@ async function main(){
  const click=selector=>one(selector).click();
  const change=(selector,value)=>{const el=one(selector);el.value=value;el.dispatchEvent(new w.Event('input',{bubbles:true}))};
  const book=id=>Object.values(studio.getSetup().books).flat().find(x=>x.id===id);
+ studio.stage(2);
+ click('[data-class-clear="t2"]');
+ assert.equal(studio.getSetup().teachers[1].classes.length,0,'Class shortcuts can clear the selected teacher only');
+ click('[data-class-all="t2"]');
+ assert.deepEqual(Array.from(studio.getSetup().teachers[1].classes).sort(),[4,5],'Teacher can select all offered classes in one click');
+ assert.deepEqual(Array.from(studio.getSetup().teachers[0].classes).sort(),[4,5],'Other teachers unaffected by class shortcut');
+ studio.stage(3);
  assert.equal(d.querySelectorAll('[data-assign-bid]').length,5,'Existing subjects offered by checklist');
  click('[data-assign-bid="5-english"]');
  assert.equal(book('5-english').teacherId,'t1');
