@@ -22,8 +22,8 @@ function details(){return '<section class="teacherTopCard"><span>STEP 2 · TEACH
 function classes(){return '<section class="teacherTopCard"><span>STEP 3 · CLASSES I–XII</span><h2>Which Classes Do You Teach?</h2><p>Choose as many classes as you need — Primary, Middle, Matric and Intermediate.</p></section><div class="teacherGradeGrid">'+classOpts().map(g=>'<label class="teacherGradeChoice '+(person.classes.includes(g)?'picked':'')+'"><input type="checkbox" data-staff-class="'+g+'" '+(person.classes.includes(g)?'checked':'')+'><strong>'+cname(g)+'</strong><small>'+(g<=5?'Primary':g<=8?'Middle':g<=10?'Matric':'Inter')+'</small></label>').join('')+'</div>'+footer('subjects')}
 function render(){renderShell();$('#teacherView').innerHTML=!person||step==='pick'?picker():step==='details'?details():step==='classes'?classes():step==='subjects'?subjects():monthly();if(step==='subjects')populateCatalog();if(step==='month')refreshCalculations();shown(noticeText)}
 async function activate(){root.classList.remove('hidden');person=null;month=null;step='pick';try{const data=await api('staff-load');school=data.school;teachers=data.teachers||[];render()}catch(err){shown(err.message)}}
-async function pick(id){if(dirty&&!await save())return;try{person=(await api('staff-select',{teacher_id:id})).profile;person.classes=(person.classes||[]).map(Number);month=null;dirty=false;step='details';render()}catch(err){shown(err.message)}}
-function create(){person={id:nid('staff_'),name:'',pid:'',designation:'',classes:[],subjects:[]};dirty=true;editRevision++;step='details';month=null;render()}
+async function pick(id){if(dirty&&!await save())return;try{person=(await api('staff-select',{teacher_id:id})).profile;person.classes=(person.classes||[]).map(Number);person.staffRev=Number(person.staffRev||0);month=null;dirty=false;step='details';render()}catch(err){shown(err.message)}}
+function create(){person={id:nid('staff_'),name:'',pid:'',designation:'',classes:[],subjects:[],staffRev:0};dirty=true;editRevision++;step='details';month=null;render()}
 function edited(){dirty=true;editRevision++;const flag=$('#staffDraftFlag');if(flag)flag.textContent='● Unsaved changes';clearTimeout(saveTimer);saveTimer=setTimeout(()=>{if(!busy&&dirty&&person?.name&&person?.pid&&person?.designation)save(true)},1700)}
 async function save(silent=false){
  if(!person)return false;
@@ -36,7 +36,8 @@ async function save(silent=false){
   for(let attempt=0;attempt<4&&dirty;attempt++){
    const snapshot=JSON.parse(JSON.stringify(person)),started=editRevision;
    try{
-    await api('staff-save',{profile:snapshot});
+    const result=await api('staff-save',{profile:snapshot});
+    person.staffRev=Number(result.staff_revision??((person.staffRev||0)+1));
     if(started===editRevision){dirty=false;if(month)month.submitted=false}
     shown('✓ Saved to school cloud');
    }catch(err){shown('⚠ Save failed: '+err.message);return false}
