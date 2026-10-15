@@ -494,15 +494,27 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  }return t
  }
  async function review(){if(periodStatus!=='submitted')return notify('Submit the final Monthly Report before exporting.',true);if(!schoolPeriod)return notify('Open your reporting month first.',true);if(!assigned().length)return notify('Add and assign at least one subject and its total chapters / lessons before exporting.',true);if(assigned().some(b=>!b.chapters?.length))return notify('Total chapters / lessons are required for each assigned subject.',true);if(counts().left.length)return notify('Complete every master Proforma field for all '+counts().left.length+' pending subject(s) before reviewing.',true);
- try{await settle();await loadEntries();const data=compiled();
- // Save a versioned snapshot to support reopening the reviewed report next month.
- let result;
- try{result=await request('save-draft',{period:schoolPeriod,state:data,version});}catch(e){if(/changed|another teacher/i.test(e.message)){const r=await request('open-period',{period:schoolPeriod,initial_state:data});version=r.version;result=await request('save-draft',{period:schoolPeriod,state:data,version})}else throw e}
- version=result.version;pendingState=null;
- notify('✓ Final review snapshot saved. Download Excel from the preview below.');
- const btn=document.querySelectorAll('#schoolTabs button')[2];dashTab('editor',btn);
- const frame=$s('editor');const launch=()=>{frame.contentWindow.postMessage({type:'mpr-hydrate',state:data},location.origin);setTimeout(()=>{const d=frame.contentDocument;d?.querySelector('[data-page="export"]')?.click();d?.querySelectorAll('input,select,textarea').forEach(el=>el.disabled=true);},220)};
- if(frame.contentDocument?.readyState==='complete')launch();else frame.addEventListener('load',launch,{once:true});
+ try{
+  await settle();
+  await loadEntries();
+  if(periodStatus!=='submitted')throw Error('This month must be Submitted before Excel Export.');
+  const data=compiled();
+  // The month is already submitted: DO NOT force a legacy Draft save here.
+  // That extra write could conflict or block the valid Submitted->Exported flow.
+  period=schoolPeriod;
+  pendingState=null;
+  notify('✓ Generating the original Excel Proforma and saving to cloud History…');
+  dashTab('editor',document.querySelectorAll('#schoolTabs button')[1]);
+  const frame=$s('editor');
+  if(!frame?.contentWindow)throw Error('Excel editor is not available; reload the page.');
+  const launch=()=>{
+   frame.contentWindow.postMessage({type:'mpr-hydrate',state:data,autoExport:true,period:schoolPeriod},location.origin);
+   // Avoid stale editable inputs while Submitted; the iframe confirms hydration
+   // before automatically generating the file.
+   setTimeout(()=>{frame.contentDocument?.querySelectorAll('input,select,textarea').forEach(el=>el.disabled=true)},250);
+  };
+  if(frame.contentDocument?.readyState==='complete')launch();
+  else frame.addEventListener('load',launch,{once:true});
  }catch(e){notify('Cannot export yet: '+e.message,true);alert(e.message)}
  }
  function findBook(g,id){return (setup.books[g]||[]).find(b=>b.id===id)}
