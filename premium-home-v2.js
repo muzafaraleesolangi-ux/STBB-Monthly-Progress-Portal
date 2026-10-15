@@ -4,16 +4,16 @@ const landing=document.querySelector('#landing'),hero=landing?.querySelector('.h
 if(!landing||!hero||!portrait)return;
 portrait.insertAdjacentHTML('beforeend','<span class="devSpark one" aria-hidden="true"></span><span class="devSpark two" aria-hidden="true"></span>');
 const title=hero.querySelector('h1');if(title){title.innerHTML='Smarter reporting.<br><em>Stronger school progress.</em>'}
-const text=hero.querySelector('p');if(text)text.textContent='A connected academic workspace for Sindh schools. Create one school account. All teachers use its shared password, choose their own name tabs, pick classes I–XII, manage subjects and save monthly progress from their phones. HM Office uses an additional private PIN. Review together, save securely, and export the original Excel Proforma.';
+const text=hero.querySelector('p');if(text)text.textContent='A connected academic workspace for Sindh schools. Create one school account. All teachers use its shared password, choose their own name tabs, pick classes I–XII, manage subjects and save monthly progress from their phones. One login opens school details, teacher tabs, reporting and Excel History together.';
 const ribbon=document.createElement('div');ribbon.className='premiumRibbon';ribbon.innerHTML='<span>✦ Classes I–XII · Primary to Inter</span><span>✦ One SEMIS School Account</span><span>✦ Cloud Drafts & Excel Export</span><span>✦ Protected Administrator</span>';
 const cards=landing.querySelector('.cardsection');if(cards)cards.after(ribbon);
 const steps=cards?.querySelectorAll('.panel');if(steps?.length===3){
 steps[0].querySelector('h2').textContent='Set up your school';
 steps[0].querySelector('.desc').textContent='Create the school account once. Head Master saves school details; teachers create their own name tabs and update their data.';
 steps[1].querySelector('h2').textContent='Every teacher contributes';
-steps[1].querySelector('.desc').textContent='One shared school password opens teacher name tabs. Every teacher picks classes, subjects and chapter totals, then completes their monthly report.';
+steps[1].querySelector('.desc').textContent='The single school sign-in opens one dashboard with teacher name tabs. Every teacher picks classes, subjects and chapter totals, then completes their monthly report.';
 steps[2].querySelector('h2').textContent='Review & export';
-steps[2].querySelector('.desc').textContent='HM reviews all teacher submissions, confirms Final, and exports the official one-sheet Excel workbook to permanent History.';
+steps[2].querySelector('.desc').textContent='Review teacher submissions, finalize the school report and save the original Excel workbook to school History.';
 }
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 if(!reduceMotion&&matchMedia('(pointer:fine)').matches){
