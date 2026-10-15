@@ -299,3 +299,34 @@
 @media(max-width:700px){.inlineProgressCells{grid-template-columns:repeat(2,minmax(0,1fr))}.inlineProgressCells>div,.inlineProgressCells>label{min-height:115px;padding:12px 8px}.inlineProgressCells input[data-progress-metric]{font-size:29px}}
 @media(max-width:340px){.inlineProgressCells{gap:7px}.inlineProgressCells>div,.inlineProgressCells>label{padding:9px 4px}}
 @media(prefers-reduced-motion:reduce){.inlineProgressCells>label.editableMetric{transition:none}}
+
+/* 2026 quick-fill usability review: shorter monthly forms and obvious next action */
+.studioShortcuts{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px;position:relative;z-index:2}
+.studioShortcuts button{background:#fff2;color:#eefef5;border:1px solid #ffffff65;padding:10px 14px;border-radius:12px;font-size:12px;font-weight:850;cursor:pointer;transition:transform .2s,background .2s}
+.studioShortcuts button:hover{transform:translateY(-2px);background:#fff4}
+.studioQuickTools{display:flex;gap:12px;align-items:end;flex-wrap:wrap;padding:15px 17px;border:1px solid #cce8da;border-radius:16px;background:#f2fcf6;margin:16px 0 9px}
+.studioQuickSearch{display:flex;flex-direction:column;gap:7px;flex:1;min-width:200px;font-size:11px;font-weight:850;color:#376f60}
+.studioQuickSearch input{background:#fff;color:#1c6352;border:1px solid #b9dfcd;border-radius:11px;padding:12px 14px;min-height:45px;font-size:13px;width:100%;outline:none}
+.studioQuickSearch input:focus{border-color:#009b74;box-shadow:0 0 0 3px #069f7821}
+.quickToolActions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.quickToolActions button{min-height:44px;white-space:nowrap}
+.quickToolActions .quickActive{background:#0c8871;color:#fff;border-color:#0b8069}
+.studioResultsStatus{margin:0 5px 16px;color:#507d6b;font-size:11px;font-weight:850}
+.fastProgressCard{padding:15px 17px!important;margin:12px 0!important}
+.fastProgressCard[hidden]{display:none!important}
+.fastProgressCard .progressCardHeader h3{font-size:16px;margin:5px 0}
+.fastProgressCard .progressCardHeader small{font-size:10px}
+.fastProgressCard .chapterKpis{margin:12px 0 8px;gap:8px}
+.fastProgressCard .inlineProgressCells>div,.fastProgressCard .inlineProgressCells>label{min-height:91px;padding:9px 6px}
+.fastProgressCard .inlineProgressCells>div b,.fastProgressCard .inlineProgressCells input{font-size:26px;min-height:34px}
+.fastProgressCard .inlineProgressCells small{margin-top:2px;font-size:10px}
+.fastProgressCard .inlineProgressCells .editHint{margin-top:1px;font-size:9px}
+.fastProgressCard .barBg{margin:9px 0}
+.fastProgressCard .progressPlannerActions{margin:8px 0;align-items:center}
+.fastProgressCard .progressPlannerActions button{font-size:11px}
+.fastProgressCard .progressFields{animation:studioUp .2s ease; padding:16px 0 6px;border-top:1px solid #e1f0e8;margin-top:10px}
+.fastProgressCard .subjectBottom{padding-top:9px;margin-top:5px;border-top:1px solid #eef3ef}
+.fastProgressCard .subjectBottom .btn{font-size:11px}
+@media(max-width:720px){.studioQuickTools{padding:12px}.studioQuickSearch{flex-basis:100%}.quickToolActions{width:100%}.quickToolActions>button{flex:1;font-size:11px}.studioShortcuts{width:100%}.studioShortcuts button{flex:1}.fastProgressCard .inlineProgressCells>div,.fastProgressCard .inlineProgressCells>label{min-height:88px;padding:8px 6px}.fastProgressCard .inlineProgressCells>div b,.fastProgressCard .inlineProgressCells input{font-size:24px}}
+@media(max-width:420px){.fastProgressCard{padding:12px!important}.quickToolActions>button:last-child{flex-basis:100%}}
+@media(prefers-reduced-motion:reduce){.studioShortcuts button{transition:none}.fastProgressCard .progressFields{animation:none}}
