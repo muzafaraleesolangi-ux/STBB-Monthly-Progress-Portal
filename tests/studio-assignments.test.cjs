@@ -62,7 +62,7 @@ async function main(){
  await studio.settle();
  click('[data-assignment-teacher="1"]');
  await new Promise(ok=>setTimeout(ok,40));
- assert.equal(one('[data-assign-bid="5-english"]').disabled,true,'Another teacher\'s subject remains visible but locked');
+ absent('[data-assign-bid="5-english"]');assert.equal(d.querySelectorAll('.subjectHiddenDetails').length,0,'Other teacher subjects cannot be seen or picked');
  one('[data-assign-bid="5-maths"]');one('[data-assign-bid="4-english"]');
  click('[data-assign-bid="4-english"]');
  assert.equal(book('4-english').teacherId,'t2','Same subject name in a different class can have different teacher');
@@ -103,7 +103,7 @@ async function main(){
  click('[data-assignment-teacher="0"]');
  await new Promise(ok=>setTimeout(ok,40));
  assert.equal(one('[data-assign-bid="5-english"]').checked,true);
- assert.equal(one('[data-assign-bid="5-maths"]').disabled,true,'Other teacher\'s subject shown but locked');
+ absent('[data-assign-bid="5-maths"]');assert.ok(one('.premiumAssignCard.picked'),'Assigned subjects use visibly different premium cards');
  assert.equal(book('4-english').teacherId,'t2');
  assert.ok(saveCount>=3,'Cloud saves occurred');
  // Regression: an older school account with a missing textbook master must show all classes by default.
@@ -165,7 +165,7 @@ async function main(){
  assert.equal(d.querySelector('[data-progress-details]'),null,'No Notebook/Test/Assessment fields in progress');
  await studio.settle();
  dom.window.close();
- console.log('PASS: checklist, overlapping teacher classes, exclusive class-subject assignment, bulk tick, collapse, add/edit/remove, saves');
+ console.log('PASS: assigned subjects hidden from other teachers, premium picked cards, overlapping classes, unique assignments, classwise bulk selection, chapter count edits');
 }
 const watchdog=setTimeout(()=>{console.error('DOM test timed out at 15 seconds');process.exit(2)},15000);
 main().then(()=>{clearTimeout(watchdog);process.exit(0)}).catch(e=>{clearTimeout(watchdog);console.error(e);process.exit(1)});
