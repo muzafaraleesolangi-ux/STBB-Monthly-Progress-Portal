@@ -18,7 +18,27 @@ const Studio=(()=>{
  progressEntries={},saveTimers={},progressDirty=new Set(),progressBusy=new Set(),filterTeacher='all',warnings=[],refreshHandle=null,initializing=false,setupConflict=false,assignmentTeacherIndex=0,assignmentEditorId='',assignmentEditorDraft=null,addingSubjectGrade=null,assignmentCollapsedGrades=new Set(),expandedLessonProgress='',lessonNameDraft=null,openingMonthPromise=null,queuedFirstInputs=new Map(),queuedInputFocus=null,detailsOpen=new Set(),progressSearch='',progressPendingOnly=false,rememberTeacher=false,loadedSchoolSemis=null,periodStatus='draft',periodWorkflow=null,collapsedCards=new Set(),expandedProgressCards=new Set();
  const $s=id=>document.getElementById(id);
  const clone=x=>structuredClone(x),safe=x=>esc(x),roman={1:'I',2:'II',3:'III',4:'IV',5:'V',6:'VI',7:'VII',8:'VIII',9:'IX',10:'X',11:'XI',12:'XII'};
- async function api(action,body={}){if(!auth?.token)throw Error('Please sign in');const r=await fetch(V2,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...body}),cache:'no-store'});const a=await r.json().catch(()=>({}));if(!r.ok||a.error)throw Error(a.error||'Cloud request failed');return a}
+ async function api(action,body={}){
+  if(!auth?.token)throw Error('Please sign in');
+  // Retry reads only: a failed response to a write may already have committed.
+  const attempts=['load-period','load-workflow','load-setup'].includes(action)?3:1;
+  for(let attempt=0;attempt<attempts;attempt++){
+   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+   try{
+    const r=await fetch(V2,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...body}),cache:'no-store',signal:controller.signal});
+    const a=await r.json();
+    if(!r.ok||a.error){const error=Error(a.error||'Cloud request failed ('+r.status+')');error.httpStatus=r.status;throw error}
+    return a;
+   }catch(error){
+    const temporary=!error.httpStatus||[502,503,504].includes(error.httpStatus)||/JWT issued at future/i.test(error.message);
+    if(!temporary||attempt===attempts-1){
+     if(temporary)throw Error(attempts>1?'Cloud connection is temporarily unavailable. Your saved report is unchanged. Please retry Sync or Export.':'The cloud did not confirm this save. Please Sync before retrying.');
+     throw error;
+    }
+   }finally{clearTimeout(timer)}
+   await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));
+  }
+ }
  function notify(message,bad=false){const box=$s('studioAlert');if(box){box.textContent=message;box.className='studioAlert'+(bad?' bad':'')}if(bad)console.warn(message)}
  function selectedGrades(){return numbers.filter(n=>setup?.selectedClasses?.includes(n))}
  function bookList(){return selectedGrades().flatMap(n=>(setup?.books?.[n]||[]).map(b=>({...b,grade:n})))}
@@ -411,7 +431,7 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  notify('✓ '+p+' opened'+note+'. Teachers, classes and subject assignments are preserved; only chapter counts are carried forward.');stage=5;render();await refreshSchool();
  }catch(e){notify(e.message,true)}
  }
- async function loadEntries(){if(!schoolPeriod)return;try{const readingMonth=schoolPeriod,list=await api('load-period',{period:readingMonth});if(readingMonth!==schoolPeriod)return;for(const x of list.entries){if(!progressDirty.has(x.book_id)&&!progressBusy.has(x.book_id)){progressEntries[x.book_id]=x;progressVersions[x.book_id]=x.version}}refreshProgressSummary();const active=document.activeElement,editing=active?.closest?.('#studioBody')&&/^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName);if(stage===5&&!editing&&!progressDirty.size&&!progressBusy.size&&$s('studioPanel')&&!$s('studioPanel').classList.contains('hidden'))render()}catch(e){notify('Refresh failed: '+e.message,true)}}
+ async function loadEntries({strict=false}={}){if(!schoolPeriod)return;try{const readingMonth=schoolPeriod,list=await api('load-period',{period:readingMonth});if(readingMonth!==schoolPeriod){if(strict)throw Error('Reporting month changed. Retry Export for the selected month.');return}if(!Array.isArray(list.entries))throw Error('Cloud returned incomplete subject progress. Please retry Sync.');for(const x of list.entries){if(!progressDirty.has(x.book_id)&&!progressBusy.has(x.book_id)){progressEntries[x.book_id]=x;progressVersions[x.book_id]=x.version}}refreshProgressSummary();const active=document.activeElement,editing=active?.closest?.('#studioBody')&&/^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName);if(stage===5&&!editing&&!progressDirty.size&&!progressBusy.size&&$s('studioPanel')&&!$s('studioPanel').classList.contains('hidden'))render();return true}catch(e){notify('Refresh failed: '+e.message,true);if(strict)throw e;return false}}
  function redrawProgressMetrics(bookId){
   const b=assigned().find(x=>x.id===bookId),card=[...document.querySelectorAll('[data-progress-card]')].find(x=>x.dataset.progressCard===bookId);
   if(!b||!card)return;
@@ -486,6 +506,7 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  async function settle(){if(stage===3&&!await saveAssignmentEditor())throw Error('Save the open subject editor before proceeding.');if(lessonNameDraft&&!await saveLessonNames())throw Error('Save the lesson name editor before continuing.');await settleSetup();for(let i=0;i<30&&(progressDirty.size||progressBusy.size);i++){await Promise.all([...progressDirty].filter(id=>!progressBusy.has(id)).map(id=>saveSubject(id)));if(progressDirty.size||progressBusy.size)await new Promise(resolve=>setTimeout(resolve,160))}if(progressDirty.size||progressBusy.size)throw Error('Some subject entries are not saved. Check connection or resolve concurrent edits.')}
  function compiled(){
  const t=clone(baseState||template);
+ const [reportYear,reportMonth]=schoolPeriod.split('-').map(Number);t.year=reportYear;t.month=monthLabels[reportMonth-1];
  t.schoolName=account.school_name;t.semis=account.semis;t.hmName=account.hm_name;t.hmDesignation=account.hm_gender==='female'?'HEAD MISTRESS':'HEAD MASTER';t.teachers=setup.teachers.map(x=>({id:x.id,name:x.name,pid:x.pid,designation:x.designation}));
  t.books=Object.fromEntries(selectedGrades().map(n=>[n,clone(setup.books[n]||[])]));
  for(const g of selectedGrades())for(const b of t.books[g]||[]){
@@ -496,7 +517,8 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  async function review(){if(periodStatus!=='submitted')return notify('Submit the final Monthly Report before exporting.',true);if(!schoolPeriod)return notify('Open your reporting month first.',true);if(!assigned().length)return notify('Add and assign at least one subject and its total chapters / lessons before exporting.',true);if(assigned().some(b=>!b.chapters?.length))return notify('Total chapters / lessons are required for each assigned subject.',true);if(counts().left.length)return notify('Complete every master Proforma field for all '+counts().left.length+' pending subject(s) before reviewing.',true);
  try{
   await settle();
-  await loadEntries();
+  await loadEntries({strict:true});
+  if(counts().left.length)throw Error('Some subjects are incomplete in the latest saved report. Reopen and complete them before exporting.');
   if(periodStatus!=='submitted')throw Error('This month must be Submitted before Excel Export.');
   const data=compiled();
   // The month is already submitted: DO NOT force a legacy Draft save here.
@@ -697,3 +719,4 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  setTimeout(()=>{if(auth&&!auth.admin&&!['teacher','staff'].includes(auth.role)&&account)activate().then(()=>dashTab('teachers',document.querySelector('#schoolTabs [data-workflow-tab="teachers"]')))},1700);
  return{activate,openPeriod,startFollowingMonth,followingMonth,activePeriod:()=>schoolPeriod,review,showPanel,exportMessage:(message,bad=false)=>notify(message,bad),saveSetup,settle,setStatus:workflowAction,status:()=>periodStatus,refresh:loadEntries,markExported:async()=>{if(!schoolPeriod)return;try{const r=await api('load-workflow',{period:schoolPeriod});periodWorkflow=r.workflow;periodStatus=periodWorkflow.status;render()}catch(e){notify('Excel saved; refresh status to view the archive: '+e.message,true)}},unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
 })();
+

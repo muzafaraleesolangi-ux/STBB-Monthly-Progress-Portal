@@ -25,7 +25,7 @@ async function main(){
  assert.ok(source.includes('blob.arrayBuffer()'),'Excel uses actual Blob bytes for reliable server upload');
  assert.doesNotMatch(source,/for\s*\(let\s+c\s+of\s+blob\)/,'Non-iterable Blob must never be looped over');
  assert.ok(source.includes('mpr-export-ack'),'Editor must show result of server History confirmation');
- const start=source.indexOf('const XLSX_PARTS = '),end=source.indexOf(';\n',start);
+ const start=source.indexOf('const XLSX_PARTS = '),end=source.indexOf(';',start);
  assert.ok(start>0&&end>start,'Embedded master workbook package available');
  const parts=JSON.parse(source.slice(start+'const XLSX_PARTS = '.length,end));
  const xml=Buffer.from(parts['xl/worksheets/sheet1.xml'],'base64').toString('utf8'),tmp=new JSDOM('').window;
@@ -37,10 +37,11 @@ async function main(){
  const school={selectedClasses:[5],subjectCatalogInitialized:{1:true,2:true,3:true,4:true,5:true,6:true,7:true,8:true},
   teachers:[{id:'t1',name:'Teacher One',pid:'111',designation:'PST',classes:[5]},{id:'t2',name:'Teacher Two',pid:'222',designation:'PST',classes:[5]}],
   books:{5:[{id:'5-english',name:'English',chapters:['A','B','C','D','E'],active:true,teacherId:'t1'},{id:'5-maths',name:'Mathematics',chapters:['One','Two','Three'],active:true,teacherId:'t2'}]}};
- const saved={},versions={};let reportStatus='draft',priorMonthRecords=null;const dom=new JSDOM('<html><body><section id="schooldash"><div id="schoolTabs"></div><div id="school-overview"></div><div id="school-editor"></div><iframe id="editor"></iframe></section></body></html>',{url:'https://portal.test/',runScripts:'outside-only',pretendToBeVisual:true});
+ const saved={},versions={};let reportStatus='draft',priorMonthRecords=null,refreshFailures=0,refreshCalls=0;const dom=new JSDOM('<html><body><section id="schooldash"><div id="schoolTabs"></div><div id="school-overview"></div><div id="school-editor"></div><iframe id="editor"></iframe></section></body></html>',{url:'https://portal.test/',runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window,d=w.document;w.structuredClone=global.structuredClone;w.scrollTo=()=>{};w.confirm=()=>true;w.alert=msg=>{throw Error('Unexpected alert: '+msg)};
  w.fetch=async(url,options={})=>{
   const data=JSON.parse(options.body||'{}');let result;
+  if(data.action==='load-period'){refreshCalls++;if(refreshFailures-->0){if(refreshFailures===0)return {ok:false,status:500,json:async()=>({error:'JWT issued at future'})};throw new TypeError('Failed to fetch')}}
   if(data.action==='load-setup')result={setup:school,version:1};
   else if(data.action==='load-workflow')result={workflow:{status:reportStatus}};
   else if(data.action==='set-workflow'){
@@ -119,7 +120,17 @@ async function main(){
  assert.equal(saved['5-maths'].notebook,0,'Explicit zero percent persists');
  const reviewFrame=one('#editor');
  reviewFrame.contentWindow.postMessage=message=>{if(message.type==='mpr-hydrate'){w.capturedReviewState=message.state;w.reviewAutoExport=message.autoExport;w.reviewMonth=message.period}};
+ refreshFailures=3;const beforeFailure=refreshCalls;let exportError='';w.alert=msg=>{exportError=msg};
  await studio.review();
+ assert.equal(refreshCalls-beforeFailure,3,'Transient reads retry at most three times');
+ assert.match(exportError,/temporarily unavailable/,'Export explains a persistent cloud failure');
+ assert.equal(w.capturedReviewState,undefined,'A failed refresh must never export stale progress');
+ assert.equal(studio.status(),'submitted','A failed refresh preserves submitted report status');
+ refreshFailures=1;const beforeRetry=refreshCalls;
+ await studio.review();
+ assert.equal(refreshCalls-beforeRetry,2,'Export recovers when a transient refresh failure clears');
+ assert.equal(w.capturedReviewState.month,'October','Excel derives its month from the selected reporting period');
+ assert.equal(w.capturedReviewState.year,2026,'Excel derives its year from the selected reporting period');
  assert.equal(w.reviewAutoExport,true,'Submitted month automatically generates Excel from hydrated state');
  assert.equal(w.reviewMonth,'2026-10','Exact reporting month is passed through to Excel');
  const review=w.capturedReviewState;assert.ok(review&&review.books[5].length===2,'Complete review snapshot generated for Excel');
@@ -161,3 +172,4 @@ async function main(){
 }
 const watchdog=setTimeout(()=>{console.error('DOM test timed out');process.exit(2)},20000);
 main().then(()=>{clearTimeout(watchdog);process.exit(0)}).catch(e=>{clearTimeout(watchdog);console.error(e);process.exit(1)});
+
