@@ -107,3 +107,70 @@
 .modalContextNav{display:flex;align-items:center;justify-content:flex-end;gap:7px;padding:10px 20px 0}
 .modalContextNav button{font-size:11px;font-weight:800;color:#17745e;border:1px solid #c3e3d3;border-radius:9px;background:#f0fcf5;padding:8px 11px}
 @media(max-width:480px){.modalContextNav{padding:8px 11px 0}}
+
+/* Month-wise HM workspace with permanent report sidebar and next-month handoff. */
+#schooldash.monthOrganized{display:grid;grid-template-columns:minmax(0,1fr) 242px;align-items:start;gap:14px 18px}
+#schooldash.monthOrganized>.heading,#schooldash.monthOrganized>.metrics,#schooldash.monthOrganized>.tabs{grid-column:1/-1;min-width:0}
+#schooldash.monthOrganized>#school-overview,#schooldash.monthOrganized>#school-editor,#schooldash.monthOrganized>#school-history,#schooldash.monthOrganized>#school-feedbackschool,#schooldash.monthOrganized>#studioPanel{grid-column:1;grid-row:4;min-width:0;max-width:100%}
+#schooldash.monthOrganized>#monthOrganizer{grid-column:2;grid-row:4;align-self:start;min-width:0}
+.monthOrganizer{position:sticky;top:15px;z-index:4;max-height:calc(100vh - 30px);display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(155deg,#fff,#f3fbf8);border:1px solid #c9e3d6;border-radius:17px;box-shadow:0 10px 32px #1454491a}
+.monthSidebarHeading{display:flex;justify-content:space-between;align-items:center;gap:7px;padding:14px;border-bottom:1px solid #e0f0e7;background:linear-gradient(130deg,#f0fcf6,#fff)}
+.monthSidebarHeading span{display:block;color:#15856b;font-size:9px;font-weight:850;letter-spacing:.1em}
+.monthSidebarHeading strong{display:block;color:#164f45;font-size:14px;font-weight:900;margin-top:3px}
+.monthSidebarHeading button{border-radius:8px;border:1px solid #bde6d3;background:white;color:#0e886d;padding:6px 9px;cursor:pointer}
+.monthSideContent{overflow:auto;min-height:55px;padding:10px}
+.monthSideContent>p{font-size:11px;color:#739286;padding:8px}
+.monthSideList{display:grid;gap:8px}
+.monthSideCard{border:1px solid #d8e8e0;border-left:3px solid #a9beb5;border-radius:12px;background:#fff;padding:8px 9px;transition:box-shadow .25s,transform .25s,border-color .25s}
+.monthSideCard:hover{transform:translateY(-1px);box-shadow:0 6px 17px #11584e15}
+.monthSideCard.exported{border-left-color:#0baa81;background:linear-gradient(120deg,#f5fff9,#fff)}
+.monthSideCard.submitted{border-left-color:#2c82dc;background:#f8fbff}
+.monthSideCard.final{border-left-color:#8d7bcf}
+.monthSideCard.selected{border-color:#10b48b;box-shadow:0 0 0 1px #0db38c2b}
+.monthSideOpen{border:0;background:transparent;width:100%;display:flex;justify-content:space-between;align-items:center;gap:6px;text-align:left;padding:1px 0;cursor:pointer}
+.monthSideTitle{font-size:12px;font-weight:900;color:#1e564d}
+.monthStatus{font-size:9px;padding:4px 6px;border-radius:99px;font-weight:800;white-space:nowrap;background:#f3f2ff;color:#77679d}
+.monthStatus.exported{background:#e1f9ed;color:#098d69}
+.monthStatus.submitted{background:#e9f3ff;color:#286fb3}
+.monthStatus.draft{background:#fff2dc;color:#97732b}
+.monthSideSub{font-size:10px;color:#668479;display:block;margin-top:6px}
+.monthAwaiting{display:block;color:#5279a5;font-size:10px;margin:6px 0}
+.monthSideFile{display:flex;gap:5px;align-items:center;background:#f0f9f4;border:1px solid #d1edda;border-radius:7px;margin-top:7px;padding:4px}
+.monthSideFile button{border:0;background:transparent;color:#168769;font-weight:750;font-size:10px;cursor:pointer}
+.monthSideFile button:first-child{flex:1;min-width:0;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;text-align:left}
+.monthSideFile button:last-child{font-size:15px;border-left:1px solid #d1e9dc;padding-left:6px}
+.monthSideBottom{border-top:1px solid #dbefe3;padding:10px 12px}
+.monthSideBottom button{width:100%;border-radius:10px;padding:11px 6px;background:linear-gradient(110deg,#0b7969,#0cbe91);color:#fff;border:0;box-shadow:0 7px 17px #0d937e32;font-weight:850;font-size:11px;cursor:pointer}
+.monthSideBottom small{display:block;text-align:center;font-size:9px;color:#769487;margin-top:7px;line-height:1.35}
+.monthTimelineHead{display:flex;justify-content:space-between;align-items:center;gap:9px;padding:13px 0}
+.monthTimelineHead span:first-child{font-size:9px;letter-spacing:.12em;color:#168f70;font-weight:900}
+.monthTimelineHead h3{font-size:18px;color:#144e44;margin:5px 0}
+.monthTimelineHead p{font-size:11px;line-height:1.5;color:#678578;max-width:550px}
+.monthTotal{background:#ecf9f2;padding:7px 11px;color:#168269;border-radius:99px;font-weight:850;font-size:11px;white-space:nowrap}
+.monthTimelineGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:16px}
+.monthTimelineCard{padding:13px;border-radius:14px;border:1px solid #d9e9e0;border-left:4px solid #d4b066;background:#fff;box-shadow:0 6px 20px #0c56430b;transition:transform .2s}
+.monthTimelineCard:hover{transform:translateY(-2px)}
+.monthTimelineCard.exported{border-left-color:#10b786;background:linear-gradient(130deg,#f5fdf8,#fff)}
+.monthTimelineCard.submitted{border-left-color:#3889cb}
+.monthTimelineTop{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.monthTimelineTop strong{font-size:13px;color:#174f45}
+.monthTimelineCard>small{display:block;font-size:10px;margin:9px 0;color:#729186}
+.monthTimelineActions{display:flex;gap:6px;flex-wrap:wrap}
+.monthTimelineActions button{padding:7px 10px;border:1px solid #cae7d6;border-radius:8px;background:#effbf3;color:#168066;font-weight:800;font-size:10px;cursor:pointer}
+.monthTimelineEmpty{padding:18px;background:#f8fdf9;border:1px dashed #c6e6d7;border-radius:11px;font-size:12px;color:#658477;grid-column:1/-1}
+.monthNextBanner{display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(120deg,#f0fcf5,#e5f9f0);border:1px solid #b7e8cc;border-radius:14px;padding:14px;margin-bottom:14px;flex-wrap:wrap}
+.monthNextBanner b{font-size:12px;color:#08775a}
+.monthNextBanner p{font-size:11px;color:#608476;max-width:530px;line-height:1.55;margin:4px 0}
+.monthNextBanner button,.flowAction.startNextMonth{border:1px solid #0a9f80;color:#fff;background:linear-gradient(110deg,#0a816b,#05c399);padding:11px 15px;border-radius:11px;font-size:11px;font-weight:900;cursor:pointer}
+@media(max-width:970px){
+ #schooldash.monthOrganized{display:flex;flex-direction:column;gap:12px}
+ #schooldash.monthOrganized>*,#schooldash.monthOrganized>#monthOrganizer{width:100%;max-width:100%}
+ #schooldash.monthOrganized>#monthOrganizer{position:relative;top:auto;max-height:none;order:1}
+ #schooldash.monthOrganized>.heading{order:0}
+ #schooldash.monthOrganized>.metrics{order:0}
+ #schooldash.monthOrganized>.tabs{order:0}
+ #schooldash.monthOrganized>#studioPanel,#schooldash.monthOrganized>#school-overview,#schooldash.monthOrganized>#school-editor,#schooldash.monthOrganized>#school-history,#schooldash.monthOrganized>#school-feedbackschool{order:2}
+ .monthSideContent{max-height:165px;overflow-y:auto}
+ .monthSideList{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+}
+@media(prefers-reduced-motion:reduce){.monthSideCard,.monthTimelineCard{transition:none!important}}
