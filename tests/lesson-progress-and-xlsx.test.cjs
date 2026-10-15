@@ -71,7 +71,7 @@ async function main(){
   "const auth={token:'fixture',admin:false},account={semis:'123456789',school_name:'Fixture School',hm_name:'HM'},template={books:{}};",
   "let period=null,version=0,pendingState=null,periods=[],saving=false,saveTimer=null;",
   "async function postLogin(){}", "function dashTab(){}","function refreshSaveDock(){}",
-  "async function request(action,body={}){if(action==='open-period')return{version:1,state:body.initial_state};if(action==='save-draft'){window.capturedReviewState=body.state;return{version:2}};return {}}",
+  "async function request(action,body={}){if(action==='open-period')return{version:1,state:body.initial_state};if(action==='save-draft')throw Error('Do not save a Draft after report has been Submitted');return {}}",
   "async function refreshSchool(){}",
   "function esc(x){return String(x??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('\\\"','&quot;')}"
  ].join('\n');
@@ -117,7 +117,11 @@ async function main(){
  assert.equal(one('[data-quick-pending]').textContent,'0');
  assert.equal(saved['5-maths'].previous,0,'Explicitly entered zero persists');
  assert.equal(saved['5-maths'].notebook,0,'Explicit zero percent persists');
+ const reviewFrame=one('#editor');
+ reviewFrame.contentWindow.postMessage=message=>{if(message.type==='mpr-hydrate'){w.capturedReviewState=message.state;w.reviewAutoExport=message.autoExport;w.reviewMonth=message.period}};
  await studio.review();
+ assert.equal(w.reviewAutoExport,true,'Submitted month automatically generates Excel from hydrated state');
+ assert.equal(w.reviewMonth,'2026-10','Exact reporting month is passed through to Excel');
  const review=w.capturedReviewState;assert.ok(review&&review.books[5].length===2,'Complete review snapshot generated for Excel');
  assert.equal(review.books[5][0].notebook,80,'Notebook maintenance percentage is carried into original Excel state');
  assert.equal(review.books[5][0].cleanliness,'Good','Classroom management rating preserved for export');
