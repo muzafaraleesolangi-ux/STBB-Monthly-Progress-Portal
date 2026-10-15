@@ -138,6 +138,32 @@ async function main(){
  await new Promise(ok=>setTimeout(ok,25));
  assert.equal(studio.getSetup().books[3].length,6,'Restore control does not duplicate standard subjects');
  await studio.settle();
+ // Class VI–VIII can begin without forcing HM to assign every subject.
+ // Teachers subsequently add their own teaching class, subject and required chapter total.
+ school={
+  selectedClasses:[6,7,8],subjectCatalogInitialized:{6:true,7:true,8:true},
+  teachers:[{id:'t1',name:'Teacher One',pid:'111',designation:'PST',classes:[8]}],
+  books:{6:[],7:[],8:[]}
+ };
+ cloudVersion++;
+ await studio.activate();
+ assert.ok(d.querySelector('[data-studio-refresh]'),'Upper-grade schools may start teacher workspace before subject setup');
+ assert.equal(studio.getSetup().selectedClasses.length,3,'Classes VI, VII and VIII retained');
+ click('[data-teacher-tab="t1"]');
+ const pick=one('#studioClassQuickPick');pick.value='7';
+ click('[data-progress-addclass]');
+ assert.ok(studio.getSetup().teachers[0].classes.includes(7),'Teacher adds another class by pick and click');
+ change('#studioNewSubjectName','Biology');
+ change('#studioNewSubjectTotal','9');
+ click('[data-progress-addsubject]');
+ const science=studio.getSetup().books[8].find(x=>x.name==='Biology');
+ assert.ok(science&&science.active,'Class VIII Biology assigned by teacher');
+ assert.equal(science.chapters.length,9,'Required chapter total saved as number; names are optional');
+ const totalInput=one('[data-progress-total="'+science.id+'"]');
+ totalInput.value='12';totalInput.dispatchEvent(new w.Event('change',{bubbles:true}));
+ assert.equal(studio.getSetup().books[8].find(x=>x.id===science.id).chapters.length,12,'Total lesson count remains editable');
+ assert.equal(d.querySelector('[data-progress-details]'),null,'No Notebook/Test/Assessment fields in progress');
+ await studio.settle();
  dom.window.close();
  console.log('PASS: checklist, overlapping teacher classes, exclusive class-subject assignment, bulk tick, collapse, add/edit/remove, saves');
 }
