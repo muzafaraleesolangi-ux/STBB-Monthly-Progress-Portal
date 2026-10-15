@@ -1,0 +1,32 @@
+/* STBB Premium Monthly Report • clean, mobile-first teacher workspace */
+.studioTeacherTabs{display:flex;align-items:stretch;gap:9px;max-width:100%;overflow-x:auto;scroll-snap-type:x proximity;padding:7px 2px 14px;margin:10px 0 18px;scrollbar-width:thin}
+.studioTeacherTabs button{white-space:nowrap;flex:0 0 auto;border:1px solid #cce4dc;border-radius:15px;background:#fff;color:#184b4a;padding:13px 17px;font-size:14px;font-weight:750;box-shadow:0 4px 14px #075f5012;scroll-snap-align:start;transition:background .2s,transform .2s,border-color .2s}
+.studioTeacherTabs button:hover{transform:translateY(-2px);border-color:#12a58a}
+.studioTeacherTabs button.selected{background:linear-gradient(130deg,#095e65,#0ca684);border-color:#007768;color:#fff;box-shadow:0 10px 24px #00887935}
+.studioAddPanel{margin:0 0 18px;padding:20px;border-radius:20px;background:linear-gradient(130deg,#eefbf5,#f8fcfa);border:1px solid #c8e9d9;box-shadow:0 6px 20px #085b4a0b}
+.studioAddPanel>strong{display:inline-block;color:#13534d;margin:0 12px 14px 0;font-size:16px}
+.studioAddFields{display:grid;grid-template-columns:minmax(100px,0.7fr) minmax(180px,1.5fr) minmax(135px,1fr) auto;gap:12px;align-items:end}
+.studioAddFields label,.progressManageRow label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:750;color:#3a6664}
+.studioAddFields input,.studioAddFields select,.progressManageRow input{min-height:42px;padding:9px 11px;background:#fff;color:#17443e;border:1px solid #c8ded7;border-radius:11px;outline:0;width:100%}
+.studioAddFields input:focus,.studioAddFields select:focus,.progressManageRow input:focus{border-color:#05a887;box-shadow:0 0 0 3px #08b89021}
+.progressManageRow{display:flex;align-items:end;flex-wrap:wrap;gap:10px;padding:12px 0;margin:8px 0 12px;border-top:1px solid #e1eeea}
+.progressManageRow label{min-width:130px;max-width:180px}
+.progressManageRow .ghostMini{align-self:center}
+.fastProgressCard{border:1px solid #dbeae4!important;box-shadow:0 10px 34px #174e3711!important;border-radius:19px!important}
+.fastProgressCard:focus-within{border-color:#05aa89!important;box-shadow:0 10px 35px #0b987a20!important}
+.fastProgressCard [data-progress-metric="remaining"]{color:#006d62}
+.studioTeacherTabs button:focus-visible,.studioAddPanel button:focus-visible{outline:3px solid #19b8a5;outline-offset:3px}
+.premiumGuidePopover{position:fixed;z-index:99999;right:16px;bottom:17px;width:min(390px,calc(100vw - 32px));border-radius:20px;border:1px solid #a3e9d3;background:#fff;box-shadow:0 22px 65px #033b3e39;overflow:hidden;animation:guideFloatIn .32s cubic-bezier(.2,.9,.2,1)}
+.premiumGuidePopover[hidden]{display:none}
+.premiumGuidePopover::before{content:"";display:block;height:4px;background:linear-gradient(90deg,#0b8376,#38d6a4)}
+.premiumGuideInner{padding:16px 18px}
+.premiumGuideStep{font-size:10px;letter-spacing:.12em;font-weight:850;color:#078e77}
+.premiumGuideTitle{font-weight:850;font-size:17px;color:#123f40;margin:5px 0}
+.premiumGuideText{font-size:13px;line-height:1.5;color:#527270;margin:5px 0 14px}
+.premiumGuideControls{display:flex;justify-content:flex-end;gap:9px}
+.premiumGuideControls button{padding:9px 13px;border-radius:11px;border:1px solid #cbded8;background:#fff;color:#285653;font-weight:750}
+.premiumGuideControls button.next{color:#fff;border-color:#099a85;background:#078d7c}
+@keyframes guideFloatIn{from{transform:translateY(18px) scale(.96);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@media(max-width:760px){.studioAddFields{grid-template-columns:1fr 1fr}.studioAddFields label:nth-child(2){grid-column:span 2}.studioAddFields button{grid-column:span 2}.studioTeacherTabs button{padding:11px 13px}.premiumGuidePopover{bottom:10px}.progressManageRow .ghostMini{font-size:12px}}
+@media(max-width:420px){.studioAddFields{grid-template-columns:1fr}.studioAddFields label:nth-child(2),.studioAddFields button{grid-column:auto}.studioAddPanel{padding:14px}}
+@media(prefers-reduced-motion:reduce){.premiumGuidePopover,.studioTeacherTabs button{animation:none;transition:none}}
