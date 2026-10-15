@@ -1,0 +1,117 @@
+
+/* HM-to-teacher responsive premium workspace. */
+.teacherAuthWrap{max-width:850px;margin:32px auto 56px}
+.teacherAuthHero{background:linear-gradient(125deg,#07596a,#0ca484);color:#fff;padding:28px;border-radius:22px 22px 0 0;box-shadow:0 13px 35px #0a5b5524}
+.teacherAuthHero span,.teacherDashHeader span,.hmAdminHeading span{font-size:10px;letter-spacing:.12em;font-weight:850;color:#baf7dc}
+.teacherAuthHero h1{font-size:27px;line-height:1.2;margin:10px 0;color:white}
+.teacherAuthHero p{font-size:12px;max-width:560px;color:#e9fff7;line-height:1.7}
+.teacherAuthHero button{font-size:11px;color:white;border-color:#ffffff70}
+.teacherAuthTabs{display:flex;gap:5px;flex-wrap:wrap;margin:0;padding:12px 17px 0;background:#fff;border:1px solid #e1ede7;border-top:0}
+.teacherAuthTabs button{border-radius:10px;padding:11px 14px;background:#f4faf6;border:1px solid #d8eee3;font-size:12px;font-weight:800;color:#326b59}
+.teacherAuthTabs .active{color:white;border-color:#119a7b;background:#0e8b70}
+.teacherAuthForm{background:#fff;border:1px solid #e1ede7;border-top:0;padding:23px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;border-radius:0 0 16px 16px}
+.teacherAuthForm.hidden{display:none}
+.teacherAuthForm h2,.teacherAuthForm p{grid-column:1/-1;margin:0}.teacherAuthForm h2{font-size:19px;color:#1b6553}
+.teacherAuthForm p{font-size:11px;color:#618276}
+.teacherAuthForm label,.teacherFormGrid label,.teacherNewFields label,.teacherBook label,.teacherMonthlyFields label,.hmSchoolFields label{display:grid;gap:7px;font-size:11px;color:#50786b;font-weight:750}
+.teacherAuthForm input,.teacherFormGrid input,.teacherNewFields input,.teacherNewFields select,.teacherBook input,.teacherBook textarea,.teacherMonthlyFields select,.teacherMonthlyFields textarea,.teacherMonthSwitch input,.hmSchoolFields input,.hmCodeSetup input{width:100%;border:1px solid #d0e7db;border-radius:10px;padding:10px 11px;background:#fff;font-size:12px;outline:none;transition:border-color .2s,box-shadow .2s;color:#164f43}
+.teacherAuthForm input:focus,.teacherFormGrid input:focus,.teacherNewFields input:focus,.teacherNewFields select:focus,.teacherMonthlyFields select:focus{border-color:#18ad86;box-shadow:0 0 0 3px #17ac8720}
+.teacherAuthForm>button{grid-column:1/-1;padding:13px}
+.teacherAuthWrap>.notice{background:#fff;padding:0 22px 18px;color:#c06f20}
+.teacherDash{padding-bottom:45px}
+.teacherDashHeader{display:flex;gap:20px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin:20px 0 16px;background:linear-gradient(130deg,#064f64,#159d7c);padding:23px;border-radius:19px;color:#fff}
+.teacherDashHeader h1{font-size:23px;color:white;margin:6px 0}
+.teacherDashHeader p{color:#c8f8e8;font-size:12px;margin:0}
+.teacherTopNav{display:flex;flex-wrap:wrap;gap:7px}
+.teacherTopNav button{padding:10px 12px;border:1px solid #ffffff5e;color:#fff;border-radius:10px;background:#ffffff16;font-size:11px;font-weight:800}
+.teacherDashTabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.teacherDashTabs button{background:#fff;border:1px solid #d5ebdf;border-radius:11px;padding:11px 14px;font-size:12px;font-weight:800;color:#4a7262}
+.teacherDashTabs button.active{background:#0b896d;color:#fff;border-color:#0b896d;box-shadow:0 7px 21px #00a88428}
+.teacherDashGrid{display:grid;grid-template-columns:220px minmax(0,1fr);gap:15px;align-items:start}
+#teacherSide{position:sticky;top:95px;max-height:calc(100vh - 110px);overflow:auto;border:1px solid #d5e8dd;border-radius:17px;padding:13px;background:linear-gradient(155deg,#fff,#f3fbf7)}
+.teacherIdentity{background:linear-gradient(120deg,#e7fbf0,#fafffc);border:1px solid #bce6d0;border-radius:13px;padding:15px}
+.teacherIdentity>span{font-size:9px;color:#0b8968;letter-spacing:.1em;font-weight:850}
+.teacherIdentity h3{color:#195b48;font-size:15px;margin:8px 0 4px}.teacherIdentity small{font-size:10px;color:#587c6d}
+.teacherProfileStatus{display:inline-flex;background:#fff1db;color:#9c681e;border-radius:99px;font-size:10px;font-weight:850;padding:7px 9px;margin-top:12px}
+.teacherProfileStatus.isSubmitted{background:#e1faeb;color:#108063}
+.teacherSteps{margin-top:14px;display:grid;gap:6px}.teacherSteps button{border:1px solid #e1ece6;border-radius:10px;text-align:left;background:white;padding:11px 10px;font-size:11px;color:#4c7765;font-weight:800}
+.teacherSteps button.active{border-color:#85d7b7;background:#e8faf0;color:#078365}
+.teacherSteps span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:7px;background:#e8f1ec;margin-right:7px}
+.teacherSideNote{font-size:10px;color:#648478;margin-top:17px;line-height:1.6}
+#teacherView{min-width:0}
+.teacherTopCard{border:1px solid #cae7d9;background:linear-gradient(110deg,#effcf5,#fff);border-radius:16px;padding:17px;margin-bottom:13px}
+.teacherTopCard>span{font-size:9px;letter-spacing:.12em;color:#119476;font-weight:850}
+.teacherTopCard h2{font-size:18px;color:#165946;margin:6px 0}.teacherTopCard p{font-size:11px;color:#67877b;line-height:1.6;margin:0}
+.teacherFormGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;border:1px solid #e0ede6;background:#fff;border-radius:14px;padding:14px}
+.teacherFormGrid input[readonly]{background:#f1f6f2;color:#798d82}
+.teacherSmallHeading{color:#286955;font-size:13px;margin:18px 0 10px}
+.teacherGradeGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px}
+.teacherGradeChoice{border:1px solid #d9ebe1;border-left:3px solid #d2ddd6;border-radius:12px;background:#fff;min-height:66px;padding:10px;position:relative;cursor:pointer;display:flex;flex-direction:column;gap:5px;transition:background .2s,transform .2s,border .2s}
+.teacherGradeChoice:hover{transform:translateY(-2px)}
+.teacherGradeChoice.picked{border-color:#5bcda4;border-left-color:#0eae81;background:linear-gradient(140deg,#e4fff0,#f5fdf9);box-shadow:0 5px 18px #0da78018}
+.teacherGradeChoice input{position:absolute;right:9px;top:10px;accent-color:#0eae81}.teacherGradeChoice strong{font-size:11px;color:#1b6050}.teacherGradeChoice small{font-size:10px;color:#688b7b}
+.teacherFoot{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;align-items:center;margin:16px 0}
+.teacherFoot>span{font-size:10px;color:#718d7c;margin-right:auto}
+.teacherFoot button,.teacherNewFields>button,.teacherMonthSwitch>button,.teacherMonthFooter button{padding:10px 13px;font-size:11px;font-weight:900;border:1px solid #159a78;border-radius:10px;background:linear-gradient(120deg,#138b70,#0fc89c);color:#fff}
+.teacherFoot button[data-teacher-save]{background:#fff;color:#138269;border-color:#b5d9c9}
+.teacherNewSubject{background:#fff;border:1px solid #cce6d8;padding:15px;border-radius:15px;margin-bottom:14px}
+.teacherNewSubject h3{font-size:13px;color:#1b6a54;margin:0 0 13px}
+.teacherNewFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:end}
+.teacherNewFields>button{min-height:41px}
+.teacherClassGroup{border:1px solid #cae7d8;border-radius:14px;margin:14px 0;overflow:hidden;background:#fff}
+.teacherClassTitle{display:flex;align-items:center;justify-content:space-between;background:#edf9f2;padding:13px 15px}
+.teacherClassTitle b{color:#138c6c;font-size:13px}.teacherClassTitle small{color:#70907d;font-size:10px}
+.teacherBookGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:10px;padding:12px}
+.teacherBook{border:1px solid #afe2cc;border-left:4px solid #06ae80;background:linear-gradient(145deg,#fafffc,#f4fff8);border-radius:12px;padding:12px;display:grid;gap:10px}
+.teacherBookHead{display:flex;align-items:center;justify-content:space-between;gap:7px}
+.teacherBookHead span{font-size:9px;letter-spacing:.04em;color:#109b75;font-weight:900}
+.teacherBookHead button{font-size:10px;background:#fff1f0;color:#b35e58;border-radius:8px;padding:7px}
+.teacherBook details{font-size:11px;color:#367b64}.teacherBook details summary{font-weight:850;cursor:pointer}
+.teacherBook textarea{margin-top:8px}.teacherBook details small{display:block;font-size:10px;color:#718c7a}
+.teacherEmpty{padding:17px;border:1px dashed #bfdfd0;border-radius:12px;background:#f9fcfa;font-size:11px;color:#698478}
+.teacherMonthSwitch{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin:10px 0 15px}
+.teacherMonthSwitch label{display:grid;gap:6px;font-size:11px;color:#618678;font-weight:800}
+.teacherMonthSwitch .teacherProfileStatus{margin:0 0 3px}
+.teacherMonthlyCard{border:1px solid #efd39f;border-left:4px solid #e4aa4f;background:linear-gradient(130deg,#fffdfa,#fff);border-radius:14px;padding:13px;margin:11px 0;transition:box-shadow .2s}
+.teacherMonthlyCard.complete{border-color:#b0e3cb;border-left-color:#13b88b;background:#f8fffb}
+.teacherMonthlyCard>header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.teacherMonthlyCard>header h3{margin:4px 0 10px;color:#245d4a;font-size:14px}
+.teacherMonthlyCard>header small{font-size:10px;color:#6c907c}
+.teacherMonthlyCard>header>span{font-size:10px;background:#fff3dc;color:#ae7422;padding:5px 8px;border-radius:99px}
+.teacherMonthlyCard.complete>header>span{background:#dffbec;color:#108965}
+.teacherMonthlyFields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px}
+.teacherMonthlyFields label{border:1px solid #e3f0e8;padding:10px;border-radius:10px;background:white}
+.teacherMonthlyFields label.full{grid-column:1/-1}
+.teacherMonthlyFields strong{font-size:15px;color:#12826b}
+.teacherMonthFooter{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:11px}
+.teacherMonthFooter small{font-size:10px;color:#6c887e}
+#teacherNotice{position:sticky;bottom:12px;display:block;min-height:18px;border-radius:10px;padding:10px 13px;background:#e9faf1;color:#0e9471;font-size:11px;font-weight:750;z-index:5}
+#teacherNotice:empty{display:none}
+#teacherNotice.isError{background:#fff2e8;color:#a64e31}
+.teacherLoading{padding:40px;border:1px dashed #c6e7d6;border-radius:16px;text-align:center;font-size:12px;color:#789380}
+.hmTeacherAdmin{border:1px solid #c2e5d4;background:#fff;border-radius:17px;padding:16px;margin:0 0 20px}
+.hmAdminHeading{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(110deg,#07666b,#15b58b);padding:15px;border-radius:13px;color:#fff}
+.hmAdminHeading h2{color:#fff;font-size:18px;margin:5px 0}
+.hmAdminHeading p{font-size:11px;line-height:1.5;color:#e0fff4;margin:4px 0}
+.hmAdminIcon{font-size:24px}
+.hmSchoolFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0;align-items:end}
+.hmSchoolFields button,.hmCodeSetup>button{min-height:42px;border-radius:10px;background:#0b9473;color:#fff;font-size:11px;font-weight:800;padding:9px}
+.hmCodeSetup{display:grid;grid-template-columns:minmax(170px,1.2fr) minmax(150px,1fr) auto;gap:10px;align-items:center;background:#f2fbf6;border:1px solid #d1ebdc;border-radius:13px;padding:12px}
+.hmCodeSetup strong{font-size:12px;color:#196b52}.hmCodeSetup small{font-size:10px;color:#668978;display:block;margin-top:5px;line-height:1.4}
+.hmCodeSetup label{display:flex;align-items:center;gap:5px}.hmCodeSetup label button{background:#e4f4e9;border-radius:8px;padding:8px}
+.hmRosterTitle{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:15px 0}
+.hmRosterTitle h3{font-size:14px;color:#14664f;margin:0}.hmRosterTitle p{font-size:10px;color:#729081;line-height:1.4;margin:4px 0}.hmRosterTitle>span{font-size:11px;color:#0c9d75;background:#e6f8ee;padding:6px 10px;border-radius:99px}
+.hmRosterGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:9px}
+.hmRosterCard{display:flex;flex-wrap:wrap;align-items:center;gap:7px;border:1px solid #d1e8dc;border-radius:13px;padding:11px;background:#fbfefa}
+.hmRosterAvatar{width:32px;height:32px;display:grid;place-items:center;background:#e5f6ec;border-radius:9px}
+.hmRosterCard>div:nth-child(2){min-width:100px;flex:1}
+.hmRosterCard strong{display:block;font-size:11px;color:#255e4e}.hmRosterCard small{font-size:9px;color:#728e7d}
+.hmRosterBadge{padding:4px 8px;font-size:9px;font-weight:850;border-radius:99px;background:#fff1d9;color:#946b2e}
+.hmRosterBadge.submitted{background:#e3f9ea;color:#058967}
+.hmRosterFoot{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin:13px 0}
+.hmRosterFoot button{background:#f2fcf6;color:#14795f;border:1px solid #c3e6d2;padding:9px;border-radius:9px;font-size:11px;font-weight:850}
+.hmRosterFoot small{font-size:10px;color:#648978}
+.hmRosterEmpty{padding:13px;border:1px dashed #d1e8db;border-radius:10px;color:#688276;font-size:11px}
+@media(max-width:850px){.teacherDashGrid{grid-template-columns:1fr}#teacherSide{position:relative;top:auto;max-height:none}.teacherSteps{display:flex;overflow:auto}.teacherSteps button{white-space:nowrap}.teacherSideNote{margin-top:9px}}
+@media(max-width:600px){.teacherAuthForm,.teacherNewFields,.hmSchoolFields{grid-template-columns:1fr}.hmCodeSetup{grid-template-columns:1fr}.teacherAuthHero{padding:20px}.teacherDashHeader{padding:15px}.teacherDashHeader h1{font-size:19px}.teacherBookGrid{grid-template-columns:1fr}.teacherGradeGrid{grid-template-columns:repeat(3,minmax(0,1fr))}.teacherGradeChoice{padding:8px;min-height:65px}}
+@media(prefers-reduced-motion:reduce){.teacherGradeChoice,.teacherMonthlyCard{transition:none!important}}
