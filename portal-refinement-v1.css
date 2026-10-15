@@ -103,3 +103,7 @@
 .submittedSubject{padding:10px;border-top:1px solid #e5f0e9;display:grid;gap:6px}
 .submittedSubject>div{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}.submittedSubject b{font-size:11px;color:#155b4f}
 .submittedSubject small{font-size:10px;color:#627d73;line-height:1.45}.submittedSubject p{display:flex;gap:6px;flex-wrap:wrap;margin:0}.submittedSubject p span{font-size:10px;background:#edf9f2;border-radius:6px;padding:5px 7px;color:#477969}
+
+.modalContextNav{display:flex;align-items:center;justify-content:flex-end;gap:7px;padding:10px 20px 0}
+.modalContextNav button{font-size:11px;font-weight:800;color:#17745e;border:1px solid #c3e3d3;border-radius:9px;background:#f0fcf5;padding:8px 11px}
+@media(max-width:480px){.modalContextNav{padding:8px 11px 0}}
