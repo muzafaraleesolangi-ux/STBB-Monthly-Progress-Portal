@@ -3,7 +3,7 @@ const SharedStaff=(()=>{
 const root=document.getElementById('teacherdash');
 if(!root)return{activate:async()=>{}};
 const API='https://oypqcizrlhdouygvazyb.supabase.co/functions/v1/mpr-workspace-v2',r=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'],ratings=['Excellent','Very Good','Good','Fair','Needs Improvement'],escapeText=v=>esc(v??''),$=q=>root.querySelector(q);
-let school=null,teachers=[],person=null,step='pick',month=null,period=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),dirty=false,busy=false,noticeText='',saveTimer=null,trail=[];
+let school=null,teachers=[],person=null,step='pick',month=null,period=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0'),dirty=false,busy=false,noticeText='',saveTimer=null,trail=[],editRevision=0,savingPromise=null;
 const api=async(action,data={})=>{if(auth?.role!=='staff')throw Error('School staff login required');const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...data}),cache:'no-store'}),value=await res.json();if(!res.ok||value.error)throw Error(value.error||'Network failure');return value};
 const nid=prefix=>prefix+crypto.randomUUID().replace(/-/g,'');
 const cname=g=>'Class '+r[g];
@@ -23,9 +23,32 @@ function classes(){return '<section class="teacherTopCard"><span>STEP 3 · CLASS
 function render(){renderShell();$('#teacherView').innerHTML=!person||step==='pick'?picker():step==='details'?details():step==='classes'?classes():step==='subjects'?subjects():monthly();if(step==='subjects')populateCatalog();if(step==='month')refreshCalculations();shown(noticeText)}
 async function activate(){root.classList.remove('hidden');person=null;month=null;step='pick';try{const data=await api('staff-load');school=data.school;teachers=data.teachers||[];render()}catch(err){shown(err.message)}}
 async function pick(id){if(dirty&&!await save())return;try{person=(await api('staff-select',{teacher_id:id})).profile;person.classes=(person.classes||[]).map(Number);month=null;dirty=false;step='details';render()}catch(err){shown(err.message)}}
-function create(){person={id:nid('staff_'),name:'',pid:'',designation:'',classes:[],subjects:[]};dirty=true;step='details';month=null;render()}
-function edited(){dirty=true;const flag=$('#staffDraftFlag');if(flag)flag.textContent='● Unsaved changes';clearTimeout(saveTimer);saveTimer=setTimeout(()=>{if(!busy&&dirty&&person?.name&&person?.pid&&person?.designation)save(true)},1700)}
-async function save(silent=false){if(!person||busy)return false;clearTimeout(saveTimer);if(!person.name?.trim()||!person.pid?.trim()||!person.designation?.trim()){shown('Enter Name, PID and Designation first.');return false}busy=true;try{await api('staff-save',{profile:person});const row=await api('staff-load');teachers=row.teachers||teachers;dirty=false;if(month)month.submitted=false;shown('✓ School Draft Saved');if(!silent)render();return true}catch(err){shown('Save failed: '+err.message);return false}finally{busy=false}}
+function create(){person={id:nid('staff_'),name:'',pid:'',designation:'',classes:[],subjects:[]};dirty=true;editRevision++;step='details';month=null;render()}
+function edited(){dirty=true;editRevision++;const flag=$('#staffDraftFlag');if(flag)flag.textContent='● Unsaved changes';clearTimeout(saveTimer);saveTimer=setTimeout(()=>{if(!busy&&dirty&&person?.name&&person?.pid&&person?.designation)save(true)},1700)}
+async function save(silent=false){
+ if(!person)return false;
+ clearTimeout(saveTimer);
+ if(busy){if(savingPromise)await savingPromise;return dirty?save(silent):true}
+ if(!dirty)return true;
+ if(!person.name?.trim()||!person.pid?.trim()||!person.designation?.trim()){shown('Enter teacher Name, PID and Designation first.');return false}
+ busy=true;
+ savingPromise=(async()=>{
+  for(let attempt=0;attempt<4&&dirty;attempt++){
+   const snapshot=JSON.parse(JSON.stringify(person)),started=editRevision;
+   try{
+    await api('staff-save',{profile:snapshot});
+    if(started===editRevision){dirty=false;if(month)month.submitted=false}
+    shown('✓ Saved to school cloud');
+   }catch(err){shown('⚠ Save failed: '+err.message);return false}
+  }
+  if(dirty){clearTimeout(saveTimer);saveTimer=setTimeout(()=>save(true),650)}
+  try{const row=await api('staff-load');teachers=row.teachers||teachers}catch(e){shown('✓ Draft saved. Teacher list refresh will retry.')}
+  if(!silent&&!dirty)render();
+  else if(!dirty){const flag=$('#staffDraftFlag');if(flag)flag.textContent='✓ Cloud Draft Saved'}
+  return !dirty
+ })();
+ try{return await savingPromise}finally{busy=false;savingPromise=null}
+}
 async function go(next,fromBack=false){if(person&&dirty&&!await save())return;if(!fromBack&&step!==next)trail.push(step);step=next;render();if(next==='month')await openMonth(period)}
 const defaults={1:['Sindhi Reader','English','Mathematics','General Knowledge'],2:['Sindhi Reader','English','Mathematics','General Knowledge'],3:['Sindhi Reader','Asan Urdu','English','Mathematics','General Knowledge','Islamiat'],4:['Sindhi Reader','Asan Urdu','English','Mathematics','Science','Social Studies','Islamiat'],5:['Sindhi Reader','Asan Urdu','English','Mathematics','Science','Social Studies','Islamiat'],6:['Sindhi','Urdu','English','Mathematics','Science','Social Studies','Islamiat'],7:['Sindhi','Urdu','English','Mathematics','Science','Social Studies','Islamiat'],8:['Sindhi','Urdu','English','Mathematics','Science','Social Studies','Islamiat'],9:['English','Mathematics','Physics','Chemistry','Biology','Computer Science','Urdu','Islamiat'],10:['English','Mathematics','Physics','Chemistry','Biology','Computer Science','Urdu','Pakistan Studies'],11:['English','Urdu','Mathematics','Physics','Chemistry','Biology','Computer Science','Commerce','Economics'],12:['English','Urdu','Mathematics','Physics','Chemistry','Biology','Computer Science','Commerce','Economics']};
 function subjects(){
