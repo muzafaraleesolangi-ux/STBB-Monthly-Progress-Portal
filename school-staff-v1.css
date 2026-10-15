@@ -9,3 +9,42 @@
 .staffSaveToast{animation:staffAppear .25s ease-out}@keyframes staffAppear{from{opacity:.3;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:690px){.staffPicker{grid-template-columns:repeat(auto-fit,minmax(145px,1fr))}.staffNameCard{padding:13px;min-height:114px}.staffNameCard b{font-size:12px}.staffNameCard small{font-size:10px}.teacherFinalSubmit button{width:100%}}
 @media(prefers-reduced-motion:reduce){.staffNameCard,.staffMath i,.teacherStageProgress i{transition:none!important}}
+
+/* Premium 2026 Staff Interaction Kit */
+#teacherdash .teacherTopNav{align-items:center}
+#staffSoundToggle{background:rgba(255,255,255,.19);border-color:rgba(226,255,245,.45);border-radius:11px;font-size:10px;letter-spacing:.03em;white-space:nowrap;transition:background .22s,transform .22s}
+#staffSoundToggle:hover{background:rgba(255,255,255,.31);transform:translateY(-1px)}
+#teacherdash .teacherDashTabs{position:sticky;top:0;z-index:12;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;scroll-snap-type:x proximity;padding:11px 2px;background:color-mix(in srgb,var(--bg,#f9fcfa) 92%,transparent);backdrop-filter:blur(12px)}
+#teacherdash .teacherDashTabs button{position:relative;white-space:nowrap;scroll-snap-align:start;min-height:40px;transition:background .22s,transform .22s,box-shadow .22s,border-color .22s}
+#teacherdash .teacherDashTabs button.active{box-shadow:0 7px 17px rgba(7,128,104,.23)}
+#teacherdash .teacherDashTabs button:focus-visible,#teacherdash .teacherSteps button:focus-visible,.staffNameCard:focus-visible,.staffConfirmActions button:focus-visible{outline:3px solid #22c59d;outline-offset:3px}
+#teacherdash .staffPicker{margin-bottom:20px}
+#teacherdash .staffNameCard{position:relative;isolation:isolate;overflow:hidden}
+#teacherdash .staffNameCard::after{content:"";position:absolute;width:130px;height:130px;border-radius:100%;right:-75px;top:-80px;transform:scale(.55);background:radial-gradient(circle,#8be6bd35,transparent);transition:transform .35s;pointer-events:none}
+#teacherdash .staffNameCard:hover::after{transform:scale(1.45)}
+#teacherdash .teacherTopCard{box-shadow:0 7px 23px #12574a10}
+#teacherdash .teacherGradeChoice.picked::after{content:"✓";position:absolute;left:7px;bottom:6px;font-size:11px;color:#0ca578;font-weight:900}
+#teacherdash .teacherBook{box-shadow:0 5px 17px rgba(12,131,93,.07);transition:box-shadow .2s,transform .2s}
+#teacherdash .teacherBook:hover{transform:translateY(-2px);box-shadow:0 11px 23px rgba(12,131,93,.15)}
+#teacherdash .teacherMonthlyCard.complete{box-shadow:0 6px 24px #059c7214;border-left-width:5px}
+#teacherdash .teacherMonthlyCard.pending{border-left-width:5px}
+#teacherdash .teacherMonthlyCard .teacherMonthFooter button{transition:transform .18s,filter .18s}
+#teacherdash .teacherMonthlyCard .teacherMonthFooter button:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.05)}
+.staffToast{position:fixed;right:20px;bottom:24px;z-index:2100;display:flex;align-items:center;gap:10px;width:max-content;max-width:min(420px,calc(100vw - 34px));padding:13px 16px;background:#074f48;color:#fff;border-radius:14px;box-shadow:0 18px 54px rgba(0,49,38,.34);font-size:11px;font-weight:750;line-height:1.55;animation:staffNoticeIn .3s cubic-bezier(.2,.88,.23,1) both}
+.staffToast.hidden{display:none!important}
+.staffToast.isBad{background:#994930}
+.staffToastIcon{display:grid;place-items:center;flex:none;background:#ffffff27;border-radius:99px;font-size:15px;font-weight:900;width:26px;height:26px}
+.staffConfirmOverlay{position:fixed;inset:0;z-index:2200;background:rgba(4,28,35,.68);backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:14px;animation:staffNoticeIn .22s ease-out}
+.staffConfirmOverlay.hidden{display:none!important}
+.staffConfirmPanel{width:min(420px,100%);border:1px solid #d0ebe1;border-radius:21px;padding:24px;background:linear-gradient(140deg,#fff,#f2fcf8);box-shadow:0 24px 80px rgba(0,23,18,.43);animation:staffModalIn .26s cubic-bezier(.2,.9,.26,1) both}
+.staffConfirmEmblem{display:grid;place-items:center;width:41px;height:41px;background:#dcfbec;color:#079370;font-size:22px;border-radius:14px}
+.staffConfirmPanel h2{font-size:18px;color:#105a4b;margin:13px 0 6px}
+.staffConfirmPanel p{font-size:12px;line-height:1.65;color:#5a7d70}
+.staffConfirmActions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:9px;margin-top:17px}
+.staffConfirmActions button{padding:11px 14px;min-height:41px;border-radius:10px;border:1px solid #d1e4db;background:#fff;color:#426c5e;font-size:11px;font-weight:850}
+.staffConfirmActions [data-confirm-yes]{background:linear-gradient(110deg,#098b70,#12c69a);color:white;border-color:#079b77}
+.staffConfirmActions [data-confirm-yes].danger{background:linear-gradient(110deg,#ac6045,#d67f5b);border-color:#ad6246}
+@keyframes staffNoticeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes staffModalIn{from{opacity:0;transform:translateY(17px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:680px){#teacherdash .teacherDashTabs{top:0;margin-inline:-4px;padding-inline:6px}#teacherdash .teacherDashTabs button{font-size:10px;padding:10px 12px}#teacherdash .teacherSteps{gap:6px}#teacherdash .teacherTopNav{width:100%;justify-content:flex-start}.staffToast{right:12px;left:12px;bottom:14px;width:auto}}
+@media(prefers-reduced-motion:reduce){.staffToast,.staffConfirmOverlay,.staffConfirmPanel{animation:none!important}#teacherdash .staffNameCard::after,#teacherdash .teacherBook{transition:none!important}}
