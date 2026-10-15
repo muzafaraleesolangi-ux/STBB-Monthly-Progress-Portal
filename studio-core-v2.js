@@ -675,7 +675,7 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  }
  function bind(){document.addEventListener('keydown',e=>{const el=e.target;if(e.key==='Enter'&&el?.dataset?.progressBid&&['previous','current'].includes(el.dataset.pkey)){e.preventDefault();const all=[...document.querySelectorAll('#studioBody input[data-progress-bid][data-pkey]')].filter(x=>!x.closest('[hidden]')&&['previous','current'].includes(x.dataset.pkey));const idx=all.indexOf(el);if(idx>=0&&idx<all.length-1)all[idx+1].focus();else el.blur()}});document.addEventListener('focusin',e=>{const el=e.target;if(!schoolPeriod&&el?.dataset?.progressBid&&['previous','current'].includes(el.dataset.pkey))startMonthForTyping(el.dataset.progressBid,el.dataset.pkey)});document.addEventListener('click',e=>{if(e.target.closest('#studioPanel'))handleClick(e)});document.addEventListener('input',e=>{if(e.target.closest('#studioPanel'))handleInput(e)});document.addEventListener('change',e=>{if(e.target.closest('#studioPanel'))handleChange(e)});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&schoolPeriod&&$s('studioPanel')&&!$s('studioPanel').classList.contains('hidden'))loadEntries()});
- refreshHandle=setInterval(()=>{if(!document.hidden&&schoolPeriod&&auth&&!auth.admin&&stage===5&&!progressDirty.size)loadEntries()},18000);
+ refreshHandle=setInterval(()=>{if(!document.hidden&&schoolPeriod&&auth&&!auth.admin&&auth.role!=='staff'&&stage===5&&!progressDirty.size)loadEntries()},18000);
  }
  bind();
  const originalPostLogin=postLogin;postLogin=async function(result){await originalPostLogin(result);if(!auth.admin&&!['teacher','staff'].includes(auth.role)){await activate();dashTab('overview',document.querySelector('#schoolTabs button'));}return result};
