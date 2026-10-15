@@ -95,7 +95,7 @@ async function main(){
  assert.equal(review.books[5][0].feedback,'Fair','Formative student feedback preserved for export');
  assert.equal(review.books[5][0].suggestion,'Improve lesson planning and preparation','Selected improvement suggestion preserved');
  assert.equal(review.books[5][1].notebook,0,'Selected 0% is preserved in review state');
- reportStatus='exported';await studio.markExported();
+ reportStatus='exported';await studio.markExported();studio.showPanel();
  assert.equal(studio.status(),'exported','History export locks and archives the month');
  assert.ok(one('.monthArchiveTray'),'All monthly subject cards are placed inside an archived details tray');
  assert.equal(one(card('5-english')).classList.contains('isCollapsed'),true,'Exported subject details are minimized');
