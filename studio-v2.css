@@ -330,3 +330,16 @@
 @media(max-width:720px){.studioQuickTools{padding:12px}.studioQuickSearch{flex-basis:100%}.quickToolActions{width:100%}.quickToolActions>button{flex:1;font-size:11px}.studioShortcuts{width:100%}.studioShortcuts button{flex:1}.fastProgressCard .inlineProgressCells>div,.fastProgressCard .inlineProgressCells>label{min-height:88px;padding:8px 6px}.fastProgressCard .inlineProgressCells>div b,.fastProgressCard .inlineProgressCells input{font-size:24px}}
 @media(max-width:420px){.fastProgressCard{padding:12px!important}.quickToolActions>button:last-child{flex-basis:100%}}
 @media(prefers-reduced-motion:reduce){.studioShortcuts button{transition:none}.fastProgressCard .progressFields{animation:none}}
+
+/* Faster initial school setup and returning teacher workflow */
+.classTeacherShortcuts{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.classTeacherShortcuts button{font-size:11px;min-height:39px}
+.classTeacherShortcuts button:first-child{background:#e4f9ec}
+.rememberTeacherChoice{display:flex!important;flex-direction:row!important;gap:8px!important;align-items:center;margin-top:9px;font-size:11px!important;font-weight:700!important;color:#467b68!important;cursor:pointer}
+.rememberTeacherChoice input{width:15px;height:15px;min-height:0;accent-color:#058d6f;flex-shrink:0}
+.rememberTeacherChoice input:disabled{opacity:.4;cursor:not-allowed}
+.studioRecentMonths{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 5px;padding:12px 14px;border:1px solid #d6ebe0;background:#f7fcf8;border-radius:12px}
+.studioRecentMonths strong{font-size:11px;color:#396b57;margin-right:4px}
+.studioRecentMonths button{font-size:11px;min-height:37px;padding:8px 14px}
+.studioRecentMonths button.quickActive{background:#0a856a;border-color:#067b62;color:white}
+@media(max-width:690px){.classTeacherShortcuts{width:100%}.classTeacherShortcuts button{flex:1}.studioRecentMonths strong{width:100%}.studioRecentMonths button{flex:1}.rememberTeacherChoice{font-size:10px!important}}
