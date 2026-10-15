@@ -161,3 +161,39 @@ main.wrap>.dashboard{font-size:12px;color:var(--desk-ink)}
 @media(prefers-reduced-motion:reduce){
  #schooldash *,#teacherdash *{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+
+/* Single, uncluttered HM reporting workspace: no duplicate sticky month sidebar,
+   no floating Save dock or covering tutorial popovers. */
+#saveFloat,.premiumGuidePopover,.miniGuideLauncher,#monthOrganizer,#monthOverviewDeck{display:none!important}
+#schooldash.monthOrganized{display:block!important}
+#schooldash>.heading{margin-bottom:10px}
+#schooldash>.metrics{display:none!important}
+#schooldash>#schoolTabs{display:flex!important;gap:6px;flex-wrap:wrap;overflow:visible;position:relative;top:auto;margin-bottom:8px}
+#schoolTabs>button{flex:1 1 165px;min-height:42px;text-align:center;line-height:1.3}
+#schooldash>#simpleWorkflow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;background:#fff;border:1px solid #dce7ec;padding:9px;margin-bottom:10px;border-radius:11px}
+.simpleWorkflow>span{display:flex;align-items:center;gap:7px;padding:8px 10px;background:#f4f8fa;color:#537080;border-radius:8px;font-size:11px;line-height:1.4}
+.simpleWorkflow b{width:22px;height:22px;flex:none;display:grid;place-items:center;background:#e0edf1;border-radius:7px;color:#266a82;font-size:11px}
+.simpleWorkflow[data-active=teachers]>span:first-child,.simpleWorkflow[data-active=progress]>span:nth-child(2),.simpleWorkflow[data-active=history]>span:last-child{background:#e4f4f2;color:#147b75;outline:1px solid #8bc8c2}
+#schooldash>#studioPanel{max-width:100%;width:100%;margin-top:7px;grid-column:1/-1}
+#schooldash>#school-teachers,#schooldash>#school-history{width:100%;max-width:100%;margin-top:7px!important}
+#schooldash #school-history{padding:13px;border-radius:11px}
+#schooldash .studioStageNav .wizardTrack{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;overflow:visible}
+#schooldash .wizardTrack>button{min-height:47px;padding:6px;font-size:10px;line-height:1.25}
+#schooldash .studioTop{padding:13px 15px;margin-bottom:9px;border-radius:11px}
+#schooldash .studioTop h2{font-size:16px;line-height:1.3}
+#schooldash .studioTop p{font-size:11px}
+#schooldash .studioCloud{font-size:10px}
+#schooldash #studioBody{padding:12px}
+#schooldash .unifiedSchoolCard{margin-bottom:10px}
+#schooldash .unifiedTeachersHeading{margin-bottom:8px}
+#schooldash .teacherTopCard{margin-bottom:8px}
+#schooldash .studioFooter{position:relative;bottom:auto;box-shadow:none;border-radius:9px;margin-top:10px;padding:9px;border:1px solid #dce7ec;background:#fff}
+@media(max-width:720px){
+#schooldash>#simpleWorkflow{gap:3px;padding:5px}
+.simpleWorkflow>span{gap:3px;padding:7px 4px;font-size:9px;line-height:1.3;text-align:left}
+.simpleWorkflow b{width:17px;height:19px;font-size:10px}
+#schooldash .studioStageNav .wizardTrack{grid-template-columns:repeat(3,minmax(0,1fr))}
+#schooldash .wizardTrack>button{min-height:37px}
+#schooldash>#schoolTabs{gap:4px}
+#schoolTabs>button{flex-basis:95px;font-size:10px;padding:7px 6px}
+}
