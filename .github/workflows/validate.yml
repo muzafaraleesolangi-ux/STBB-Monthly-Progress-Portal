@@ -32,6 +32,7 @@ jobs:
           node tests/studio-assignments.test.cjs
           node --check tests/lesson-progress-and-xlsx.test.cjs
           node tests/lesson-progress-and-xlsx.test.cjs
+          node tests/excel-delivery.test.cjs
           node --check tests/teacher-self-service.test.cjs
           node tests/teacher-self-service.test.cjs
       - name: Check embedded JavaScript syntax
