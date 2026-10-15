@@ -73,7 +73,7 @@ async function main(){
  assert.equal(book('5-science').teacherId,'t2');
  click('[data-assignment-togglegrade="5"]');
  await new Promise(ok=>setTimeout(ok,20));
- assert.equal(one('[data-assign-bid="5-maths"]').disabled,true,'Other teacher\'s assigned subject remains visible but locked');
+ absent('[data-assign-bid="5-maths"]');
  click('[data-assignment-togglegrade="5"]');
  await new Promise(ok=>setTimeout(ok,20));
  one('[data-assign-bid="5-maths"]');
@@ -103,7 +103,7 @@ async function main(){
  click('[data-assignment-teacher="0"]');
  await new Promise(ok=>setTimeout(ok,40));
  assert.equal(one('[data-assign-bid="5-english"]').checked,true);
- absent('[data-assign-bid="5-maths"]');
+ assert.equal(one('[data-assign-bid="5-maths"]').disabled,true,'Other teacher\'s subject shown but locked');
  assert.equal(book('4-english').teacherId,'t2');
  assert.ok(saveCount>=3,'Cloud saves occurred');
  // Regression: an older school account with a missing textbook master must show all classes by default.
