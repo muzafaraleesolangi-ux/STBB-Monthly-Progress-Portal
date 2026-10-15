@@ -7,7 +7,7 @@ let school=null,teachers=[],person=null,step='pick',month=null,period=new Date()
 const api=async(action,data={})=>{if(auth?.role!=='staff')throw Error('School staff login required');const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.token},body:JSON.stringify({action,...data}),cache:'no-store'}),value=await res.json();if(!res.ok||value.error)throw Error(value.error||'Network failure');return value};
 const nid=prefix=>prefix+crypto.randomUUID().replace(/-/g,'');
 const cname=g=>'Class '+r[g];
-const shown=msg=>{noticeText=msg;const el=$('#teacherNotice');if(el)el.textContent=msg};
+const shown=msg=>{noticeText=msg;const el=$('#teacherNotice');if(el){el.textContent=msg;el.classList.toggle('isError',/failed|invalid|could not|exceed|error|⚠/i.test(msg))}if(/^✓|^⚠|save failed|submission failed/i.test(msg)&&typeof StaffUI!=='undefined')StaffUI.toast(msg,/failed|⚠/i.test(msg))};
 const classOpts=()=>Array.from({length:12},(_,i)=>i+1);
 function renderShell(){
  $('#teacherHeading').textContent=school?.school_name||'Teaching Staff';
@@ -63,7 +63,7 @@ function addSubject(){const grade=Number($('#staffGrade')?.value),name=($('#staf
  if(person.subjects.some(x=>x.grade===grade&&x.name.toLowerCase()===name.toLowerCase()))return shown('This class-subject has already been added.');
  person.subjects.push({id:nid('tbook_'),grade,name,chapters:Array(total).fill('')});edited();render()
 }
-function removeSubject(id){if(!confirm('Remove this subject from your tab?'))return;person.subjects=person.subjects.filter(x=>x.id!==id);edited();render()}
+async function removeSubject(id){const ok=typeof StaffUI!=='undefined'?await StaffUI.confirm('Remove this subject from your teacher tab? Existing saved monthly records stay in History.',{title:'Remove Subject?',confirmLabel:'Remove Subject',danger:true}):confirm('Remove this subject?');if(!ok)return;person.subjects=person.subjects.filter(x=>x.id!==id);edited();render()}
 
 const good=v=>v!==null&&v!==undefined&&v!==''&&Number.isInteger(Number(v))&&Number(v)>=0;
 const complete=b=>{const d=b.details||{};return !b.dirty&&b.version>0&&good(d.previous)&&good(d.current)&&Number(d.previous)+Number(d.current)<=b.total&&good(d.notebook)&&Number(d.notebook)<=100&&ratings.includes(d.cleanliness)&&ratings.includes(d.feedback)&&String(d.suggestion||'').trim().length>0};
@@ -98,7 +98,7 @@ async function saveBook(id){
  const button=card.querySelector('[data-staff-savebook]');button.disabled=true;
  try{const result=await api('staff-month-save',{period,teacher_id:person.id,book_id:id,details:d,version:b.version});b.version=result.version;b.details=d;b.dirty=false;month.submitted=false;const done=complete(b);card.classList.toggle('complete',done);card.classList.toggle('pending',!done);card.querySelector('[data-staff-state]').textContent=done?'✓ Complete':'○ Pending';card.querySelector('[data-staff-saved]').textContent=done?'✓ All fields saved':'✓ Partial draft saved';shown('✓ '+b.name+' saved');updateSubmit()}catch(err){shown('Save failed: '+err.message)}finally{remaining(card)}
 }
-async function submitMonth(){const c=counters();if(!c.total||c.done!==c.total||dirty||month?.status!=='draft')return shown('Complete and Save all subject fields before submitting.');if(!confirm('Submit '+c.total+' completed subjects for '+period+' to the HM?'))return;try{await api('staff-month-submit',{teacher_id:person.id,period});month.submitted=true;shown('✓ Monthly report submitted to HM.');render()}catch(err){shown('Submission failed: '+err.message)}}
+async function submitMonth(){const c=counters();if(!c.total||c.done!==c.total||dirty||month?.status!=='draft')return shown('Complete and Save all subject fields before submitting.');const accepted=typeof StaffUI!=='undefined'?await StaffUI.confirm('Submit '+c.total+' fully saved subjects for '+period+' to the Head Master? Changes remain accessible while the month is Draft.',{title:'Submit Monthly Progress',confirmLabel:'Submit to HM ✓'}):confirm('Submit '+c.total+' completed subjects for '+period+' to the HM?');if(!accepted)return;try{await api('staff-month-submit',{teacher_id:person.id,period});month.submitted=true;shown('✓ Monthly report submitted to HM.');render()}catch(err){shown('Submission failed: '+err.message)}}
 
 root.addEventListener('click',async event=>{
  const b=event.target.closest('button');if(!b)return;
@@ -123,9 +123,9 @@ root.addEventListener('input',event=>{
  if(t.dataset.staffTitles){const b=person.subjects.find(x=>x.id===t.dataset.staffTitles);if(b){const lines=t.value.split(/\r?\n/);b.chapters=b.chapters.map((x,i)=>(lines[i]||'').trim());edited()}}
  if(t.dataset.staffProgress!==undefined&&month){const card=t.closest('[data-staff-card]'),b=month.subjects.find(x=>x.id===card?.dataset.staffCard);if(b){b.dirty=true;b.details={...b.details,[t.dataset.staffProgress]:t.value};month.submitted=false;card.classList.remove('complete');card.classList.add('pending');card.querySelector('[data-staff-saved]').textContent='● Unsaved Changes';card.querySelector('[data-staff-state]').textContent='○ Changed'}remaining(card);updateSubmit()}
 });
-root.addEventListener('change',event=>{
+root.addEventListener('change',async event=>{
  const t=event.target;
- if(t.dataset.staffClass){const g=Number(t.dataset.staffClass);if(t.checked&&!person.classes.includes(g))person.classes.push(g);else if(!t.checked){if(person.subjects.some(x=>x.grade===g)&&!confirm('Remove Class '+r[g]+' and all its subjects?')){t.checked=true;return}person.classes=person.classes.filter(n=>n!==g);person.subjects=person.subjects.filter(x=>x.grade!==g)}person.classes.sort((a,b)=>b-a);edited();render()}
+ if(t.dataset.staffClass){const g=Number(t.dataset.staffClass);if(t.checked&&!person.classes.includes(g))person.classes.push(g);else if(!t.checked){if(person.subjects.some(x=>x.grade===g)&&!(typeof StaffUI!=='undefined'?await StaffUI.confirm('Removing Class '+r[g]+' also removes its subject assignments from your tab.',{title:'Remove '+cname(g)+'?',confirmLabel:'Remove Class',danger:true}):confirm('Remove Class '+r[g]+' and all its subjects?'))){t.checked=true;return}person.classes=person.classes.filter(n=>n!==g);person.subjects=person.subjects.filter(x=>x.grade!==g)}person.classes.sort((a,b)=>b-a);edited();render()}
  if(t.id==='staffGrade')populateCatalog();
  if(t.id==='staffCatalog'&&t.value&&t.value!=='custom'){const name=$('#staffNewTitle');if(name)name.value=t.value}
  if(t.dataset.staffProgress!==undefined)t.dispatchEvent(new window.Event('input',{bubbles:true}))
