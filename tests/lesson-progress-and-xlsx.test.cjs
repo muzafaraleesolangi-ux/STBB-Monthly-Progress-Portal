@@ -143,9 +143,9 @@ async function main(){
  // Signing into another school's account on the same device must never inherit the first school's report values.
  w.TestAccount.semis='987654321';w.TestAccount.school_name='Another School';
  await studio.activate();
- assert.equal(Number(one('[data-progress-metric="previous"]').value),0,'Previous school's saved chapter count is not carried across accounts');
- assert.equal(Number(one('[data-progress-metric="current"]').value),0,'Other school's progress not leaked');
- assert.equal(one('[data-quick-done]').textContent,'—','Saved count unknown until new school's month is opened');
+ assert.equal(Number(one('[data-progress-metric="previous"]').value),0,'Previous school saved chapter count is not carried across accounts');
+ assert.equal(Number(one('[data-progress-metric="current"]').value),0,'Other school progress not leaked');
+ assert.equal(one('[data-quick-done]').textContent,'—','Saved count unknown until new school month is opened');
  assert.equal(one('#studioTeacherFilter').value,'all','Remembered teacher not applied to different school');
  dom.window.close();
  console.log('PASS: original Excel unfreeze, inline Previous/This Month cells, auto Remaining, count limits, cloud save and no extra progress editing UI');
