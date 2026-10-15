@@ -17,11 +17,19 @@ async function main(){
  const school={selectedClasses:[5],subjectCatalogInitialized:{1:true,2:true,3:true,4:true,5:true,6:true,7:true,8:true},
   teachers:[{id:'t1',name:'Teacher One',pid:'111',designation:'PST',classes:[5]},{id:'t2',name:'Teacher Two',pid:'222',designation:'PST',classes:[5]}],
   books:{5:[{id:'5-english',name:'English',chapters:['A','B','C','D','E'],active:true,teacherId:'t1'},{id:'5-maths',name:'Mathematics',chapters:['One','Two','Three'],active:true,teacherId:'t2'}]}};
- const saved={},versions={},dom=new JSDOM('<html><body><section id="schooldash"><div id="schoolTabs"></div><div id="school-overview"></div><div id="school-editor"></div><iframe id="editor"></iframe></section></body></html>',{url:'https://portal.test/',runScripts:'outside-only',pretendToBeVisual:true});
+ const saved={},versions={};let reportStatus='draft';const dom=new JSDOM('<html><body><section id="schooldash"><div id="schoolTabs"></div><div id="school-overview"></div><div id="school-editor"></div><iframe id="editor"></iframe></section></body></html>',{url:'https://portal.test/',runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window,d=w.document;w.structuredClone=global.structuredClone;w.scrollTo=()=>{};w.confirm=()=>true;w.alert=msg=>{throw Error('Unexpected alert: '+msg)};
  w.fetch=async(url,options={})=>{
   const data=JSON.parse(options.body||'{}');let result;
   if(data.action==='load-setup')result={setup:school,version:1};
+  else if(data.action==='load-workflow')result={workflow:{status:reportStatus}};
+  else if(data.action==='set-workflow'){
+   if(data.status==='final'){assert.equal(reportStatus,'draft');assert.equal(Object.keys(saved).length,2,'Two saved subjects needed');reportStatus='final'}
+   else if(data.status==='submitted'){assert.equal(reportStatus,'final');reportStatus='submitted'}
+   else if(data.status==='draft'){assert.ok(['final','submitted','exported'].includes(reportStatus));reportStatus='draft'}
+   else throw Error('Invalid transition');
+   result={workflow:{status:reportStatus}}
+  }
   else if(data.action==='load-period')result={entries:Object.keys(saved).map(id=>({book_id:id,details:saved[id],version:versions[id]}))};
   else if(data.action==='save-setup')result={version:data.version+1};
   else if(data.action==='save-subject'){
@@ -67,7 +75,16 @@ async function main(){
  select(card('5-maths')+' [data-pkey="feedback"]','Very Good');
  select(card('5-maths')+' [data-progress-suggestionselect]','No further improvement suggested');
  await studio.settle();
- assert.equal(one('#studioReviewAction').hidden,false,'Review appears only when every subject is complete and saved');
+ assert.equal(one('#studioReviewAction').hidden,true,'Export remains hidden until Final and Submit');
+ assert.equal(one('#studioFinalAction').disabled,false,'Mark Final unlocks when all subjects complete');
+ assert.equal(one(card('5-english')).classList.contains('isCollapsed'),true,'Saved subject automatically minimizes');
+ assert.equal(one('#studioSubjectCards').lastElementChild.dataset.progressCard,'5-maths','Latest completed card floats to bottom');
+ await studio.setStatus('final');
+ assert.equal(studio.status(),'final');
+ assert.equal(one('[data-workflow-submit]')!==null,true,'Submit option appears after Final');
+ await studio.setStatus('submitted');
+ assert.equal(studio.status(),'submitted');
+ assert.equal(one('#studioReviewAction').hidden,false,'Export appears only once report is Submitted');
  assert.equal(one('[data-quick-pending]').textContent,'0');
  assert.equal(saved['5-maths'].previous,0,'Explicitly entered zero persists');
  assert.equal(saved['5-maths'].notebook,0,'Explicit zero percent persists');
@@ -78,14 +95,16 @@ async function main(){
  assert.equal(review.books[5][0].feedback,'Fair','Formative student feedback preserved for export');
  assert.equal(review.books[5][0].suggestion,'Improve lesson planning and preparation','Selected improvement suggestion preserved');
  assert.equal(review.books[5][1].notebook,0,'Selected 0% is preserved in review state');
+ await studio.setStatus('draft');
+ assert.equal(studio.status(),'draft','Reopen allows editing a submitted report');
  select(card('5-maths')+' [data-pkey="previous"]','');
  await studio.settle();
  assert.equal(saved['5-maths'].previous,null,'Blank selection remains NULL, not fabricated zero');
- assert.equal(one('#studioReviewAction').hidden,true,'Reopening a field locks review');
+ assert.equal(one('#studioReviewAction').hidden,true,'Editing a reopened draft locks Excel export');
  assert.equal(one('[data-quick-pending]').textContent,'1','Incomplete report shown pending after edit');
  assert.equal(d.querySelector('[data-progress-details]'),null,'No unrelated assessment section is displayed');
  dom.window.close();tmp.close();
- console.log('PASS: original master headings, blank vs zero, dropdown limits, required seven-field subject completion, cloud saves and review gate')
+ console.log('PASS: master columns, collapsed premium cards, pending sorting, blank vs zero, Final → Submit → Export authorization and Reopen Draft')
 }
 const watchdog=setTimeout(()=>{console.error('DOM test timed out');process.exit(2)},20000);
 main().then(()=>{clearTimeout(watchdog);process.exit(0)}).catch(e=>{clearTimeout(watchdog);console.error(e);process.exit(1)});
