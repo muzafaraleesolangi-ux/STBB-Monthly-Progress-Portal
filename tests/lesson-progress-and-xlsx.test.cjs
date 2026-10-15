@@ -62,7 +62,25 @@ async function main(){
  ].join('\n');
  w.eval(fixture+'\n'+fs.readFileSync('studio-core-v2.js','utf8')+'\nwindow.TestStudio=Studio;');
  const studio=w.TestStudio;
- await studio.activate();studio.stage(5);
+ await studio.activate();
+ assert.ok(d.querySelector('[data-studio-refresh]'),'Returning school resumes in the monthly progress step');
+ assert.ok(d.querySelector('[data-progress-card="5-english"]'),'Assigned subject available without repeating setup');
+ assert.equal(d.querySelector('.progressFields'),null,'Extra assessments are collapsed for fast entry');
+ d.querySelector('[data-progress-details="5-english"]').click();
+ assert.ok(d.querySelector('.progressFields'),'Optional assessments can be expanded');
+ d.querySelector('[data-progress-details="5-english"]').click();
+ assert.equal(d.querySelector('.progressFields'),null,'Extra assessments can be collapsed');
+ const searchBox=d.querySelector('#studioProgressSearch');
+ searchBox.value='No Such Subject';searchBox.dispatchEvent(new w.Event('input',{bubbles:true}));
+ assert.equal(d.querySelector('[data-progress-card="5-english"]').hidden,true,'Subject search hides irrelevant cards');
+ searchBox.value='English';searchBox.dispatchEvent(new w.Event('input',{bubbles:true}));
+ assert.equal(d.querySelector('[data-progress-card="5-english"]').hidden,false,'Subject search restores matches');
+ // Restore filter before editing and verify pending-only button.
+ searchBox.value='';searchBox.dispatchEvent(new w.Event('input',{bubbles:true}));
+ d.querySelector('[data-progress-pending]').click();
+ assert.equal(d.querySelector('[data-progress-card="5-english"]').hidden,false,'Unsaved subject appears under Pending Only');
+ d.querySelector('[data-progress-show-all]').click();
+
  // Regression: HM should be able to TYPE in the visible Previous cell even without pressing Open / Continue Month.
  const first=d.querySelector('[data-progress-bid="5-english"][data-pkey="previous"]');
  assert.ok(first&&!first.disabled,'Monthly progress inputs must not be disabled before opening a reporting month');
@@ -102,6 +120,17 @@ async function main(){
  assert.equal(Number(one('[data-progress-metric="remaining"]').textContent),2);
  assert.equal(one(previous).getAttribute('max'),'3','Maximum Previous accounts for current count');
  assert.equal(one(current).getAttribute('max'),'4','Maximum Current accounts for previous count');
+ const focused=one(previous);focused.focus();
+ await studio.refresh();
+ assert.equal(d.querySelector(previous),focused,'Cloud refresh must not replace an input while teacher is typing');
+ const enter=new w.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true});
+ focused.dispatchEvent(enter);
+ assert.equal(d.activeElement,one(current),'Enter moves to the next count cell for faster keyboard entry');
+ d.activeElement.blur();
+ d.querySelector('[data-progress-pending]').click();
+ assert.equal(d.querySelector('[data-progress-card="5-english"]').hidden,true,'Saved subjects are hidden by Pending Only filter');
+ d.querySelector('[data-progress-show-all]').click();
+ assert.equal(d.querySelector('[data-progress-card="5-english"]').hidden,false,'All Subjects restores saved rows');
  dom.window.close();
  console.log('PASS: original Excel unfreeze, inline Previous/This Month cells, auto Remaining, count limits, cloud save and no extra progress editing UI');
 }
