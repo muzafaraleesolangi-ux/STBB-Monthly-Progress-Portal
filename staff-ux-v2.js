@@ -76,3 +76,4 @@ const StaffUI=(()=>{
  }
  return{toast,confirm:confirmAction,clickSound,soundsEnabled:()=>enabled}
 })();
+window.StaffUI=StaffUI;
