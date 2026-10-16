@@ -37,6 +37,9 @@ jobs:
           node tests/visible-export-ui.test.cjs
           node --check tests/mobile-preview.test.cjs
           node tests/mobile-preview.test.cjs
+          node --check portal-state-v3.js
+          node --check tests/reload-session.test.cjs
+          node tests/reload-session.test.cjs
           node --check fresh-experience-v2.js
           node tests/original-master-xlsx.test.cjs
           node --check tests/teacher-self-service.test.cjs
