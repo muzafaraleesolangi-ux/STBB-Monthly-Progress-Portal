@@ -97,11 +97,11 @@
  }
  header.addEventListener('click',async event=>{
   if(event.target.closest('[data-preview-edit]')){
-   close();if(window.Studio?.showPanel)Studio.showPanel();return
+   close();if(typeof Studio!=='undefined'&&typeof Studio.showPanel==='function')Studio.showPanel();return
   }
   const button=event.target.closest('#freshPreviewDownload');
   if(!button||busy)return;
-  if(!window.Studio||typeof Studio.directSaveExport!=='function'){status.textContent='Report export is not ready. Refresh and sign in again.';return}
+  if(typeof Studio==='undefined'||typeof Studio.directSaveExport!=='function'){status.textContent='Excel export is temporarily unavailable. Reload the portal and reopen this report.';return}
   busy=true;button.disabled=true;button.textContent='Preparing Excel…';
   status.textContent='Saving the final report and generating your original Excel workbook…';
   try{await Studio.directSaveExport()}catch(error){busy=false;button.disabled=false;button.textContent='↓ Retry Excel Download';status.textContent='Export failed: '+error.message}
