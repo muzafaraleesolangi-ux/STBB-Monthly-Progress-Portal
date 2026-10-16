@@ -767,9 +767,8 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  refreshHandle=setInterval(()=>{if(!document.hidden&&schoolPeriod&&auth&&!auth.admin&&auth.role!=='staff'&&stage===5&&!progressDirty.size)loadEntries()},18000);
  }
  bind();
- const originalPostLogin=postLogin;postLogin=async function(result){await originalPostLogin(result);if(!auth.admin&&!['teacher','staff'].includes(auth.role)){await activate();dashTab('teachers',document.querySelector('#schoolTabs [data-workflow-tab="teachers"]'));}return result};
+ const originalPostLogin=postLogin;postLogin=async function(result){await originalPostLogin(result);if(!auth.admin&&!['teacher','staff'].includes(auth.role)){await activate();if(window.PortalState?.restoreAfterLogin)await window.PortalState.restoreAfterLogin();else dashTab('teachers',document.querySelector('#schoolTabs [data-workflow-tab="teachers"]'));}return result};
  const otherDashTab=dashTab;dashTab=function(tab,button){if($s('studioPanel'))$s('studioPanel').classList.add('hidden');return otherDashTab(tab,button)};
- // Restore the studio if the school session existed before a page refresh.
- setTimeout(()=>{if(auth&&!auth.admin&&!['teacher','staff'].includes(auth.role)&&account)activate().then(()=>dashTab('teachers',document.querySelector('#schoolTabs [data-workflow-tab="teachers"]')))},1700);
+ // Existing sessions initialize after the verified 'me' response; never reset navigation to Teachers on a timer.
  return{activate,openPeriod,startFollowingMonth,followingMonth,activePeriod:()=>schoolPeriod,review,previewReport,directSaveExport,showPanel,exportMessage:(message,bad=false)=>notify(message,bad),saveSetup,settle,setStatus:workflowAction,status:()=>periodStatus,refresh:loadEntries,markExported:async()=>{if(!schoolPeriod)return;try{const r=await api('load-workflow',{period:schoolPeriod});periodWorkflow=r.workflow;periodStatus=periodWorkflow.status;render()}catch(e){notify('Excel saved; refresh status to view the archive: '+e.message,true)}},unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
 })();
