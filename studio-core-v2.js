@@ -427,10 +427,13 @@ function renderProgress(){
     if(periodStatus!=='submitted')throw Error('Month status is '+periodStatus+'. Reopen it to edit or use My Months to download.');
     notify('✓ Month saved. Preparing your Excel workbook…');
     render();
-    await review();
+    const ready=await review();
+    if(ready===false)throw Error('Unable to prepare Excel. Please review the error and retry Download.');
+    return true;
   }catch(error){
     notify(error.message,true);
     render();
+    throw error;
   }
  }
  function applyCardCollapse(card,collapsed){
@@ -587,7 +590,8 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
   };
   if(frame.contentDocument?.readyState==='complete')launch();
   else frame.addEventListener('load',launch,{once:true});
- }catch(e){notify('Cannot export yet: '+e.message,true);alert(e.message)}
+  return true;
+ }catch(e){notify('Cannot export yet: '+e.message,true);alert(e.message);return false}
  }
  function findBook(g,id){return (setup.books[g]||[]).find(b=>b.id===id)}
  function clearAssignmentEditor(){assignmentEditorId='';assignmentEditorDraft=null;addingSubjectGrade=null}
