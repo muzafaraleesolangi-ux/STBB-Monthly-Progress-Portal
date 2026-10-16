@@ -4,7 +4,7 @@
  const official='https://portal.stbb.edu.pk/ebooks/';
  const grades=[
   ['Kachi',2],['I',1],['II',3],['III',4],['IV',5],['V',6],['VI',7],['VII',8],['VIII',9],
-  ['IX',10],['X',11],['XI',12],['XII',13]
+  ['IX',10],['X',11],['XI',14],['XII',15]
  ];
  // Verified official STBB book-detail IDs. Missing editions open the official class catalogue.
  // Entries: [title, official book id, medium].
@@ -16,7 +16,11 @@
   V:[['Sindhi Reader',91,'Sindhi'],['Asan Urdu',10,'Urdu'],['My English',144,'English'],['Riazi / Mathematics',268,'Sindhi'],['Science',120,'Sindhi'],['Social Studies',null,'Sindhi'],['Islamiat',259,'English']],
   VI:[['Sindhi Reader',null,'Sindhi'],['Asan Urdu',null,'Urdu'],['My English',143,'English'],['Riazi / Mathematics',270,'Sindhi'],['Science',null,'Sindhi'],['Social Studies',null,'Sindhi'],['Islamiat',260,'English'],['Computer Education',289,'Sindhi']],
   VII:[['Sindhi Reader',93,'Sindhi'],['Asan Urdu',12,'Sindhi'],['My English',145,'English'],['Riazi / Mathematics',282,'Sindhi'],['Science',125,'Sindhi'],['Islamiat',137,'Sindhi'],['Computer Education',319,'Sindhi']],
-  VIII:[['Sindhi Reader',94,'Sindhi'],['My English',146,'English'],['Riazi / Mathematics',272,'Sindhi'],['Science',126,'Sindhi'],['Social Studies',226,'English'],['Islamiat',138,'Sindhi']]
+  VIII:[['Sindhi Reader',94,'Sindhi'],['My English',146,'English'],['Riazi / Mathematics',272,'Sindhi'],['Science',126,'Sindhi'],['Social Studies',226,'English'],['Islamiat',138,'Sindhi']],
+  IX:[['My English',147,'English'],['Riazi / Mathematics',275,'Sindhi'],['Biology',119,'Sindhi'],['Chemistry',196,'Sindhi'],['Physics',174,'English'],['Computer Science',184,'Sindhi'],['Islamiat',264,'Sindhi']],
+  X:[['Secondary English',null,'English'],['Riazi / Mathematics',285,'Sindhi'],['Biology',186,'Sindhi'],['Chemistry',199,'Sindhi'],['Physics',202,'English'],['Computer Science',204,'English'],['Pakistan Studies',235,'English']],
+  XI:[['English',203,'English'],['Mathematics',207,'English'],['Biology',219,'English'],['Physics',221,'English'],['Computer Science',324,'English'],['Islamiat',266,'Sindhi']],
+  XII:[['Sindhi Lazmi',286,'Sindhi'],['Mathematics',225,'English'],['Biology',228,'English'],['Chemistry',218,'English'],['Physics',215,'English']]
  };
  const $=id=>document.getElementById(id);
  const escapeHTML=value=>String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
