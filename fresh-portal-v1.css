@@ -144,3 +144,25 @@ body{background:#f5f7fc;color:#16243d;font-family:Inter,"Segoe UI",system-ui,san
  .freshWorkflowActions{width:100%}
  .freshWorkflowActions button{flex:1}
 }
+/* Persistent single-action dock visible after subject entry: simple Save / Export */
+#studioPanel #studioFooter{
+ display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:wrap;
+ position:sticky!important;bottom:10px!important;z-index:12!important;
+ padding:13px 15px!important;background:rgba(255,255,255,.97)!important;
+ border:1px solid #d5e0f2!important;border-radius:14px!important;
+ box-shadow:0 10px 32px #18274921!important;margin-top:18px!important;
+ backdrop-filter:blur(9px);
+}
+#studioPanel #studioFooter:empty{display:none!important}
+#studioPanel #studioFooter .freshFooterLabel{font-size:12px;font-weight:850;color:#263958}
+#studioPanel #studioFooter .freshSave,#studioPanel #studioFooter .freshExport{
+ min-height:42px;padding:10px 16px!important;border-radius:10px!important;font-size:12px!important;font-weight:900
+}
+#studioPanel #studioFooter .freshSave{background:#eef2fe!important;color:#294cba!important}
+#studioPanel #studioFooter .freshExport{background:#315be8!important;color:#fff!important}
+#studioPanel .freshEntryStatus{font-size:12px;font-weight:900;color:#335acc;background:#eef3ff;border-radius:999px;padding:8px 12px;white-space:nowrap}
+@media(max-width:600px){
+ #studioPanel #studioFooter{bottom:5px!important;padding:10px!important}
+ #studioPanel #studioFooter .freshFooterLabel{display:none}
+ #studioPanel #studioFooter .freshSave,#studioPanel #studioFooter .freshExport{flex:1}
+}
