@@ -42,6 +42,6 @@ const HMTeacherAdmin=(()=>{
 })();
 /* STBB premium 2026 loader */
 (function(){
- const css=document.createElement('link');css.rel='stylesheet';css.href='fresh-portal-v1.css?v=1';document.head.appendChild(css);
- const script=document.createElement('script');script.src='fresh-portal-v1.js?v=1';script.defer=true;document.body.appendChild(script);
+ const css=document.createElement('link');css.rel='stylesheet';css.href='fresh-portal-v1.css?v=2';document.head.appendChild(css);
+ const script=document.createElement('script');script.src='fresh-portal-v1.js?v=2';script.defer=true;document.body.appendChild(script);
 })();
