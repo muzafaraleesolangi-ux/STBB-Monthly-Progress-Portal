@@ -112,9 +112,9 @@
 @media(prefers-reduced-motion:reduce){.premiumGuidePopover{animation:none!important}}
 
 /* A single visible Save Draft control; review appears only when all entries are cloud-saved. */
-#studioPanel[data-stage="5"] .studioFooter>:not(#studioReviewAction){display:none!important}
-#studioPanel[data-stage="5"] .studioFooter:has(#studioReviewAction[hidden]){display:none!important}
-#studioPanel[data-stage="5"] .studioFooter:not(:has(#studioReviewAction[hidden])){justify-content:flex-end!important}
+/* Removed legacy export/footer suppression: new direct export controls are always visible. */
+/* Removed legacy export/footer suppression: new direct export controls are always visible. */
+/* Removed legacy export/footer suppression: new direct export controls are always visible. */
 
 /* v7 · Draft → Final → Submit → Export experience */
 .premiumFlow{position:relative;overflow:hidden;padding:15px 17px;margin:13px 0 17px;background:linear-gradient(130deg,#f5fffb,#eaf8f4);border:1px solid #cae8dc;border-radius:18px;box-shadow:0 14px 38px rgba(7,85,73,.07)}
@@ -152,7 +152,7 @@
 .monthArchiveTray>summary{font-weight:850;color:#138567;cursor:pointer;padding:8px 0;font-size:13px}
 .monthArchiveTray .studioSubjectCards{padding-top:16px}
 .premiumFlow:not(.draft)~.studioSubjectCards select,.premiumFlow:not(.draft)~.studioSubjectCards textarea{pointer-events:none}
-#studioPanel[data-stage="5"] .studioFooter{display:none!important}
+/* Removed legacy export/footer suppression: new direct export controls are always visible. */
 @keyframes subjectRise{from{opacity:0;transform:translateY(11px) scale(.995)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes expandCard{from{opacity:.6;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 @keyframes savedFloat{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-5px) scale(1.007)}100%{transform:translateY(0) scale(1)}}
