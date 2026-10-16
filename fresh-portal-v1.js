@@ -3,12 +3,13 @@
 (function(){
  const official='https://portal.stbb.edu.pk/ebooks/';
  const grades=[
-  ['Kachi',2],['I',1],['II',3],['III',4],['IV',5],['V',6],['VI',7],['VII',8],['VIII',9],
+  ['Kachi',17],['I',1],['II',3],['III',4],['IV',5],['V',6],['VI',7],['VII',8],['VIII',9],
   ['IX',10],['X',11],['XI',14],['XII',15]
  ];
  // Verified official STBB book-detail IDs. Missing editions open the official class catalogue.
  // Entries: [title, official book id, medium].
  const library={
+  Kachi:[['Sindhi Primer',null,'Sindhi'],['Urdu Qaida',null,'Urdu']],
   I:[['Sindhi Reader',42,'Sindhi'],['Riazi / Mathematics',271,'Sindhi'],['My English',139,'English'],['General Knowledge',47,'Sindhi']],
   II:[['Sindhi Reader',88,'Sindhi'],['Riazi / Mathematics',280,'Sindhi'],['My English',140,'English'],['General Knowledge',79,'Sindhi']],
   III:[['Sindhi Reader',null,'Sindhi'],['Asan Urdu',236,'Urdu'],['My English',141,'English'],['Riazi / Mathematics',192,'Sindhi'],['General Knowledge',105,'Sindhi'],['Islamiat',256,'English']],
