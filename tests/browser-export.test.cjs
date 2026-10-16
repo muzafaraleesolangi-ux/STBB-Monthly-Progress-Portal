@@ -75,7 +75,7 @@ for name in sys.argv[1:]:
   sh=ET.fromstring(z.read('xl/worksheets/sheet1.xml'))
   assert any(el.attrib.get('name')=='Proforma' for el in wb.iter()),'Worksheet must be Proforma'
   content=z.read('xl/worksheets/sheet1.xml').decode('utf8')
-  for needle in ['STBB TEST SCHOOL','Math - V','Sample Teacher']:
+  for needle in ['STBB TEST SCHOOL','Math - V','SAMPLE TEACHER']:
    assert needle in content, 'Missing sample Excel cell: '+needle
   assert len(list(sh.iter()))>100,'Workbook should contain real cell/row XML'
   print('VERIFIED REAL EXCEL WORKBOOK:',p.name, 'bytes=',p.stat().st_size,'sheet=Proforma, ZIP and cells valid')
