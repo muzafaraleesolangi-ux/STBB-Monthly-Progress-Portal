@@ -83,7 +83,14 @@ const Studio=(()=>{
  panel.innerHTML='<div class="studioTop"><div><span class="studioEyebrow">STEP 2 / 3 · MONTHLY REPORT</span><h2>School Monthly Progress</h2><p>Select month, complete subject progress, then Final → Submit → Export. Earlier chapters carry into the next month.</p></div><div class="studioCloud"><span id="studioCloudDot">●</span><span id="studioCloudText">Cloud sync ready</span></div></div><div id="studioStageNav" class="studioStageNav"></div><div id="studioAlert" class="studioAlert">Your school setup is loading…</div><div id="studioBody"></div><div id="studioFooter" class="studioFooter"></div>';
  dashboard.insertBefore(panel,$s('school-overview'));return panel
  }
- function showPanel(){shell();['overview','editor','history','feedbackschool','teachers'].forEach(x=>$s('school-'+x)?.classList.add('hidden'));$s('studioPanel').classList.remove('hidden');document.querySelectorAll('#schoolTabs button').forEach(x=>x.classList.toggle('active',x.id==='studioTab'));const nav=$s('simpleWorkflow');if(nav)nav.dataset.active='progress';render();refreshSaveDock();window.scrollTo({top:0,behavior:'smooth'})}
+ function showPanel(){
+  shell();
+  ['overview','editor','history','feedbackschool','teachers'].forEach(x=>$s('school-'+x)?.classList.add('hidden'));
+  $s('studioPanel').classList.remove('hidden');
+  document.querySelectorAll('#schoolTabs button').forEach(x=>x.classList.toggle('active',x.id==='studioTab'));
+  const nav=$s('simpleWorkflow');if(nav)nav.dataset.active='progress';
+  render();refreshSaveDock();
+ }
  function clearSchoolSession(){
  clearTimeout(setupTimer);for(const timer of Object.values(saveTimers))clearTimeout(timer);
  setup=null;setupVersion=0;setupBusy=false;setupTimer=null;setupDirty=false;setupConflict=false;
@@ -107,11 +114,15 @@ const Studio=(()=>{
  notify(repaired?'✓ Missing standard subjects loaded. Your existing school subjects and assignments have been preserved.':stage===5?'✓ Welcome back! Your school setup is ready. Enter monthly progress directly below.':'✓ Saved setup restored. Continue from the next unfinished step.');if(repaired)markSetup()}
  restoreTeacherPreference();showPanel();
  }catch(e){notify(e.message,true)}finally{initializing=false}}
- function stageBar(){const names=['School Classes','Teachers','Teaching Classes','Subjects','Chapter Totals','Monthly Progress'];return '<div class="wizardTrack">'+names.map((name,i)=>'<button type="button" data-studio-stage="'+i+'" class="'+(i===stage?'current':i<stage?'finished':'')+'"><span>'+(i<stage?'✓':i+1)+'</span>'+safe(name)+'</button>').join('')+'</div>'}
+ function stageBar(){
+  const steps=[['Classes',0],['Teachers',1],['Subjects',3],['Progress',5]];
+  const active=stage===0?0:stage<=2?1:stage<=4?2:3;
+  return '<div class="freshStageGuide" aria-label="Simple reporting steps">'+steps.map((item,i)=>'<button type="button" data-studio-stage="'+item[1]+'" class="'+(i===active?'selected':i<active?'done':'')+'"><span>'+(i<active?'✓':i+1)+'</span>'+item[0]+'</button>').join('')+'</div>'
+ }
  function render(){if(!setup||!$s('studioPanel')||$s('studioPanel').classList.contains('hidden'))return;
  $s('studioStageNav').innerHTML=stageBar();
  const body=$s('studioBody');$s('studioPanel').dataset.stage=String(stage);body.innerHTML=[renderSchoolClasses,renderTeachers,renderClasses,renderAssignments,renderCourses,renderProgress][stage]();if(stage===5)progressVisibleFilter();
- $s('studioFooter').innerHTML=(stage>0?'<button class="btn line" type="button" data-studio-back>← Back</button>':'')+'<span class="spacer"></span><button class="btn primary" type="button" data-studio-save>💾 Save Draft</button>'+(stage<5?'<button class="btn primary" type="button" data-studio-next>'+(stage===3&&assignmentTeacherIndex<setup.teachers.length-1?'Save & Next Teacher →':stage===3?'✓ Start Monthly Report →':'Next: '+['Teachers','Teaching Classes','Subjects','Chapter Totals','Monthly Progress'][stage]+' →')+'</button>':'<button class="btn primary" type="button" id="studioReviewAction" data-studio-review '+(!(periodStatus==='submitted'&&schoolPeriod&&counts().total&&counts().left.length===0)?'hidden':'')+'>⬇ Export Excel →</button>');
+ $s('studioFooter').innerHTML=stage<5?'<button class="btn line" type="button" data-studio-back>← Back</button><span class="spacer"></span><button class="btn primary" type="button" data-studio-save>Save</button><button class="btn primary" type="button" data-studio-next>Next →</button>':'';
  }
  function renderSchoolClasses(){const selected=selectedGrades();return '<div class="studioHead"><div><h3>1. Select Classes Offered by Your School</h3><p>Only selected classes will appear in teacher assignments, textbooks, progress and Excel export. Add or remove classes any time; your textbook lesson lists stay available.</p></div><span class="studioCountBadge">'+selected.length+' Selected</span></div><div class="schoolClassCards">'+[1,2,3,4,5,6,7,8,9,10,11,12].map(n=>'<button type="button" class="schoolClassCard '+(selected.includes(n)?'chosen':'')+'" data-school-class="'+n+'"><span class="classEmblem">'+roman[n]+'</span><strong>Class '+roman[n]+'</strong><small>'+(selected.includes(n)?'✓ Added · Click to Remove':'+ Add Class')+'</small></button>').join('')+'</div><div class="classQuickButtons"><button class="ghostMini" data-classes-all>Select All Classes</button><button class="ghostMini" data-classes-none>Remove All</button></div><p class="studioHint">Next: Enter teachers, then assign them to these selected classes.</p>'}
  function renderTeachers(){return '<div class="studioHead"><div><h3>2. Enter Your School Teachers</h3><p>Add each teacher once. Enter full name, official PID and designation. Use Add Teacher for additional staff.</p></div><button class="btn ghost" data-studio-addteacher>＋ Add Teacher</button></div><div class="teacherCards">'+setup.teachers.map((t,i)=>'<article class="studioCard"><div class="studioCardTitle"><span class="indexBubble">'+(i+1)+'</span><strong>Teacher '+(i+1)+'</strong>'+(setup.teachers.length>1?'<button class="ghostMini" data-studio-removeteacher="'+safe(t.id)+'">Remove</button>':'')+'</div><div class="studioFormGrid"><label>Full Name<input data-tid="'+safe(t.id)+'" data-field="name" value="'+safe(t.name)+'" placeholder="As per school staff record"></label><label>PID Number<input data-tid="'+safe(t.id)+'" data-field="pid" value="'+safe(t.pid)+'" placeholder="Official PID"></label><label>Designation / BPS<input data-tid="'+safe(t.id)+'" data-field="designation" value="'+safe(t.designation)+'" placeholder="PST (BPS-14), JEST, HST…"></label></div></article>').join('')+'</div>'}
@@ -299,15 +310,9 @@ const Studio=(()=>{
  const empty=$s('studioFilteredEmpty');if(empty)empty.hidden=visible!==0;
 }
 function renderWorkflow(){
- const c=counts(),steps=['Draft','Final','Submitted','Exported'],ix={draft:0,final:1,submitted:2,exported:3}[periodStatus]??0;
- const stepsHTML=steps.map((step,i)=>'<span class="'+(i===ix?'current':i<ix?'passed':'future')+'">'+(i<ix?'✓ ':i+1+' ')+step+'</span>').join('');
- let buttons='';
- if(periodStatus==='draft')buttons='<button type="button" class="flowAction neutral" data-studio-save>Save Draft</button><button type="button" class="flowAction premium" id="studioFinalAction" data-workflow-final '+(!(schoolPeriod&&c.total&&c.left.length===0)?'disabled':'')+'>✓ Mark Final</button>';
- if(periodStatus==='final')buttons='<button type="button" class="flowAction neutral" data-workflow-reopen>✎ Edit Draft</button><button type="button" class="flowAction premium" data-workflow-submit>Submit Report →</button>';
- if(periodStatus==='submitted')buttons='<button type="button" class="flowAction neutral" data-workflow-reopen>✎ Reopen Draft</button><button type="button" class="flowAction premium" data-studio-review>⬇ Export Excel</button><button type="button" class="flowAction startNextMonth" data-workflow-newmonth>＋ Next Month →</button>';
- if(periodStatus==='exported')buttons='<button type="button" class="flowAction neutral" data-workflow-reopen>✎ Reopen & Edit</button><button type="button" class="flowAction premium" data-workflow-history>View Export History ↗</button><button type="button" class="flowAction startNextMonth" data-workflow-newmonth>＋ Start New Month →</button>';
- const desc={draft:'Save as you work. Complete every subject to enable Final.',final:'Fields locked for review. Submit to enable Excel export.',submitted:'Submission complete. Export to store Excel in History.',exported:'Export saved in History. Month details are minimized.'}[periodStatus];
- return '<section class="premiumFlow '+safe(periodStatus)+'"><div class="flowSteps">'+stepsHTML+'</div><div class="flowActions">'+buttons+'</div><small class="flowMessage">'+desc+'</small></section>';
+  const c=counts(),complete=c.total>0&&c.left.length===0;
+  const message=!schoolPeriod?'Choose your reporting month first.':!c.total?'Assign at least one subject to a teacher.':complete?'All subject entries saved. Ready to export the original Excel Proforma.':c.left.length+' subject(s) pending. Save now and finish remaining fields before exporting.';
+  return '<section class="freshWorkflow" aria-label="Save and export report"><div class="freshWorkflowCopy"><strong>'+safe(schoolPeriod||'Monthly report')+'</strong><small>'+safe(message)+'</small></div><div class="freshWorkflowActions">'+(periodStatus==='draft'?'<button type="button" data-progress-saveall class="freshSave">Save</button>':'')+(periodStatus==='exported'?'<button type="button" data-workflow-history class="freshExport">Download from My Months ↗</button>':'<button type="button" data-quick-save-export class="freshExport" '+(!schoolPeriod?'disabled':'')+'>Save & Export Excel ↗</button>')+'</div></section>';
 }
 function renderSubmittedInsights(){
  const all=assigned(),total=all.reduce((n,b)=>n+b.chapters.length,0),previous=all.reduce((n,b)=>n+Number(progressBy(b).previous||0),0),current=all.reduce((n,b)=>n+Number(progressBy(b).current||0),0);
@@ -383,6 +388,31 @@ function renderProgress(){
    else notify('✓ Monthly report submitted. Excel Export is now available.');
    render();if(typeof refreshSchool==='function')refreshSchool().catch(e=>console.warn('Month sidebar refresh:',e))
   }catch(e){notify('Report status not changed: '+e.message,true);alert(e.message)}
+ }
+ async function directSaveExport(){
+  if(!schoolPeriod){notify('Select a reporting month first.',true);return}
+  if(periodStatus==='exported'){notify('This month is already exported. Download its file from My Months.');return}
+  try{
+    await settle();
+    const check=counts();
+    if(!check.total)throw Error('Assign subjects to teachers first.');
+    if(check.left.length)throw Error('Saved your entries. Complete all seven fields in the remaining '+check.left.length+' subject(s) to export Excel.');
+    if(periodStatus==='draft'){
+      let r=await api('set-workflow',{period:schoolPeriod,status:'final'});
+      periodWorkflow=r.workflow||{status:'final'};periodStatus=periodWorkflow.status;
+    }
+    if(periodStatus==='final'){
+      let r=await api('set-workflow',{period:schoolPeriod,status:'submitted'});
+      periodWorkflow=r.workflow||{status:'submitted'};periodStatus=periodWorkflow.status;
+    }
+    if(periodStatus!=='submitted')throw Error('Month status is '+periodStatus+'. Reopen it to edit or use My Months to download.');
+    notify('✓ Month saved. Preparing your Excel workbook…');
+    render();
+    await review();
+  }catch(error){
+    notify(error.message,true);
+    render();
+  }
  }
  function applyCardCollapse(card,collapsed){
   if(!card)return;const body=card.querySelector('.masterCardBody'),button=card.querySelector('[data-progress-expand]');
@@ -570,7 +600,8 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
   assignmentTeacherIndex=index;clearAssignmentEditor();render();
   notify('✓ Saved. Now assigning subjects for '+(setup.teachers[index].name||'Teacher '+(index+1))+'. Assigned subjects remain hidden for other teachers.');
  }
- async function handleClick(e){const target=e.target.closest('[data-teacher-tab],[data-progress-addclass],[data-progress-addsubject],[data-progress-manage],[data-progress-claimsubject],[data-progress-rename],[data-progress-remove],[data-progress-month],[data-class-all],[data-class-clear],[data-studio-quick-progress],[data-studio-quick-assign],[data-progress-details],[data-progress-show-all],[data-progress-pending],[data-progress-saveall],[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-restoregrade],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-lesson-write-open],[data-lesson-cancelwrite],[data-lesson-addone],[data-lesson-applypaste],[data-lesson-remove-last],[data-lesson-savewrite],[data-studio-lessons],[data-lesson-close],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub],[data-workflow-final],[data-workflow-reopen],[data-workflow-submit],[data-workflow-history],[data-workflow-newmonth],[data-progress-expand]');if(!target)return;
+ async function handleClick(e){const target=e.target.closest('[data-teacher-tab],[data-progress-addclass],[data-progress-addsubject],[data-progress-manage],[data-progress-claimsubject],[data-progress-rename],[data-progress-remove],[data-progress-month],[data-class-all],[data-class-clear],[data-studio-quick-progress],[data-studio-quick-assign],[data-progress-details],[data-progress-show-all],[data-progress-pending],[data-progress-saveall],[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-restoregrade],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-lesson-write-open],[data-lesson-cancelwrite],[data-lesson-addone],[data-lesson-applypaste],[data-lesson-remove-last],[data-lesson-savewrite],[data-studio-lessons],[data-lesson-close],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub],[data-quick-save-export],[data-workflow-final],[data-workflow-reopen],[data-workflow-submit],[data-workflow-history],[data-workflow-newmonth],[data-progress-expand]');if(!target)return;
+ if(target.hasAttribute('data-quick-save-export'))return directSaveExport();
  if(target.hasAttribute('data-workflow-final'))return workflowAction('final');
  if(target.hasAttribute('data-workflow-reopen'))return workflowAction('draft');
  if(target.hasAttribute('data-workflow-submit'))return workflowAction('submitted');
@@ -717,5 +748,5 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  const otherDashTab=dashTab;dashTab=function(tab,button){if($s('studioPanel'))$s('studioPanel').classList.add('hidden');return otherDashTab(tab,button)};
  // Restore the studio if the school session existed before a page refresh.
  setTimeout(()=>{if(auth&&!auth.admin&&!['teacher','staff'].includes(auth.role)&&account)activate().then(()=>dashTab('teachers',document.querySelector('#schoolTabs [data-workflow-tab="teachers"]')))},1700);
- return{activate,openPeriod,startFollowingMonth,followingMonth,activePeriod:()=>schoolPeriod,review,showPanel,exportMessage:(message,bad=false)=>notify(message,bad),saveSetup,settle,setStatus:workflowAction,status:()=>periodStatus,refresh:loadEntries,markExported:async()=>{if(!schoolPeriod)return;try{const r=await api('load-workflow',{period:schoolPeriod});periodWorkflow=r.workflow;periodStatus=periodWorkflow.status;render()}catch(e){notify('Excel saved; refresh status to view the archive: '+e.message,true)}},unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
+ return{activate,openPeriod,startFollowingMonth,followingMonth,activePeriod:()=>schoolPeriod,review,directSaveExport,showPanel,exportMessage:(message,bad=false)=>notify(message,bad),saveSetup,settle,setStatus:workflowAction,status:()=>periodStatus,refresh:loadEntries,markExported:async()=>{if(!schoolPeriod)return;try{const r=await api('load-workflow',{period:schoolPeriod});periodWorkflow=r.workflow;periodStatus=periodWorkflow.status;render()}catch(e){notify('Excel saved; refresh status to view the archive: '+e.message,true)}},unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
 })();
