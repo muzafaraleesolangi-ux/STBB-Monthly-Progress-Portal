@@ -84,6 +84,7 @@ const Studio=(()=>{
  dashboard.insertBefore(panel,$s('school-overview'));return panel
  }
  function showPanel(){
+  window.PortalExcelPreview?.close?.();
   shell();
   ['overview','editor','history','feedbackschool','teachers'].forEach(x=>$s('school-'+x)?.classList.add('hidden'));
   $s('studioPanel').classList.remove('hidden');
@@ -122,7 +123,7 @@ const Studio=(()=>{
  function render(){if(!setup||!$s('studioPanel')||$s('studioPanel').classList.contains('hidden'))return;
  $s('studioStageNav').innerHTML=stageBar();
  const body=$s('studioBody');$s('studioPanel').dataset.stage=String(stage);body.innerHTML=[renderSchoolClasses,renderTeachers,renderClasses,renderAssignments,renderCourses,renderProgress][stage]();if(stage===5)progressVisibleFilter();
- $s('studioFooter').innerHTML=stage<5?'<button class="btn line" type="button" data-studio-back>← Back</button><span class="spacer"></span><button class="btn primary" type="button" data-studio-save>Save</button><button class="btn primary" type="button" data-studio-next>Next →</button>':'<span class="freshFooterLabel">'+safe(schoolPeriod||'Select a month')+'</span><span class="spacer"></span>'+(periodStatus==='draft'?'<button type="button" class="freshSave" data-progress-saveall>Save</button>':'')+(periodStatus==='exported'?'<button type="button" class="freshExport" data-workflow-history>Download Excel ↗</button>':'<button type="button" class="freshExport" data-quick-save-export '+(!schoolPeriod?'disabled':'')+'>Save & Export Excel ↗</button>');
+ $s('studioFooter').innerHTML=stage<5?'<button class="btn line" type="button" data-studio-back>← Back</button><span class="spacer"></span><button class="btn primary" type="button" data-studio-save>Save</button><button class="btn primary" type="button" data-studio-next>Next →</button>':'<span class="freshFooterLabel">'+safe(schoolPeriod||'Select a month')+'</span><span class="spacer"></span>'+(periodStatus==='draft'?'<button type="button" class="freshSave" data-progress-saveall>Save</button>':'')+(periodStatus==='exported'?'<button type="button" class="freshExport" data-workflow-history>Download Excel ↗</button>':'<button type="button" class="freshExport" data-quick-save-export '+(!schoolPeriod?'disabled':'')+'>Preview Excel →</button>');
  }
  function renderSchoolClasses(){const selected=selectedGrades();return '<div class="studioHead"><div><h3>1. Select Classes Offered by Your School</h3><p>Only selected classes will appear in teacher assignments, textbooks, progress and Excel export. Add or remove classes any time; your textbook lesson lists stay available.</p></div><span class="studioCountBadge">'+selected.length+' Selected</span></div><div class="schoolClassCards">'+[1,2,3,4,5,6,7,8,9,10,11,12].map(n=>'<button type="button" class="schoolClassCard '+(selected.includes(n)?'chosen':'')+'" data-school-class="'+n+'"><span class="classEmblem">'+roman[n]+'</span><strong>Class '+roman[n]+'</strong><small>'+(selected.includes(n)?'✓ Added · Click to Remove':'+ Add Class')+'</small></button>').join('')+'</div><div class="classQuickButtons"><button class="ghostMini" data-classes-all>Select All Classes</button><button class="ghostMini" data-classes-none>Remove All</button></div><p class="studioHint">Next: Enter teachers, then assign them to these selected classes.</p>'}
  function renderTeachers(){return '<div class="studioHead"><div><h3>2. Enter Your School Teachers</h3><p>Add each teacher once. Enter full name, official PID and designation. Use Add Teacher for additional staff.</p></div><button class="btn ghost" data-studio-addteacher>＋ Add Teacher</button></div><div class="teacherCards">'+setup.teachers.map((t,i)=>'<article class="studioCard"><div class="studioCardTitle"><span class="indexBubble">'+(i+1)+'</span><strong>Teacher '+(i+1)+'</strong>'+(setup.teachers.length>1?'<button class="ghostMini" data-studio-removeteacher="'+safe(t.id)+'">Remove</button>':'')+'</div><div class="studioFormGrid"><label>Full Name<input data-tid="'+safe(t.id)+'" data-field="name" value="'+safe(t.name)+'" placeholder="As per school staff record"></label><label>PID Number<input data-tid="'+safe(t.id)+'" data-field="pid" value="'+safe(t.pid)+'" placeholder="Official PID"></label><label>Designation / BPS<input data-tid="'+safe(t.id)+'" data-field="designation" value="'+safe(t.designation)+'" placeholder="PST (BPS-14), JEST, HST…"></label></div></article>').join('')+'</div>'}
@@ -390,6 +391,23 @@ function renderProgress(){
    render();if(typeof refreshSchool==='function')refreshSchool().catch(e=>console.warn('Month sidebar refresh:',e))
   }catch(e){notify('Report status not changed: '+e.message,true);alert(e.message)}
  }
+ async function previewReport(){
+  if(!schoolPeriod){notify('Select a reporting month first.',true);return}
+  try{
+    await settle();
+    const check=counts();
+    if(!check.total)throw Error('Assign at least one subject to a teacher.');
+    if(check.left.length)throw Error('Save completed fields first. '+check.left.length+' subject(s) still need their seven report fields.');
+    await loadEntries({strict:true});
+    if(counts().left.length)throw Error('The latest cloud data has pending subject fields. Complete those entries before preview.');
+    const preview=window.PortalExcelPreview;
+    if(!preview||typeof preview.open!=='function')throw Error('Excel Preview has not loaded. Please refresh the portal.');
+    period=schoolPeriod;
+    pendingState=null;
+    await preview.open(compiled(),schoolPeriod);
+    notify('Review the original Excel Proforma. Tap Download Excel after checking the report.');
+  }catch(error){notify('Cannot open Excel Preview: '+error.message,true)}
+ }
  async function directSaveExport(){
   if(!schoolPeriod){notify('Select a reporting month first.',true);return}
   if(periodStatus==='exported'){notify('This month is already exported. Download its file from My Months.');return}
@@ -558,7 +576,7 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
   pendingState=null;
   notify('✓ Generating the original Excel Proforma and saving to cloud History…');
   // Generate the original master workbook in a hidden service frame, without opening a duplicate editor.
-  showPanel();
+  if(!window.PortalExcelPreview?.isOpen?.())showPanel();
   const frame=$s('editor');
   if(!frame?.contentWindow)throw Error('Excel editor is not available; reload the page.');
   const launch=()=>{
@@ -602,7 +620,7 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
   notify('✓ Saved. Now assigning subjects for '+(setup.teachers[index].name||'Teacher '+(index+1))+'. Assigned subjects remain hidden for other teachers.');
  }
  async function handleClick(e){const target=e.target.closest('[data-teacher-tab],[data-progress-addclass],[data-progress-addsubject],[data-progress-manage],[data-progress-claimsubject],[data-progress-rename],[data-progress-remove],[data-progress-month],[data-class-all],[data-class-clear],[data-studio-quick-progress],[data-studio-quick-assign],[data-progress-details],[data-progress-show-all],[data-progress-pending],[data-progress-saveall],[data-school-class],[data-classes-all],[data-classes-none],[data-assignment-jumpteacher],[data-assignment-restoregrade],[data-assignment-togglegrade],[data-assignment-selectall],[data-assignment-clear],[data-assignment-teacher],[data-assignment-prev],[data-assignment-next],[data-assignment-addsubject],[data-assignment-confirmadd],[data-assignment-canceladd],[data-assignment-edit],[data-assignment-remove],[data-assignment-close],[data-assignment-addchapter],[data-assignment-removechapter],[data-assignment-saveclose],[data-studio-stage],[data-studio-next],[data-studio-back],[data-studio-save],[data-studio-review],[data-studio-addteacher],[data-studio-removeteacher],[data-studio-grade],[data-studio-editbook],[data-studio-removebook],[data-studio-addbook],[data-studio-addchapter],[data-studio-removechapter],[data-studio-saveclose],[data-lesson-write-open],[data-lesson-cancelwrite],[data-lesson-addone],[data-lesson-applypaste],[data-lesson-remove-last],[data-lesson-savewrite],[data-studio-lessons],[data-lesson-close],[data-studio-refresh],[data-studio-openmonth],[data-studio-savesub],[data-quick-save-export],[data-workflow-final],[data-workflow-reopen],[data-workflow-submit],[data-workflow-history],[data-workflow-newmonth],[data-progress-expand]');if(!target)return;
- if(target.hasAttribute('data-quick-save-export'))return directSaveExport();
+ if(target.hasAttribute('data-quick-save-export'))return previewReport();
  if(target.hasAttribute('data-workflow-final'))return workflowAction('final');
  if(target.hasAttribute('data-workflow-reopen'))return workflowAction('draft');
  if(target.hasAttribute('data-workflow-submit'))return workflowAction('submitted');
@@ -749,5 +767,5 @@ function summaryForCheck(){if(!selectedGrades().length)return 'Please select at 
  const otherDashTab=dashTab;dashTab=function(tab,button){if($s('studioPanel'))$s('studioPanel').classList.add('hidden');return otherDashTab(tab,button)};
  // Restore the studio if the school session existed before a page refresh.
  setTimeout(()=>{if(auth&&!auth.admin&&!['teacher','staff'].includes(auth.role)&&account)activate().then(()=>dashTab('teachers',document.querySelector('#schoolTabs [data-workflow-tab="teachers"]')))},1700);
- return{activate,openPeriod,startFollowingMonth,followingMonth,activePeriod:()=>schoolPeriod,review,directSaveExport,showPanel,exportMessage:(message,bad=false)=>notify(message,bad),saveSetup,settle,setStatus:workflowAction,status:()=>periodStatus,refresh:loadEntries,markExported:async()=>{if(!schoolPeriod)return;try{const r=await api('load-workflow',{period:schoolPeriod});periodWorkflow=r.workflow;periodStatus=periodWorkflow.status;render()}catch(e){notify('Excel saved; refresh status to view the archive: '+e.message,true)}},unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
+ return{activate,openPeriod,startFollowingMonth,followingMonth,activePeriod:()=>schoolPeriod,review,previewReport,directSaveExport,showPanel,exportMessage:(message,bad=false)=>notify(message,bad),saveSetup,settle,setStatus:workflowAction,status:()=>periodStatus,refresh:loadEntries,markExported:async()=>{if(!schoolPeriod)return;try{const r=await api('load-workflow',{period:schoolPeriod});periodWorkflow=r.workflow;periodStatus=periodWorkflow.status;render()}catch(e){notify('Excel saved; refresh status to view the archive: '+e.message,true)}},unsaved:()=>Boolean(setupDirty||setupBusy||setupTimer||assignmentEditorId||addingSubjectGrade!==null||lessonNameDraft||progressDirty.size||progressBusy.size),getSetup:()=>setup,api,stage:setupStage};
 })();
