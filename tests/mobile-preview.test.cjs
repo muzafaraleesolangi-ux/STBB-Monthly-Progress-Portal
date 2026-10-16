@@ -1,6 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
+const vm=require('node:vm');
 const {JSDOM}=require('jsdom');
 
 (async()=>{
@@ -16,10 +17,10 @@ const {JSDOM}=require('jsdom');
  const dom=new JSDOM(markup,{url:'https://example.test/',runScripts:'outside-only'});
  const w=dom.window,d=w.document;
  w.__mprDeveloperPortrait='data:image/png;base64,iVBORw0KGgo=';
- w.eval("const Studio = {directSaveExport:async function(){window.__exportCalls=(window.__exportCalls||0)+1},showPanel:function(){window.__showCalls=(window.__showCalls||0)+1}}");
+ vm.runInContext("const Studio = {directSaveExport:async function(){window.__exportCalls=(window.__exportCalls||0)+1},showPanel:function(){window.__showCalls=(window.__showCalls||0)+1}}",dom.getInternalVMContext());
  assert.equal(w.Studio,undefined,'Actual portal Studio is a top-level const, not a window property');
  d.getElementById('school-editor').scrollIntoView=()=>{};
- w.eval(fs.readFileSync('fresh-experience-v2.js','utf8'));
+ vm.runInContext(fs.readFileSync('fresh-experience-v2.js','utf8'),dom.getInternalVMContext());
  assert.ok(d.querySelector('#fresh-developer'),'Separate developer section');
  assert.equal(d.querySelector('#freshDeveloperPortrait').getAttribute('src'),w.__mprDeveloperPortrait,'Existing original photo remains');
  assert.match(d.querySelector('#fresh-developer').textContent,/DEVELOPED BY[\s\S]*Muzafar Ali Solangi/i);
