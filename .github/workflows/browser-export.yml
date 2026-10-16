@@ -1,0 +1,28 @@
+name: Chrome Excel Export Verification
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install real browser test runner
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install chromium
+      - name: Click original Excel Preview then Download in Chromium
+        run: |
+          node --check tests/browser-export.test.cjs
+          node tests/browser-export.test.cjs
+      - name: Upload the actual desktop and mobile XLSX test files
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: verified-stbb-export-samples
+          path: tests/artifacts/browser-export-*.xlsx
+          retention-days: 7
