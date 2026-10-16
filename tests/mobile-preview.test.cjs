@@ -18,6 +18,7 @@ const {JSDOM}=require('jsdom');
  w.__mprDeveloperPortrait='data:image/png;base64,iVBORw0KGgo=';
  let calls=0,shown=0;
  w.Studio={directSaveExport:async()=>{calls++},showPanel:()=>{shown++;}};
+ d.getElementById('school-editor').scrollIntoView=()=>{};
  w.eval(fs.readFileSync('fresh-experience-v2.js','utf8'));
  assert.ok(d.querySelector('#fresh-developer'),'Separate developer section');
  assert.equal(d.querySelector('#freshDeveloperPortrait').getAttribute('src'),w.__mprDeveloperPortrait,'Existing original photo remains');
