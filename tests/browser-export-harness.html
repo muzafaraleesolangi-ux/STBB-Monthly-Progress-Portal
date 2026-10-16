@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>STBB Download E2E Test Harness</title></head>
+<body>
+<h1>Original STBB Excel Browser Export Test</h1>
+<button type="button" id="preview">1. Preview original Proforma</button>
+<button type="button" id="download">2. Download Excel</button>
+<p id="status">Editor loading…</p>
+<iframe id="editor" src="/MPR_Online_Editor.html" title="Original Excel editor" style="width:100%;height:650px;border:1px solid #bbb"></iframe>
+<script src="/excel-download-v2.js"></script>
+<script>
+'use strict';
+const frame=document.getElementById('editor');
+const status=document.getElementById('status');
+const sample={schoolName:'STBB TEST SCHOOL',semis:'000000000',hmName:'Sample Head Teacher',hmDesignation:'HEAD MASTER',month:'October',year:2026,
+ teachers:[{id:'sample_t1',name:'Sample Teacher',pid:'TEST000',designation:'PST (BPS-14)'}],
+ books:{5:[{id:'test_math_v',name:'Mathematics',chapters:['Numbers','Fractions','Decimals','Geometry','Data Handling'],active:true,teacherId:'sample_t1',previous:2,current:1,notebook:80,cleanliness:'Good',feedback:'Very Good',suggestion:'Continue structured practice'}]}};
+window.testSignals={preview:false,ready:false,exportReceived:false,downloadInitiated:false,errors:[]};
+window.addEventListener('message',event=>{
+ if(event.origin!==location.origin||event.source!==frame.contentWindow)return;
+ const d=event.data||{};
+ if(d.type==='mpr-editor-ready'){window.testSignals.ready=true;status.textContent='Editor ready.';}
+ if(d.type==='mpr-export'){
+  window.testSignals.exportReceived=true;
+  try {
+   if(d.period!=='2026-10'||!d.filename.endsWith('.xlsx')||!d.xlsx_base64.startsWith('UEs'))throw Error('Bad export metadata');
+   window.testSignals.filename=d.filename;
+   window.testSignals.exportBytes=Math.floor(d.xlsx_base64.length*3/4);
+   // Mimic backend confirmation, preserving the real MPRDownloads click mechanism.
+   const delivery=MPRDownloads.saveExcel(d.xlsx_base64,d.filename);
+   window.testSignals.downloadInitiated=true;
+   window.testSignals.delivery=delivery.message;
+   frame.contentWindow.postMessage({type:'mpr-export-ack',ok:true},location.origin);
+   status.textContent='Excel generated and browser download started.';
+  }catch(error){
+   window.testSignals.errors.push(String(error.message||error));
+   status.textContent='Export error: '+error.message;
+   frame.contentWindow.postMessage({type:'mpr-export-ack',ok:false,error:error.message},location.origin);
+  }
+ }
+ if(d.type==='mpr-export-error'){window.testSignals.errors.push(String(d.error||'Excel generation failed'));status.textContent='Export error: '+d.error}
+});
+document.getElementById('preview').onclick=()=>{
+ frame.contentWindow.postMessage({type:'mpr-hydrate',state:sample,period:'2026-10',previewOnly:true},location.origin);
+ window.testSignals.preview=true;
+ status.textContent='Preview rendered from sample report.';
+};
+document.getElementById('download').onclick=()=>{
+ // Actual production editor receives the same hydrate+autoExport command after saving.
+ frame.contentWindow.postMessage({type:'mpr-hydrate',state:sample,period:'2026-10',autoExport:true},location.origin);
+ status.textContent='Generating Excel…';
+};
+</script></body></html>
