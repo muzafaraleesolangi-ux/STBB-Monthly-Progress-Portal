@@ -40,3 +40,8 @@ const HMTeacherAdmin=(()=>{
  if(auth&&!auth.admin&&auth.role!=='teacher')setTimeout(refresh,700);
  return{refresh}
 })();
+/* STBB premium 2026 loader */
+(function(){
+ const css=document.createElement('link');css.rel='stylesheet';css.href='fresh-portal-v1.css?v=1';document.head.appendChild(css);
+ const script=document.createElement('script');script.src='fresh-portal-v1.js?v=1';script.defer=true;document.body.appendChild(script);
+})();
