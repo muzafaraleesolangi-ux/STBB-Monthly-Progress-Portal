@@ -283,6 +283,7 @@ const Studio=(()=>{
  }
  function refreshProgressSummary(){
  const c=counts(),root=$s('studioBody');if(!root)return;
+ const fresh=root.querySelector('.freshEntryStatus');if(fresh)fresh.textContent=c.done+' / '+c.total+' subjects complete';
  for(const [sel,v] of [['[data-quick-done]',c.done],['[data-quick-pending]',c.left.length],['[data-quick-total]',c.total]]){const el=root.querySelector(sel);if(el)el.textContent=String(v)}
  const review=$s('studioReviewAction');if(review)review.hidden=!(periodStatus==='submitted'&&schoolPeriod&&c.total>0&&c.left.length===0);const final=$s('studioFinalAction');if(final)final.disabled=!(schoolPeriod&&c.total&&c.left.length===0);
  for(const person of setup.teachers){const books=assigned().filter(b=>b.teacherId===person.id),done=books.filter(b=>progressVersions[b.id]>0&&fullyEntered(b)&&!progressDirty.has(b.id)).length;const el=root.querySelector('[data-teacher-count="'+person.id+'"]');if(el)el.textContent=done+'/'+books.length}
