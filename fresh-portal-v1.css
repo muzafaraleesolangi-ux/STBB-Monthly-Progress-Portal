@@ -1,0 +1,146 @@
+/* STBB 2026: premium editorial theme, accessible flowing school workspace */
+:root{--bg:#f6f7fa;--ink:#15243d;--muted:#65758b;--line:#dce4ef;--emerald:#315be8;--mid:#243fb0;--dark:#101c43;--radius:16px}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{background:#f5f7fc;color:#16243d;font-family:Inter,"Segoe UI",system-ui,sans-serif}
+.topbar{background:rgba(255,255,255,.94);border-bottom:1px solid #e2e8f2;box-shadow:0 4px 26px #15234007}
+.logo{background:linear-gradient(135deg,#2046bc,#5376f6);border-radius:14px;box-shadow:none}
+.wordmark b{color:#172743}.wordmark small{color:#8695ae}
+.btn,.smallbtn,button{transition:background-color .15s,color .15s,box-shadow .15s,transform .15s}
+.btn.primary,.primary{background:#315be8;color:#fff;box-shadow:0 6px 16px #315be824}
+.btn.ghost,.ghost{background:#edf2fd;color:#264bb8}
+.btn.line,.line{border-color:#cfd9ed;color:#3154a5}
+.panel,.metric,.studioPanel,.teacherDash{border:1px solid #e0e7f2;border-radius:18px;box-shadow:0 7px 28px #111f3b08;background:#fff}
+.topbar .topinner{min-height:68px}
+#landing{padding-bottom:44px}
+.freshHome{margin:30px 0 20px}
+.freshHero{background:#101e43;color:#fff;border-radius:28px;padding:clamp(28px,5vw,66px);position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(225px,.6fr);gap:28px}
+.freshHero:after{content:"";position:absolute;width:370px;height:370px;border:1px solid #ffffff20;border-radius:42%;right:-110px;top:-145px;box-shadow:0 0 0 55px #ffffff05,0 0 0 115px #ffffff04;pointer-events:none}
+.freshHeroContent{position:relative;z-index:1}
+.freshEyebrow{font-size:10px;font-weight:800;letter-spacing:2px;color:#b5c9ff;text-transform:uppercase}
+.freshHero h1{font-size:clamp(32px,5vw,58px);line-height:1.08;margin:15px 0 14px;letter-spacing:-1.8px;max-width:670px}
+.freshHero h1 em{font-style:normal;color:#a9c2ff}
+.freshHero p{color:#dce5ff;max-width:610px;font-size:14px;line-height:1.8;margin:0}
+.freshHeroButtons{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.freshHeroButtons button{padding:12px 18px;border-radius:11px;font-weight:800;font-size:13px}
+.freshHeroButtons .join{color:#15244c;background:#fff}
+.freshHeroButtons .sign{background:#304778;color:#fff;border:1px solid #6376aa}
+.freshHeroStat{z-index:1;align-self:center;background:#ffffff0f;border:1px solid #ffffff28;border-radius:20px;padding:25px;display:flex;flex-direction:column;gap:18px}
+.freshHeroStat div{display:flex;gap:12px;align-items:center;border-bottom:1px solid #ffffff20;padding-bottom:15px}
+.freshHeroStat div:last-child{border:0;padding:0}
+.freshHeroStat b{font-size:26px;color:white}.freshHeroStat span{font-size:12px;color:#c9d7ff;line-height:1.5}
+.freshQuickSteps{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 35px;color:#536581}
+.freshQuickSteps span{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:750;background:white;border:1px solid #e0e7f3;border-radius:999px;padding:9px 15px}
+.freshQuickSteps b{display:grid;place-items:center;border-radius:50%;width:20px;height:20px;background:#e9efff;color:#315be8}
+.freshLibrary{margin-top:30px}
+.freshLibraryTop{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.freshLibraryTop .freshEyebrow{color:#315be8}
+.freshLibrary h2{font-size:clamp(24px,3vw,34px);margin:7px 0;letter-spacing:-.8px;color:#18284b}
+.freshLibraryTop p{margin:0;color:#6d7d92;font-size:13px}
+.freshLibrarySearch{background:#fff;border:1px solid #dbe3f2;border-radius:13px;padding:12px 16px;min-width:min(300px,100%);outline:none}
+.freshLibrarySearch:focus{border-color:#4168e9;box-shadow:0 0 0 3px #4168e914}
+.freshClassNav{display:flex;flex-wrap:wrap;gap:7px;margin:20px 0}
+.freshClassNav button{font-size:12px;font-weight:800;padding:8px 13px;color:#334666;background:white;border:1px solid #dce5f3;border-radius:9px}
+.freshClassNav button:hover,.freshClassNav button:focus-visible{background:#eaf0ff;border-color:#839cea;color:#1e42c2}
+.freshBookGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:18px}
+.freshClassCard{min-width:0;border:1px solid #e0e6f2;background:#fff;border-radius:19px;padding:20px;box-shadow:0 7px 30px #0c244308;scroll-margin-top:85px}
+.freshClassCard[hidden],.freshBookRow[hidden]{display:none!important}
+.freshClassHeader{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.freshClassAvatar{width:43px;height:43px;background:#eaf0ff;color:#264dc6;border-radius:12px;display:grid;place-items:center;font-size:18px;font-weight:900;flex-shrink:0}
+.freshClassHeader h3{margin:0;color:#192b4e;font-size:17px}
+.freshClassHeader small{display:block;font-size:11px;margin-top:3px;color:#8793a8}
+.freshBookList{display:grid;gap:0}
+.freshBookRow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #eef1f7;font-size:12px}
+.freshBookRow .bookMark{width:7px;height:7px;border-radius:50%;background:#9cb5ff;flex-shrink:0}
+.freshBookTitle{min-width:0;flex:1;color:#263751;font-weight:750;overflow-wrap:anywhere}
+.freshBookType{font-size:10px;color:#8290a8;font-weight:600;display:block;margin-top:2px}
+.freshBookRow a{border:1px solid #d9e4fa;color:#2b50c5;background:#f4f7fe;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:850;white-space:nowrap}
+.freshBookRow a:hover{background:#315be8;color:white}
+.freshClassAll{display:inline-flex;margin-top:12px;font-size:12px;font-weight:800;color:#3154c1}
+.freshLibraryFoot{margin-top:18px;font-size:12px;color:#76869c;line-height:1.7}
+#schooldash.monthEnhanced{display:grid;grid-template-columns:244px minmax(0,1fr);column-gap:20px;align-items:start}
+#schooldash.monthEnhanced>.heading{grid-column:1/-1;grid-row:1}
+#schooldash.monthEnhanced>.metrics{grid-column:1/-1;grid-row:2;margin:5px 0 14px}
+#schooldash.monthEnhanced>#schoolTabs{grid-column:1/-1;grid-row:3;margin-bottom:16px}
+#schooldash.monthEnhanced>#freshMonthSidebar{grid-column:1;grid-row:4;position:sticky;top:87px}
+#schooldash.monthEnhanced>#studioPanel,#schooldash.monthEnhanced>#school-overview,#schooldash.monthEnhanced>#school-history,#schooldash.monthEnhanced>#school-teachers,#schooldash.monthEnhanced>#school-editor{grid-column:2;grid-row:4;margin:0!important;min-width:0}
+#schooldash.monthEnhanced>#simpleWorkflow{display:none!important}
+#schooldash.monthEnhanced #schoolMetrics{display:none!important}
+#schooldash.monthEnhanced #schoolTabs button{border-radius:10px;padding:11px 15px}
+#schooldash.monthEnhanced #schoolTabs button.active{background:#315be8;color:#fff}
+.freshMonthSidebar{background:#fff;border:1px solid #dfe6f3;border-radius:17px;padding:18px;box-shadow:0 6px 28px #12274a08;max-height:none}
+.freshSideHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.freshSideHead h3{font-size:15px;margin:0;color:#192a49}
+.freshSideRefresh{background:#f3f6fc;border-radius:8px;font-size:13px;padding:5px 9px;color:#425776}
+.freshMonthNew{width:100%;border:0;background:#315be8;color:#fff;border-radius:10px;padding:11px 9px;font-size:12px;font-weight:800}
+.freshSideList{display:grid;gap:9px;margin-top:15px}
+.freshSideMonth{border:1px solid #e0e7f3;border-radius:11px;padding:10px;background:#fbfcff}
+.freshSideMonth.active{border-color:#5271dc;background:#f0f4ff}
+.freshSideOpen{display:block;width:100%;border:0;background:transparent;text-align:left;color:#1e3050;font-size:12px;font-weight:800;padding:2px 0}
+.freshSideMeta{display:block;color:#7787a0;font-size:10px;margin:4px 0}
+.freshSideDownload{width:100%;display:block;font-size:11px;border-radius:8px;padding:8px;background:#e9f0ff;color:#3153b5;font-weight:850;margin-top:7px;text-align:left}
+.freshSideEmpty{font-size:12px;line-height:1.6;color:#73819a}
+#studioPanel{overflow:visible!important;height:auto!important;min-height:0!important;max-height:none!important;padding:0!important;border:none!important;box-shadow:none!important;background:transparent}
+#studioPanel .studioTop{border-radius:18px;background:#fff;border:1px solid #e0e7f2;padding:22px;margin-bottom:12px}
+#studioPanel .studioTop h2{color:#17294b;font-size:23px;margin:5px 0}
+#studioPanel .studioTop p{font-size:12px;color:#74839a;max-width:700px}
+#studioPanel #studioBody{overflow:visible!important;height:auto!important;max-height:none!important}
+#studioPanel #studioStageNav{overflow:visible;margin-bottom:10px}
+.freshStageGuide{display:flex;gap:8px;flex-wrap:wrap}
+.freshStageGuide button{display:flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid #e0e7f5;border-radius:9px;background:#fff;color:#66778f;font-weight:750;font-size:12px}
+.freshStageGuide button span{font-size:11px;background:#eff3fb;border-radius:50%;width:20px;height:20px;display:grid;place-items:center}
+.freshStageGuide button.selected{background:#315be8;border-color:#315be8;color:white}
+.freshStageGuide button.selected span{background:#ffffff30}
+.freshStageGuide button.done{color:#3153b0;border-color:#ccd8f5}
+.freshWorkflow{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:#fff;border:1px solid #dbe4f4;border-radius:15px;padding:16px 18px;margin:10px 0 18px;box-shadow:0 4px 15px #111f4108}
+.freshWorkflowCopy{min-width:220px;flex:1;display:grid;gap:5px}
+.freshWorkflowCopy strong{font-size:14px;color:#1a2e54}
+.freshWorkflowCopy small{font-size:11px;color:#78869e;line-height:1.5}
+.freshWorkflowActions{display:flex;gap:9px;flex-wrap:wrap}
+.freshWorkflowActions button{padding:10px 15px;border-radius:9px;font-size:12px;font-weight:850}
+.freshSave{background:#eaf0ff;color:#2d4faa}
+.freshExport{background:#315be8;color:white}
+#studioPanel .studioSubjectCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));align-items:start;gap:16px}
+#studioPanel .progressCard.premiumSubject{border:1.5px solid #cdd9ec!important;border-radius:17px!important;background:#fff!important;box-shadow:0 5px 23px #1021440a!important;overflow:hidden}
+#studioPanel .progressCard.premiumSubject.isComplete{border-color:#b7ceee!important}
+#studioPanel .progressCard.premiumSubject.isPending{border-left:4px solid #315be8!important}
+#studioPanel .progressCard .progressCardHeader{background:#f7f9fd!important;border-bottom:1px solid #e0e8f4;padding:15px!important}
+#studioPanel .progressCard h3{font-size:16px!important;color:#1a2d4c!important;margin:3px 0}
+#studioPanel .progressCard .masterCardBody{padding:14px!important}
+#studioPanel .masterEntryGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important}
+#studioPanel .masterField{border:1px solid #dce5f3!important;border-radius:10px!important;background:#fff!important;padding:10px!important;min-width:0}
+#studioPanel .masterField span{font-size:11px!important;color:#62738d!important;line-height:1.4}
+#studioPanel .masterField select,#studioPanel .masterField input,#studioPanel .masterField textarea{border:1px solid #d7e1f0!important;border-radius:8px!important;background:#f8faff!important;color:#162b52!important;font-size:13px!important;padding:9px!important;width:100%!important;max-width:100%}
+#studioPanel .masterRemaining{background:#edf2ff!important}
+#studioPanel .masterRemaining strong{color:#284db6!important}
+#studioPanel [data-studio-savesub],#studioPanel [data-progress-manage],#studioPanel .studioQuickTools .quickToolActions,#studioPanel [data-studio-refresh],#studioPanel [data-studio-openmonth],#studioPanel .studioRememberMini{display:none!important}
+#studioPanel .studioCompactHead [data-studio-stage="1"]{display:none}
+#studioPanel .studioPendingStrip{border:1px solid #e1e8f4;border-radius:12px;background:#fff}
+#studioPanel .studioQuickTools{background:transparent!important;box-shadow:none!important;padding:10px 0!important}
+#studioPanel .masterRowFooter{border-top:1px solid #e7edf6;padding-top:11px}
+#saveFloat{display:none!important}
+#portalSoundToggle{display:none!important}
+#studioPanel .studioFooter:empty{display:none}
+@media(max-width:970px){
+ #schooldash.monthEnhanced{grid-template-columns:1fr}
+ #schooldash.monthEnhanced>#freshMonthSidebar{grid-column:1;grid-row:4;position:static;top:auto;margin-bottom:12px}
+ #schooldash.monthEnhanced>#studioPanel,#schooldash.monthEnhanced>#school-overview,#schooldash.monthEnhanced>#school-history,#schooldash.monthEnhanced>#school-teachers,#schooldash.monthEnhanced>#school-editor{grid-column:1;grid-row:5}
+ .freshBookGrid{grid-template-columns:1fr}
+ .freshHero{grid-template-columns:1fr}.freshHeroStat{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:space-around;padding:16px}
+ .freshHeroStat div{border:0;padding:0}
+}
+@media(max-width:600px){
+ .wrap{padding-left:13px;padding-right:13px}
+ .freshHome{margin-top:15px}
+ .freshHero{border-radius:20px;padding:28px 21px}
+ .freshHero h1{font-size:34px}
+ .freshHeroStat b{font-size:21px}
+ .freshBookRow{gap:7px}
+ .freshClassCard{padding:16px}
+ #studioPanel .masterEntryGrid{grid-template-columns:1fr 1fr!important;gap:7px!important}
+ #studioPanel .masterField{padding:8px!important}
+ #studioPanel .masterField span{font-size:10px!important}
+ #studioPanel .studioSubjectCards{grid-template-columns:1fr}
+ #studioPanel .studioTop{padding:16px}
+ .freshWorkflowActions{width:100%}
+ .freshWorkflowActions button{flex:1}
+}
