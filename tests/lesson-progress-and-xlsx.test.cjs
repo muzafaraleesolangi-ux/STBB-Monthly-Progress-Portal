@@ -85,7 +85,7 @@ async function main(){
  assert.equal(one(card('5-english')+' [data-progress-bid][data-pkey="current"]').value,'','Current count is initially blank');
  assert.equal(one(card('5-english')+' [data-progress-total]').value,'5','Total is loaded from actual subject master');
  assert.equal(one('[data-quick-pending]').textContent,'2','All assigned subjects are pending');
- assert.equal(one('#studioReviewAction').hidden,true,'Review option hidden until all selected subjects complete');
+ assert.ok(one('#studioFooter [data-quick-save-export]'),'Direct Save & Export control is always visible on the reporting page');
  for(const h of headings)assert.ok(one(card('5-english')).textContent.includes(h),'Exact heading absent in teacher tab: '+h);
  select(card('5-english')+' [data-pkey="previous"]','0');
  select(card('5-english')+' [data-pkey="current"]','2');
@@ -97,7 +97,7 @@ async function main(){
  await studio.settle();
  assert.equal(one('[data-quick-done]').textContent,'1','Only fully completed saved subject counted');
  assert.equal(one('[data-quick-pending]').textContent,'1','Other teacher remains pending');
- assert.equal(one('#studioReviewAction').hidden,true,'One incomplete teacher still blocks export');
+ assert.equal(one('.freshEntryStatus').textContent,'1 / 2 subjects complete','Live subject counter reports incomplete teacher progress');
  select(card('5-maths')+' [data-pkey="previous"]','0');
  select(card('5-maths')+' [data-pkey="current"]','0');
  select(card('5-maths')+' [data-pkey="notebook"]','0');
@@ -105,16 +105,16 @@ async function main(){
  select(card('5-maths')+' [data-pkey="feedback"]','Very Good');
  select(card('5-maths')+' [data-progress-suggestionselect]','No further improvement suggested');
  await studio.settle();
- assert.equal(one('#studioReviewAction').hidden,true,'Export remains hidden until Final and Submit');
- assert.equal(one('#studioFinalAction').disabled,false,'Mark Final unlocks when all subjects complete');
+ assert.equal(one('.freshEntryStatus').textContent,'2 / 2 subjects complete','All saved subjects qualify for direct Excel export');
+ assert.equal(typeof studio.directSaveExport,'function','One-click export handles Final and Submit internally');
  assert.equal(one(card('5-english')).classList.contains('isCollapsed'),true,'Saved subject automatically minimizes');
  assert.equal(one('#studioSubjectCards').lastElementChild.dataset.progressCard,'5-maths','Latest completed card floats to bottom');
  await studio.setStatus('final');
  assert.equal(studio.status(),'final');
- assert.equal(one('[data-workflow-submit]')!==null,true,'Submit option appears after Final');
+ assert.ok(one('#studioFooter [data-quick-save-export]'),'Direct export remains visible after Final');
  await studio.setStatus('submitted');
  assert.equal(studio.status(),'submitted');
- assert.equal(one('#studioReviewAction').hidden,false,'Export appears only once report is Submitted');
+ assert.ok(one('#studioFooter [data-quick-save-export]'),'Direct Excel export is available after submission');
  assert.equal(one('[data-quick-pending]').textContent,'0');
  assert.equal(saved['5-maths'].previous,0,'Explicitly entered zero persists');
  assert.equal(saved['5-maths'].notebook,0,'Explicit zero percent persists');
