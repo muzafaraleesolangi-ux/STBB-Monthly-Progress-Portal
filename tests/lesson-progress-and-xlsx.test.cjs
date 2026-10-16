@@ -149,7 +149,7 @@ async function main(){
  select(card('5-maths')+' [data-pkey="previous"]','');
  await studio.settle();
  assert.equal(saved['5-maths'].previous,null,'Blank selection remains NULL, not fabricated zero');
- assert.equal(one('#studioReviewAction').hidden,true,'Editing a reopened draft locks Excel export');
+ assert.ok(one('#studioFooter [data-quick-save-export]'),'Reopened draft keeps one-click export available after saving all fields');
  assert.equal(one('[data-quick-pending]').textContent,'1','Incomplete report shown pending after edit');
  assert.equal(d.querySelector('[data-progress-details]'),null,'No unrelated assessment section is displayed');
  // A new November report must inherit October's cumulative chapter counts, and NOTHING else.
