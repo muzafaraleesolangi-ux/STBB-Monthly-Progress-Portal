@@ -1,0 +1,142 @@
+/* Fresh experience V2 — mobile-first, explicitly separated workspaces */
+:root{--fresh-ink:#172440;--fresh-border:#e1e7f4;--fresh-blue:#4663f0;--fresh-radius:18px}
+body{font-family:"Manrope",Inter,"Segoe UI",system-ui,sans-serif;letter-spacing:-.005em;background:#f4f6fb}
+button,select,input,textarea{font-family:inherit}
+#landing h1,#landing h2,#landing h3,#schooldash h1,#schooldash h2,#schooldash h3,.freshWorkspaceRibbon strong{font-family:"Outfit","Manrope",system-ui,sans-serif;letter-spacing:-.03em}
+#landing .freshHome{display:flex;flex-direction:column;gap:24px}
+#landing .freshHero{margin:0;background:linear-gradient(128deg,#111a41,#243d91);box-shadow:0 22px 45px #13245b1c}
+#landing .freshHero h1{letter-spacing:-.055em}
+#landing .freshHeroButtons button{min-height:47px;touch-action:manipulation}
+#landing .freshIdentitySteps{padding:20px 16px 22px;background:#fff;border:1px solid #e0e6f3;border-radius:22px;box-shadow:0 8px 25px #111e3a08;scroll-margin-top:92px}
+.freshSectionEyebrow{font-size:10px;letter-spacing:1.6px;font-weight:900;color:#475dd9}
+.freshSectionTitle{display:flex;flex-direction:column;gap:5px;margin:7px 0 18px}
+.freshSectionTitle h2{margin:0;font-size:clamp(24px,5vw,32px);color:#182744}
+.freshSectionTitle p{margin:0;font-size:12px;color:#78859e}
+.freshJourneyGrid{display:grid;grid-template-columns:1fr;gap:11px}
+.freshJourneyCard{display:flex;flex-direction:column;gap:5px;padding:18px 17px;border-radius:14px;border:1px solid #dce6f7;background:#f7faff}
+.freshJourneyCard span{font-size:10px;font-weight:950;letter-spacing:1.1px}
+.freshJourneyCard b{font-family:"Outfit",system-ui;font-size:19px;color:#142a52}
+.freshJourneyCard small{font-size:12px;color:#61718b;line-height:1.5}
+.freshJourneyCard.navy{border-left:4px solid #112c5c}.freshJourneyCard.navy span{color:#203965}
+.freshJourneyCard.blue{border-left:4px solid #4268f5;background:#f4f7ff}.freshJourneyCard.blue span{color:#315bdf}
+.freshJourneyCard.violet{border-left:4px solid #8264c8;background:#faf7ff}.freshJourneyCard.violet span{color:#7655b9}
+#landing .freshLibrary{margin:0;padding:23px 15px 18px;background:#eff3fb;border:1px solid #dbe4f6;border-radius:22px;scroll-margin-top:88px}
+#landing .freshLibraryBanner{display:flex;align-items:center;gap:10px;border-bottom:1px solid #d9e2f2;padding:0 0 14px;margin-bottom:18px;font-size:10px;font-weight:900;letter-spacing:1px;color:#5064ac}
+#landing .freshLibraryBanner span{font-size:10px;background:#dde7fb;color:#2b51a5;border-radius:99px;padding:6px 10px;letter-spacing:.5px}
+#landing .freshLibraryTop{align-items:stretch}
+#landing .freshLibrary h2{font-family:"Outfit",system-ui;font-size:clamp(25px,5vw,34px)}
+#landing .freshLibrarySearch{width:100%;min-width:0;min-height:46px}
+#landing .freshClassNav{display:flex;gap:7px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:7px;scrollbar-width:thin;scroll-snap-type:x proximity}
+#landing .freshClassNav button{flex:0 0 auto;min-width:43px;scroll-snap-align:start}
+#landing .freshBookGrid{grid-template-columns:1fr;gap:12px}
+#landing .freshClassCard{padding:17px;border-radius:15px}
+#landing .freshBookRow{min-height:50px}
+#landing .freshBookRow a{padding:10px 12px;touch-action:manipulation}
+#landing .freshDeveloper{display:grid;grid-template-columns:1fr;gap:20px;align-items:center;border:1px solid #ccd7fa;background:linear-gradient(132deg,#172653,#293d83);border-radius:22px;padding:22px;color:#fff;scroll-margin-top:85px;overflow:hidden}
+.freshDeveloperPhoto{display:grid;place-items:center;border-radius:17px;background:linear-gradient(135deg,#7586c0,#e0d5ca);max-width:275px;width:100%;margin:auto;min-height:240px;overflow:hidden}
+.freshDeveloperPhoto img{display:block;width:100%;height:100%;max-height:318px;min-height:240px;object-fit:cover;object-position:center center}
+.freshAvatarFallback{font-size:40px;font-weight:950;color:#fff}
+.freshDeveloperInfo{display:flex;flex-direction:column;align-items:flex-start}
+.freshDeveloperInfo .freshSectionEyebrow{color:#b5c5ff}
+.freshDeveloperInfo h2{font-size:clamp(27px,5vw,38px);line-height:1.15;margin:11px 0 22px}
+.freshDeveloperInfo h2 em{font-style:normal;color:#b4c3ff}
+.freshDeveloperKicker{font-size:10px;letter-spacing:1.4px;color:#aabbe4;font-weight:900}
+.freshDeveloperInfo h3{margin:4px 0;font-size:23px;color:#fff}
+.freshDeveloperInfo p{font-size:12px;line-height:1.8;color:#d6e0fd;max-width:480px}
+#landing .freshHelpDesk{display:flex;flex-direction:column;align-items:flex-start;gap:13px;border:1px solid #c7e5d9;background:linear-gradient(135deg,#f0faf5,#fff);padding:22px;border-radius:22px;scroll-margin-top:85px}
+.freshHelpIcon{width:45px;height:45px;display:grid;place-items:center;border-radius:12px;font-size:23px;background:#d8f1e3;color:#18864d}
+.freshHelpCopy{flex:1;min-width:0}
+.freshHelpCopy .freshSectionEyebrow{color:#27835c}
+.freshHelpCopy h2{margin:5px 0;font-size:25px;color:#183d30}
+.freshHelpCopy p{font-size:12px;line-height:1.6;margin:5px 0 12px;color:#5d766d}
+.freshHelpCopy strong{font-size:13px;color:#225e43}
+.freshWhatsApp{display:inline-flex;align-items:center;justify-content:center;border-radius:11px;background:#168753;color:white;font-size:13px;font-weight:850;padding:14px 19px;min-height:47px;box-shadow:0 7px 15px #11734020}
+.freshWhatsApp:hover{background:#126c45;color:white}
+#schooldash.freshSections .freshSchoolHeading{background:#17254e;border:1px solid #354473;border-radius:18px;color:#fff;padding:16px 17px;margin-bottom:14px}
+#schooldash.freshSections .freshSchoolHeading h1{font-size:clamp(21px,5vw,29px);color:#fff}
+#schooldash.freshSections .freshSchoolHeading p{color:#cbd6f4}
+#schooldash.freshSections .freshSchoolHeading .tag{color:#b5c5ff!important}
+#schooldash.freshSections .freshSchoolHeading .pill{background:#33477a;color:#e6ebff}
+#schooldash.freshSections #schoolTabs{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding:4px 1px 11px;scrollbar-width:thin;scroll-snap-type:x proximity;background:transparent}
+#schooldash.freshSections #schoolTabs button{flex:0 0 auto;scroll-snap-align:start;white-space:nowrap;min-height:45px;border:1px solid #d6def0!important;border-radius:11px!important;background:#fff;color:#425675;font-size:12px;font-weight:850;padding:10px 14px}
+#schooldash.freshSections #schoolTabs button.active{border-color:#4164dd!important;background:#315be8!important;color:#fff!important;box-shadow:0 6px 14px #315be827}
+#schooldash.freshSections #freshMonthSidebar{border:1px solid #d5dffa;background:#f7f8ff;border-radius:17px;padding:14px;margin-bottom:14px;box-shadow:none}
+#schooldash.freshSections #freshMonthSidebar .freshSideHead h3{font-family:"Outfit",system-ui;font-size:16px}
+#schooldash.freshSections #freshSideList{max-height:240px;overflow:auto;scrollbar-width:thin}
+#schooldash.freshSections #studioPanel,#schooldash.freshSections #school-teachers,#schooldash.freshSections #school-history,#schooldash.freshSections #school-editor,#schooldash.freshSections #school-overview{border:1px solid #dbe3f2;border-radius:18px;padding:12px;background:white;box-shadow:0 8px 26px #20345009;scroll-margin-top:95px}
+#schooldash.freshSections #studioPanel{padding:12px!important;min-height:200px}
+#schooldash.freshSections #studioPanel .studioTop{background:linear-gradient(110deg,#edf2ff,#f9fbff);border:1px solid #d5e0fb}
+#schooldash.freshSections #studioPanel[data-stage="5"] .studioTop{display:flex!important;justify-content:space-between;gap:9px!important;align-items:center!important}
+#schooldash.freshSections #studioPanel[data-stage="5"] #studioStageNav{display:flex!important;margin-bottom:10px}
+#schooldash.freshSections #studioPanel .studioTop h2{font-family:"Outfit";font-weight:650;letter-spacing:-.4px}
+#schooldash.freshSections #studioPanel .studioTop p{line-height:1.55}
+#schooldash.freshSections .freshWorkspaceRibbon{padding:16px;margin-bottom:14px;border:1px solid;border-radius:14px;display:flex;flex-direction:column;gap:6px}
+.freshWorkspaceRibbon span{font-size:10px;font-weight:950;letter-spacing:1.2px}
+.freshWorkspaceRibbon strong{font-size:21px;color:#243554;line-height:1.15}
+.freshWorkspaceRibbon small{font-size:12px;color:#677790;line-height:1.5}
+.freshWorkspaceRibbon.teacher{background:#fff9f0;border-color:#f4dec0}
+.freshWorkspaceRibbon.teacher span{color:#ac7029}
+.freshWorkspaceRibbon.history{background:#f5f1ff;border-color:#e1d4fa}
+.freshWorkspaceRibbon.history span{color:#8159b9}
+#schooldash.freshSections #school-editor.freshPreviewActive{background:#fff;border:1px solid #bfd5e7;box-shadow:0 12px 34px #153c5112;padding:12px}
+#schooldash.freshSections #school-editor.freshPreviewActive .freshOldToolbar{display:none!important}
+.freshPreviewHeader{padding:19px 16px 15px;border-radius:14px;background:linear-gradient(115deg,#e9f8ff,#f3f7ff);border:1px solid #c9e1f3;display:flex;flex-direction:column;gap:17px}
+.freshPreviewHeaderCopy h2{font-size:clamp(24px,5vw,33px);margin:7px 0 5px;color:#153257}
+.freshPreviewHeaderCopy p{font-size:12px;line-height:1.7;color:#536a83;max-width:690px;margin:0 0 12px}
+#freshPreviewMonth{display:inline-flex;font-size:11px;font-weight:850;background:#d8edfb;color:#265483;padding:8px 10px;border-radius:8px}
+.freshPreviewActions{display:flex;flex-direction:column;gap:8px}
+.freshPreviewActions button{width:100%;min-height:46px;border-radius:10px;font-size:13px;font-weight:850;touch-action:manipulation}
+.freshPreviewEdit{background:#fff;color:#345571;border:1px solid #cbdbe9}
+.freshPreviewDownload{background:#1b9766;color:#fff;border:1px solid #0e8257;box-shadow:0 6px 15px #22865e24}
+.freshPreviewDownload:disabled{opacity:.65}
+.freshPreviewStatus{margin:10px 2px 12px;padding:9px 12px;background:#f0faf6;border:1px solid #cbead8;border-radius:9px;color:#26714e;font-size:12px;line-height:1.6}
+#schooldash.freshSections #school-editor.freshPreviewActive .editorframe{display:block;width:100%;height:68vh;min-height:460px;border:1px solid #d9e4f0;border-radius:12px;background:white}
+#schooldash.freshSections #studioPanel .progressCard{box-shadow:0 6px 15px #152d4a0b}
+#schooldash.freshSections #studioPanel .masterField{border:1px solid #cad6ea!important;background:#fff!important}
+#schooldash.freshSections #studioPanel .masterField:focus-within{border-color:#446ff2!important;box-shadow:0 0 0 3px #446ff213}
+#schooldash.freshSections #studioPanel .masterField span{color:#526985!important}
+#schooldash.freshSections #studioFooter{border:1px solid #cddbf4!important}
+#schooldash.freshSections #studioFooter .freshExport{background:#3860e8!important}
+#schooldash.freshSections #studioFooter .freshSave{background:#e8efff!important}
+#schooldash.freshSections #studioPanel .studioCompactHead{display:flex}
+#schooldash.freshSections #studioPanel .studioCompactHead h3{font-size:20px;color:#1d3355}
+#schooldash.freshSections #school-history>.heading{margin-top:7px}
+#schooldash.freshSections #school-history .tablewrap{overflow:auto}
+@media(min-width:680px){
+ #landing .freshIdentitySteps{padding:28px}
+ .freshSectionTitle{flex-direction:row;justify-content:space-between;align-items:end}
+ .freshJourneyGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #landing .freshLibrary{padding:30px}
+ #landing .freshLibraryTop{align-items:flex-end}
+ #landing .freshLibrarySearch{width:auto;min-width:260px}
+ #landing .freshBookGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #landing .freshDeveloper{grid-template-columns:minmax(170px,.45fr) minmax(0,1fr);padding:32px;gap:34px}
+ .freshDeveloperPhoto{min-height:285px}
+ #landing .freshHelpDesk{flex-direction:row;align-items:center}
+ #landing .freshHelpDesk .freshWhatsApp{margin-left:auto}
+ .freshPreviewHeader{flex-direction:row;align-items:center;justify-content:space-between}
+ .freshPreviewActions{min-width:185px}
+ #schooldash.freshSections #studioPanel,#schooldash.freshSections #school-teachers,#schooldash.freshSections #school-history,#schooldash.freshSections #school-editor{padding:20px}
+}
+@media(min-width:971px){
+ #schooldash.freshSections #freshMonthSidebar{margin-bottom:0;position:sticky;top:84px}
+ #schooldash.freshSections #freshSideList{max-height:calc(100vh - 300px)}
+ #schooldash.freshSections #studioPanel,#schooldash.freshSections #school-teachers,#schooldash.freshSections #school-history,#schooldash.freshSections #school-editor{padding:22px}
+}
+@media(max-width:480px){
+ #landing .freshHero{padding:27px 20px}
+ #landing .freshHeroStat{flex-wrap:nowrap;overflow-x:auto}
+ #landing .freshHeroStat div{flex-direction:column;align-items:start}
+ #landing .freshHeroStat span{font-size:11px}
+ #landing .freshIdentitySteps{padding:18px 13px}
+ #landing .freshDeveloper{padding:20px}
+ #landing .freshHelpDesk{padding:19px}
+ #landing .freshWhatsApp{width:100%}
+ #schooldash.freshSections #studioPanel[data-stage="5"] .studioTop{display:block!important}
+ #schooldash.freshSections #studioPanel .studioTop p{font-size:11px}
+ #schooldash.freshSections #studioPanel[data-stage="5"] #studioStageNav{overflow-x:auto;white-space:nowrap}
+ #schooldash.freshSections #studioPanel #studioFooter{gap:7px!important;bottom:3px!important}
+ #schooldash.freshSections #studioPanel .freshStageGuide{flex-wrap:nowrap}
+ #schooldash.freshSections #studioPanel .freshStageGuide button{flex-shrink:0}
+ #schooldash.freshSections #school-editor.freshPreviewActive .editorframe{min-height:420px;height:58vh}
+}
