@@ -33,6 +33,8 @@ jobs:
           node --check tests/lesson-progress-and-xlsx.test.cjs
           node tests/lesson-progress-and-xlsx.test.cjs
           node tests/excel-delivery.test.cjs
+          node --check tests/visible-export-ui.test.cjs
+          node tests/visible-export-ui.test.cjs
           node tests/original-master-xlsx.test.cjs
           node --check tests/teacher-self-service.test.cjs
           node tests/teacher-self-service.test.cjs
